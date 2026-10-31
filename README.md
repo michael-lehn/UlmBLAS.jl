@@ -405,6 +405,48 @@ ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.0 
   BLAS `dgemm_` call for the strided view, regardless of which OpenBLAS
   is selected. `ulmBLAS.mul!` continues to use its strided GEMM directly.
 
+## Further Ideas
+
+The current interface already supports matrices with arbitrary row and column
+strides. But why stop at matrices whose elements are stored in memory?
+
+One possible next step is to implement the **GEMM frame algorithm in Julia**,
+while continuing to use ulmBLAS's optimized micro-kernels. Packing would be
+the natural boundary: Julia could read elements from more general matrix
+objects, convert them to a supported computation type, and pack them into
+the buffers expected by the existing kernels.
+
+Some possibilities worth exploring:
+
+- **Mixed element types.** Allow `A`, `B`, and `C` to have different
+  element types. Start with supported floating-point and complex types,
+  selecting an appropriate computation type for the packed panels. A
+  different type for `C` may require a temporary output tile and explicit
+  conversion on write-back. Integer inputs could eventually be converted
+  during packing, but that would *not* be integer GEMM or provide integer
+  micro-kernels.
+- **Matrices computed on demand.** Accept read-only matrix objects that
+  implement indexed element access, even when no dense backing storage
+  exists. For example, a transposed or scaled matrix expression could be
+  evaluated as its elements are packed, without materializing the entire
+  intermediate matrix.
+- **More general matrix expressions.** Explore products involving sums,
+  transposes, and scaled operands. This would need careful treatment of
+  repeated evaluation, aliasing, type promotion, and the cost of computing
+  each element; it would not automatically make every lazy expression fast.
+- **Performance experiments.** Compare Julia-level packing and frame-loop
+  overhead against the current native implementation, especially for small
+  matrices and expensive element access. Preserve the existing fast path
+  for ordinary strided arrays.
+
+These are ideas for future experiments, **not implemented features or an
+immediate development plan**. I explored related approaches years ago in
+[C++/uBLAS](https://www.mathematik.uni-ulm.de/~lehn/test_ublas/) and
+[Blaze](https://www.mathematik.uni-ulm.de/~lehn/test_blaze/session1/page01.html).
+The Blaze example in particular evaluates expressions such as
+`trans(A) + A` and `2 * B` while packing, rather than first constructing
+full temporary matrices.
+
 ## CPU variants
 
 ulmBLAS selects its micro kernels at compile time.  The package is meant
