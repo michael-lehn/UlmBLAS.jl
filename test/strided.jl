@@ -1,4 +1,4 @@
-#  ulmBLAS.mul! and ulmBLAS.mul_aliased!: arbitrary strides, transpose and
+#  UlmBLAS.mul! and UlmBLAS.mul_aliased!: arbitrary strides, transpose and
 #  adjoint, alpha and beta, against a reference without BLAS
 
 #  reference: α A B + β C in plain loops (A, B with op already applied)
@@ -85,24 +85,24 @@ const OUT_LAYOUTS = (:col, :row, :stride2, :negrow, :negboth)
     for (m, n, k) in ((1, 1, 1), (3, 2, 5), (17, 13, 29), (64, 33, 70))
         for lA in LAYOUTS, lB in LAYOUTS, opA in ops, opB in ops
             i = hash((lA, lB, opA, opB)) % length(αβ) + 1
-            @test check_case(ulmBLAS.mul!, T, m, n, k, lA, opA, lB, opB,
+            @test check_case(UlmBLAS.mul!, T, m, n, k, lA, opA, lB, opB,
                              :col, αβ[i]...)
         end
     end
     #  every layout of C, every α, β
     for lC in OUT_LAYOUTS, (α, β) in αβ
-        @test check_case(ulmBLAS.mul!, T, 23, 19, 31, :stride2, ops[end],
+        @test check_case(UlmBLAS.mul!, T, 23, 19, 31, :stride2, ops[end],
                          :negrow, :N, lC, α, β)
     end
     #  large (several blocks of the GEMM algorithm)
     for (lA, lB, lC) in ((:col, :col, :col), (:stride2, :negboth, :row),
                          (:zerorow, :row, :negrow))
-        @test check_case(ulmBLAS.mul!, T, 301, 263, 517, lA, ops[end], lB,
+        @test check_case(UlmBLAS.mul!, T, 301, 263, 517, lA, ops[end], lB,
                          :N, lC, αβ[2]...)
     end
     #  empty and k = 0
     for (m, n, k) in ((0, 5, 3), (4, 0, 3), (4, 5, 0))
-        @test check_case(ulmBLAS.mul!, T, m, n, k, :negrow, :N, :stride2,
+        @test check_case(UlmBLAS.mul!, T, m, n, k, :negrow, :N, :stride2,
                          :N, :stride2, 2, 1)
     end
 end
@@ -110,39 +110,51 @@ end
 @testset "strided: no allocations" begin
     A = view(rand(200, 200), 1:2:200, 1:100); B = rand(100, 100)
     C = zeros(100, 100)
-    ulmBLAS.mul!(C, A, B', 2, 0.5)
-    @test (@allocated ulmBLAS.mul!(C, A, B', 2, 0.5)) == 0
+    UlmBLAS.mul!(C, A, B', 2, 0.5)
+    @test (@allocated UlmBLAS.mul!(C, A, B', 2, 0.5)) == 0
     Z = rand(ComplexF64, 50, 50); W = rand(ComplexF64, 50, 50)
     D = zeros(ComplexF64, 50, 50)
-    ulmBLAS.mul!(D, Z', W, 1im, 0)
-    @test (@allocated ulmBLAS.mul!(D, Z', W, 1im, 0)) == 0
+    UlmBLAS.mul!(D, Z', W, 1im, 0)
+    @test (@allocated UlmBLAS.mul!(D, Z', W, 1im, 0)) == 0
 end
 
 @testset "strided: errors" begin
-    @test_throws DimensionMismatch ulmBLAS.mul!(zeros(3, 4), rand(3, 2),
+    @test_throws DimensionMismatch UlmBLAS.mul!(zeros(3, 4), rand(3, 2),
                                                 rand(3, 4))
     #  no fallback for other types
-    @test_throws MethodError ulmBLAS.mul!(zeros(Int, 2, 2), ones(Int, 2, 2),
+    @test_throws MethodError UlmBLAS.mul!(zeros(Int, 2, 2), ones(Int, 2, 2),
                                           ones(Int, 2, 2))
-    @test_throws MethodError ulmBLAS.mul!(zeros(2, 2), rand(Float32, 2, 2),
+    @test_throws MethodError UlmBLAS.mul!(zeros(2, 2), rand(Float32, 2, 2),
                                           rand(2, 2))
+    #  other matrix types: a view with a vector of indices, an adjoint C
+    A = rand(4, 4)
+    @test_throws MethodError UlmBLAS.mul!(zeros(2, 4), view(A, [1, 3], :), A)
+    @test_throws MethodError UlmBLAS.mul!(adjoint(zeros(ComplexF64, 4, 4)),
+                                          rand(ComplexF64, 4, 4),
+                                          rand(ComplexF64, 4, 4))
+    #  C with a zero stride
+    @test_throws ArgumentError UlmBLAS.mul!(view(zeros(4, 4), StepRangeLen(1, 0, 4), 1:4), A, A)
+    @test_throws ArgumentError UlmBLAS.mul!(view(zeros(4, 4), 1:4, StepRangeLen(1, 0, 4)), A, A)
+    #  ... but not for a dimension of length 1
+    C = zeros(4, 4)
+    @test UlmBLAS.mul!(view(C, StepRangeLen(2, 0, 1), 1:4), A[1:1, :], A) ≈ A[1:1, :] * A
 end
 
 @testset "mul_aliased! $T" for T in (Float64, ComplexF64)
     for (α, β) in ((1, 0), (T(2), T(-0.5)))
         #  C is A
         A = rand(T, 40, 40); B = rand(T, 40, 40); A0 = copy(A)
-        ulmBLAS.mul_aliased!(A, A, B, α, β)
+        UlmBLAS.mul_aliased!(A, A, B, α, β)
         @test A ≈ mul_ref(A0, B, A0, T(α), T(β))
         #  C overlaps B (shifted view of the same parent)
         P = rand(T, 60, 40); P0 = copy(P)
         C = view(P, 1:40, 1:40); Bv = view(P, 11:50, 1:40); Aa = rand(T, 40, 40)
-        ulmBLAS.mul_iansmba!(C, Aa, Bv, α, β)
+        UlmBLAS.mul_iansmba!(C, Aa, Bv, α, β)
         @test C ≈ mul_ref(Aa, P0[11:50, :], P0[1:40, :], T(α), T(β))
         #  no overlap: same as mul!
         C1 = rand(T, 40, 40); C2 = copy(C1)
-        ulmBLAS.mul_aliased!(C1, A0, B, α, β)
-        ulmBLAS.mul!(C2, A0, B, α, β)
+        UlmBLAS.mul_aliased!(C1, A0, B, α, β)
+        UlmBLAS.mul!(C2, A0, B, α, β)
         @test C1 == C2
     end
 end

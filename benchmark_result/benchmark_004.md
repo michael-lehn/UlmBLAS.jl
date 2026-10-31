@@ -1,5 +1,9 @@
 # Fourth Benchmark on my MacBook: BLIS
 
+> Recorded before the package was renamed from `ulmBLAS.jl` to `UlmBLAS.jl`:
+> in the recorded output and the chart, `ulmBLAS.mul!` is today's
+> `UlmBLAS.mul!`.  ulmBLAS (the C/C++ library) keeps its name.
+
 The same benchmark as the [first](benchmark_001.md), [second](benchmark_002.md)
 and [third](benchmark_003.md) one, with [BLIS](https://github.com/flame/blis)
 behind `LinearAlgebra.mul!`.  Three BLIS builds were measured:
@@ -50,7 +54,7 @@ a BLIS library: built with `configure -b 64` (64-bit BLAS integers, symbols
 Before measuring, [`gemm_blis.jl`](../bench/gemm_blis.jl) checks that LBT
 forwards `dgemm_` to the `dgemm_` of the BLIS library (function pointer
 comparison), that `LinearAlgebra.mul!` makes exactly one `dgemm_` call for
-the contiguous matrix and none for the strided view, that `ulmBLAS.mul!`
+the contiguous matrix and none for the strided view, that `UlmBLAS.mul!`
 makes no `dgemm_` call and calls `ulmblas_dgemm_strided` of ulmBLAS, and it
 compares all results with Julia's generic multiplication.
 
@@ -126,7 +130,7 @@ LinearAlgebra.mul!, contiguous  1500  BLIS                             4    42.7
 ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.3     413.1     1.00      0      0
 ```
 
-![GFLOPS of ulmBLAS.mul! and LinearAlgebra.mul! with BLIS master for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 BLIS threads, on an Apple M5](../bench/results/2026-10-31-apple-m5-blis.svg)
+![GFLOPS of UlmBLAS.mul! and LinearAlgebra.mul! with BLIS master for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 BLIS threads, on an Apple M5](../bench/results/2026-10-31-apple-m5-blis.svg)
 
 ## Output on my M5: BLIS pull request 921 (SME2)
 
@@ -174,7 +178,7 @@ LinearAlgebra.mul!, contiguous  1500  BLIS                             4    16.2
 ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.1     420.5     1.00      0      0
 ```
 
-![GFLOPS of ulmBLAS.mul! and LinearAlgebra.mul! with BLIS pull request 921 (SME2) for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 BLIS threads, on an Apple M5](../bench/results/2026-10-31-apple-m5-blis-sme2.svg)
+![GFLOPS of UlmBLAS.mul! and LinearAlgebra.mul! with BLIS pull request 921 (SME2) for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 BLIS threads, on an Apple M5](../bench/results/2026-10-31-apple-m5-blis-sme2.svg)
 
 ## Output on my M5: BLIS of BLISBLAS.jl
 
@@ -243,7 +247,7 @@ ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.1
   2.00 to 3.99) but do not make it faster: 399.8 to 450.4 GFLOPS with 2 to
   4 threads.
 - The strided case is unchanged: `LinearAlgebra.mul!` makes no BLAS call
-  for the view (6.9 to 7.6 GFLOPS), `ulmBLAS.mul!` reaches 355 to 416
+  for the view (6.9 to 7.6 GFLOPS), `UlmBLAS.mul!` reaches 355 to 416
   GFLOPS.
 - These are measurements of a pull request that is still under review; the
   merged BLIS may behave differently.

@@ -13,8 +13,8 @@
 #  Only Julia's standard library is used.
 #
 
-const CASES = ["ulmBLAS.mul!, strided", "LinearAlgebra.mul!, strided",
-               "LinearAlgebra.mul!, contiguous", "ulmBLAS.mul!, contiguous"]
+const CASES = ["UlmBLAS.mul!, strided", "LinearAlgebra.mul!, strided",
+               "LinearAlgebra.mul!, contiguous", "UlmBLAS.mul!, contiguous"]
 # categorical slots 1 to 4 (light, dark), fixed order
 const COLORS      = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"]
 const COLORS_DARK = ["#3987e5", "#d95926", "#199e70", "#c98500"]
@@ -37,7 +37,9 @@ col(name) = findfirst(==(name), header)
 for l in lines[2:end]
     f = split(l, '\t')
     n = parse(Int, f[col("n")])
-    gf[(f[col("case")], n, parse(Int, f[col("BLAS_threads")]))] =
+    #  results recorded before the rename of the package: ulmBLAS.mul!
+    case = replace(f[col("case")], "ulmBLAS.mul!" => "UlmBLAS.mul!")
+    gf[(case, n, parse(Int, f[col("BLAS_threads")]))] =
         2.0*n^3/parse(Float64, f[col("min_ns")])
 end
 groups = [(t, n) for t in 1:4 for n in (1000, 1500)]

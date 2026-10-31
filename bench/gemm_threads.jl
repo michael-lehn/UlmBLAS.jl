@@ -1,5 +1,5 @@
 #
-#  GEMM benchmark: ulmBLAS.mul! (ulmblas_dgemm_strided) against
+#  GEMM benchmark: UlmBLAS.mul! (ulmblas_dgemm_strided) against
 #  LinearAlgebra.mul! with OpenBLAS, for a strided view (row stride 2) and
 #  a contiguous matrix, n = 1000 and 1500, 1 to 4 BLAS threads.
 #
@@ -12,16 +12,16 @@
 #  for a build without SYMBOLSUFFIX).  RESULTS=name writes name.tsv instead
 #  of gemm_threads.tsv.
 #
-#  `using ulmBLAS` forwards the BLAS routines of libblastrampoline (LBT) to
+#  `using UlmBLAS` forwards the BLAS routines of libblastrampoline (LBT) to
 #  ulmBLAS.  For this benchmark LBT is switched back to OpenBLAS alone, so
-#  that LinearAlgebra.mul! measures OpenBLAS; ulmBLAS.mul! calls
+#  that LinearAlgebra.mul! measures OpenBLAS; UlmBLAS.mul! calls
 #  ulmblas_dgemm_strided through its own function pointer and does not go
 #  through LBT.  Both are checked before measuring:
 #
 #  - the address LBT forwards dgemm_ to is the dgemm of OpenBLAS;
 #  - a counting wrapper in LBT shows how many dgemm_ calls LinearAlgebra.mul!
 #    makes (none for the strided view: generic Julia code instead of BLAS);
-#  - the function pointer of ulmBLAS.mul! is ulmblas_dgemm_strided of the
+#  - the function pointer of UlmBLAS.mul! is ulmblas_dgemm_strided of the
 #    ulmBLAS library;
 #  - BLAS.set_num_threads sets the threads of OpenBLAS (read back from
 #    OpenBLAS); ulmBLAS is single-threaded, the generic Julia code as well.
@@ -32,10 +32,10 @@ if !haskey(ENV, "ULMBLAS_LIBRARY")
                    Sys.isapple() ? "libulmblas_lbt.dylib" : "libulmblas_lbt.so")
     isfile(lib) && (ENV["ULMBLAS_LIBRARY"] = abspath(lib))
 end
-using ulmBLAS
+using UlmBLAS
 import OpenBLAS_jll
 
-const ulmlib = ulmBLAS.library_path()
+const ulmlib = UlmBLAS.library_path()
 const oblib  = get(ENV, "OPENBLAS_LIBRARY", OpenBLAS_jll.libopenblas_path)
 const obsuf  = get(ENV, "OPENBLAS_SUFFIX", "64_")
 obfun(name) = dlsym(dlopen(oblib), name * obsuf)
@@ -50,7 +50,7 @@ function owner(name)
 end
 
 println("library of ulmBLAS: ", ulmlib)
-println("LBT after `using ulmBLAS`: dgemm_ -> ", owner("dgemm_"))
+println("LBT after `using UlmBLAS`: dgemm_ -> ", owner("dgemm_"))
 
 #  LBT: OpenBLAS only
 BLAS.lbt_forward(oblib; clear=true, verbose=false, suffix_hint=obsuf)
@@ -58,9 +58,9 @@ BLAS.lbt_forward(oblib; clear=true, verbose=false, suffix_hint=obsuf)
 println("LBT for this benchmark:   dgemm_ -> ", owner("dgemm_"),
         " (", basename(oblib), ")")
 
-const strided = ulmBLAS.gemm_strided_ptr[Float64]
+const strided = UlmBLAS.gemm_strided_ptr[Float64]
 @assert UInt(strided) == symaddr(ulmlib, "ulmblas_dgemm_strided")
-println("ulmBLAS.mul!:             ulmblas_dgemm_strided of ", basename(ulmlib))
+println("UlmBLAS.mul!:             ulmblas_dgemm_strided of ", basename(ulmlib))
 
 #  Counting wrapper around the dgemm_ that LBT forwards to
 const realgemm = BLAS.lbt_get_forward("dgemm_", :ilp64)
@@ -96,9 +96,9 @@ let P = rand(64, 32), A = view(P, 1:2:64, :), Ac = Matrix(A), B = rand(32, 32),
     C = zeros(32, 32)
     s = gemmcalls(() -> LinearAlgebra.mul!(C, A, B))
     c = gemmcalls(() -> LinearAlgebra.mul!(C, Ac, B))
-    u = gemmcalls(() -> ulmBLAS.mul!(C, A, B))
+    u = gemmcalls(() -> UlmBLAS.mul!(C, A, B))
     println("dgemm_ calls through LBT: LinearAlgebra.mul! strided ", s,
-            ", contiguous ", c, "; ulmBLAS.mul! ", u)
+            ", contiguous ", c, "; UlmBLAS.mul! ", u)
     @assert s == 0 && c == 1 && u == 0
 end
 @assert owner("dgemm_") == "OpenBLAS"
@@ -116,10 +116,10 @@ println("OpenBLAS: ", unsafe_string(ccall(obfun("openblas_get_config"), Cstring,
         "; core: ", unsafe_string(ccall(obfun("openblas_get_corename"), Cstring, ())))
 
 #  Benchmarks
-const cases = (("ulmBLAS.mul!, strided",          :ulm, true),
+const cases = (("UlmBLAS.mul!, strided",          :ulm, true),
                ("LinearAlgebra.mul!, strided",    :jl,  true),
                ("LinearAlgebra.mul!, contiguous", :jl,  false),
-               ("ulmBLAS.mul!, contiguous",       :ulm, false))
+               ("UlmBLAS.mul!, contiguous",       :ulm, false))
 backend(kind, strided) = kind === :ulm ? "ulmBLAS (1 thread)" :
                          strided ? "generic Julia (1 thread)" : "OpenBLAS"
 results = []
@@ -140,9 +140,9 @@ for t in 1:4
         for (name, kind, str) in cases
             X = str ? A : Ac
             fill!(C, NaN)
-            kind === :ulm ? ulmBLAS.mul!(C, X, B) : LinearAlgebra.mul!(C, X, B)
+            kind === :ulm ? UlmBLAS.mul!(C, X, B) : LinearAlgebra.mul!(C, X, B)
             @assert C ≈ R "$name, n = $n: wrong result"
-            b = kind === :ulm ? @benchmark(ulmBLAS.mul!($C, $X, $B)) :
+            b = kind === :ulm ? @benchmark(UlmBLAS.mul!($C, $X, $B)) :
                                 @benchmark(LinearAlgebra.mul!($C, $X, $B))
             tmin = minimum(b).time
             th = kind === :jl && !str ? string(t) : "1"

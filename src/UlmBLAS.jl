@@ -1,13 +1,14 @@
 """
-    ulmBLAS
+    UlmBLAS
 
 Use the BLAS of [ulmBLAS](https://github.com/michael-lehn/ulmBLAS) in Julia.
 
-`using ulmBLAS` loads a shared library of ulmBLAS (64-bit integers,
+`using UlmBLAS` loads a shared library of ulmBLAS (64-bit integers,
 symbols `dgemm_64_` etc.) into libblastrampoline, the BLAS forwarding layer
-of Julia.  The BLAS routines of ulmBLAS then replace those of OpenBLAS;
-LAPACK and everything ulmBLAS does not provide stay with OpenBLAS (see
-`LinearAlgebra.BLAS.get_config()`).
+of Julia, on top of the libraries already loaded (usually OpenBLAS).  The
+BLAS routines of ulmBLAS then replace those of OpenBLAS; LAPACK and every
+routine ulmBLAS does not provide (e.g. `?gemmt`, `?axpby`) stay with the
+library that provided them before (see `LinearAlgebra.BLAS.get_config()`).
 
 ulmBLAS selects its micro kernels when it is compiled.  The package
 therefore contains one library per kind of CPU and picks the one for this
@@ -15,7 +16,7 @@ CPU when it is loaded (see [`variant`](@ref)).  The environment variable
 `ULMBLAS_LIBRARY` (path of a library built with `make lbt`) overrides the
 choice.
 """
-module ulmBLAS
+module UlmBLAS
 
 using Artifacts, Libdl, LinearAlgebra
 using Base.BinaryPlatforms.CPUID
@@ -60,7 +61,7 @@ function variant()
             return "x86_64"
         end
     end
-    error("ulmBLAS: no build for $(Sys.ARCH)")
+    error("UlmBLAS: no build for $(Sys.ARCH)")
 end
 
 #  the library of variant v in the artifact of this platform (installed by
@@ -76,14 +77,25 @@ function artifact_library(v)
 end
 
 """
-    forward(path; clear=false)
+    forward(path)
 
-Load the ulmBLAS library at `path` into libblastrampoline.  With
-`clear=false` (default) only the routines ulmBLAS provides are replaced.
+Load the ulmBLAS library at `path` into libblastrampoline, on top of the
+libraries already loaded: only the routines the library provides are
+replaced, every other routine keeps its previous implementation
+(`BLAS.lbt_forward(path; clear=false)`).  Loading the same library again
+changes nothing.
+
+There is deliberately no `clear` option: ulmBLAS has no LAPACK and not all
+BLAS extensions, and after `clear=true` libblastrampoline would leave these
+routines without an implementation (calls only print an error message and
+return without a result).  To return to Julia's default, use
+`BLAS.lbt_forward(OpenBLAS_jll.libopenblas_path; clear=true)` (or the
+`clear=true` load of another complete library), then `forward` again if
+desired.
 """
-function forward(path::AbstractString; clear::Bool=false)
-    n = BLAS.lbt_forward(path; clear=clear, suffix_hint="64_")
-    n > 0 || error("ulmBLAS: no BLAS routines forwarded from $path")
+function forward(path::AbstractString)
+    n = BLAS.lbt_forward(path; clear=false, suffix_hint="64_")
+    n > 0 || error("UlmBLAS: no BLAS routines forwarded from $path")
     library[] = path
     load_strided(path)
     return n
@@ -102,7 +114,7 @@ function __init__()
         chosen[] = variant()
         lib = artifact_library(chosen[])
         if lib === nothing
-            @warn "ulmBLAS: no library for this platform (variant " *
+            @warn "UlmBLAS: no library for this platform (variant " *
                   "$(chosen[])); set ULMBLAS_LIBRARY to a library built " *
                   "with `make lbt`"
             return
@@ -110,6 +122,11 @@ function __init__()
         path = lib
     else
         chosen[] = "ULMBLAS_LIBRARY"
+        if !isfile(path)
+            @warn "UlmBLAS: ULMBLAS_LIBRARY=$path does not exist; the BLAS " *
+                  "of Julia is unchanged"
+            return
+        end
     end
     forward(path)
 end

@@ -1,5 +1,5 @@
 #
-#  GEMM with arbitrary strides: ulmBLAS.mul!(C, A, B, α, β) calls
+#  GEMM with arbitrary strides: UlmBLAS.mul!(C, A, B, α, β) calls
 #  ulmblas_?gemm_strided (ulmblas_strided.h of ulmBLAS) with the strides of
 #  Julia's arrays, without copies.
 #
@@ -43,7 +43,7 @@ end
 end
 
 @noinline function missing_strided(T)
-    error("ulmBLAS: the library $(library[]) has no " *
+    error("UlmBLAS: the library $(library[]) has no " *
           "ulmblas_?gemm_strided for $T (built before the strided " *
           "interface, or no library loaded)")
 end
@@ -74,25 +74,28 @@ for T in (ComplexF32, ComplexF64)
 end
 
 """
-    ulmBLAS.mul!(C, A, B, α=true, β=false) -> C
+    UlmBLAS.mul!(C, A, B, α=true, β=false) -> C
 
 `C = α A B + β C` for `Float32`, `Float64`, `ComplexF32`, `ComplexF64`, with
 the GEMM of ulmBLAS for arbitrary strides, without copies.
 
 - `C`: a strided matrix (`Matrix`, a `view` with ranges, ...) or its
-  `transpose` (row major).
+  `transpose` (row major), without zero strides (except for a dimension of
+  length 1; `ArgumentError` otherwise).
 - `A`, `B`: strided matrices, or `transpose`/`adjoint` of strided
   matrices (`adjoint` conjugates complex elements), also nested once
   (`adjoint(transpose(X))`).  Any strides are
   allowed: non-unit, negative, zero (e.g. a repeated row), row major.
 - All three have the same element type; `α` and `β` are converted to it.
+- Other element types, mixed types and other matrix types (e.g. a `view`
+  with a vector of indices, an `adjoint` `C`) are not supported and raise
+  a `MethodError`; there is no fallback.
 
 Contract (not checked, for speed):
 
-- `C` must not overlap with `A` or `B`.  For possibly overlapping operands
-  use [`ulmBLAS.mul_aliased!`](@ref).
-- The elements of `C` must be distinct memory locations (no zero stride
-  of `C`, except for a dimension of length 1).
+- `C` must not overlap with `A` or `B` (otherwise the result is
+  unspecified; only the elements of `C` are written).  For possibly
+  overlapping operands use [`UlmBLAS.mul_aliased!`](@ref).
 
 `A` and `B` may overlap each other or themselves.  As in BLAS, `C` is not
 read for `β = 0`, and `A`, `B` are not read for `α = 0`.
@@ -113,6 +116,9 @@ function mul!(C::StridedOut{T}, A::StridedOp{T}, B::StridedOp{T},
     PA, rA, cA, conjA = layout(A)
     PB, rB, cB, conjB = layout(B)
     PC, rC, cC, _     = layout(C)
+    if (m > 1 && rC == 0) || (n > 1 && cC == 0)
+        throw(ArgumentError("UlmBLAS.mul!: C has a zero stride"))
+    end
     GC.@preserve PA PB PC begin
         gemm_strided!(f, m, n, k, T(α), pointer(PA), rA, cA, conjA,
                       pointer(PB), rB, cB, conjB, T(β), pointer(PC), rC, cC)
@@ -121,14 +127,14 @@ function mul!(C::StridedOut{T}, A::StridedOp{T}, B::StridedOp{T},
 end
 
 """
-    ulmBLAS.mul_aliased!(C, A, B, α=true, β=false) -> C
+    UlmBLAS.mul_aliased!(C, A, B, α=true, β=false) -> C
 
-Like [`ulmBLAS.mul!`](@ref), but correct also if `C` overlaps with `A` or
+Like [`UlmBLAS.mul!`](@ref), but correct also if `C` overlaps with `A` or
 `B`: then `α A B` is computed into a temporary matrix first (one
 allocation of the size of `C`).  Without overlap (`Base.mightalias`) it is
-`ulmBLAS.mul!`.
+`UlmBLAS.mul!`.
 
-Also available as `ulmBLAS.mul_iansmba!` ("I Am Not Sure, Might Be
+Also available as `UlmBLAS.mul_iansmba!` ("I Am Not Sure, Might Be
 Aliased").
 """
 function mul_aliased!(C::StridedOut{T}, A::StridedOp{T}, B::StridedOp{T},

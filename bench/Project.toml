@@ -1,7 +1,7 @@
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 OpenBLAS_jll = "4536629a-c528-5b80-bd46-f80d51c5b363"
-ulmBLAS = "cd55841f-6472-4438-97d9-4c2d8eed3a6b"
+UlmBLAS = "cd55841f-6472-4438-97d9-4c2d8eed3a6b"
 
 [sources]
-ulmBLAS = {path = ".."}
+UlmBLAS = {path = ".."}

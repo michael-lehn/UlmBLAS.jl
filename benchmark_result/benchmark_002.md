@@ -1,5 +1,9 @@
 # Second Benchmark on my MacBook :-(
 
+> Recorded before the package was renamed from `ulmBLAS.jl` to `UlmBLAS.jl`:
+> in the recorded output and the chart, `ulmBLAS.mul!` is today's
+> `UlmBLAS.mul!`.  ulmBLAS (the C/C++ library) keeps its name.
+
 Well, that changes the picture. :-) This time I repeated the benchmark
 with a recent development version of OpenBLAS (`develop`, commit `9d78ff857`,
 `v0.3.34-641`), built from source. Unlike Julia's bundled OpenBLAS, this
@@ -67,7 +71,7 @@ LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        4    15.7 
 ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.0     421.0       0      0
 ```
 
-![GFLOPS of ulmBLAS.mul! and LinearAlgebra.mul! with OpenBLAS develop (SME2) for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 OpenBLAS threads, on an Apple M5](../bench/results/2026-10-31-apple-m5-openblas-dev.svg)
+![GFLOPS of UlmBLAS.mul! and LinearAlgebra.mul! with OpenBLAS develop (SME2) for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 OpenBLAS threads, on an Apple M5](../bench/results/2026-10-31-apple-m5-openblas-dev.svg)
 
 ## Some notes on that
 
@@ -85,4 +89,4 @@ ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.0 
   all OpenBLAS kernels.
 - **Arbitrary strides still matter.** `LinearAlgebra.mul!` makes no
   BLAS `dgemm_` call for the strided view, regardless of which OpenBLAS
-  is selected. `ulmBLAS.mul!` continues to use its strided GEMM directly.
+  is selected. `UlmBLAS.mul!` continues to use its strided GEMM directly.

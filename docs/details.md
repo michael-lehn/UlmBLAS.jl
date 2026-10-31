@@ -1,4 +1,4 @@
-# ulmBLAS.jl: details
+# UlmBLAS.jl: details
 
 ## libblastrampoline
 
@@ -6,13 +6,54 @@
   [libblastrampoline](https://github.com/JuliaLinearAlgebra/libblastrampoline)
   (LBT), which forwards every routine to a library loaded into it.  By
   default this is OpenBLAS.
-- `using ulmBLAS` (or `ulmBLAS.forward(path)`) calls
+- `using UlmBLAS` (or `UlmBLAS.forward(path)`) calls
   `BLAS.lbt_forward(path; clear=false, suffix_hint="64_")`: the routines
   the library of ulmBLAS provides replace those of OpenBLAS, everything
-  else (LAPACK) stays with OpenBLAS.  `BLAS.get_config()` lists both
-  libraries.
-- `ulmBLAS.forward(path; clear=true)` drops the previous libraries first.
-- `ulmBLAS.library_path()` is the library in use.
+  else stays with the library that provided it before.
+  `BLAS.get_config()` lists both libraries.
+- `UlmBLAS.library_path()` is the library in use.
+
+### Routines that ulmBLAS does not provide
+
+LBT keeps one table per interface (ILP64 with suffix `64_`, used by Julia,
+and LP64).  `lbt_forward(path; clear=false)` replaces only the entries
+for which the new library has a symbol, in the table of its interface; all
+other entries keep their previous library (`lbt_forward` in
+`src/libblastrampoline.c` of LBT 5.15).  This is how AppleAccelerate.jl
+loads Accelerate on top of OpenBLAS.  With `clear=true` LBT would first
+reset every entry to a function that only prints "Error: no BLAS/LAPACK
+library loaded" and returns without a result, so UlmBLAS has no `clear`
+option.
+
+With Julia 1.13 and OpenBLAS (`LinearAlgebra.BLAS.get_config()`):
+
+- ulmBLAS: 149 routines, all of the reference BLAS (LAPACK 3.12.1)
+  except `?gemmtr`, in all four precisions.
+- OpenBLAS (unchanged): LAPACK; of the routines `LinearAlgebra.BLAS`
+  calls, `?gemmt`, `?axpby`, `crot`, `zrot`, `csymv`, `zsymv`, `csyr`,
+  `zsyr`, and the CBLAS dot products `cblas_?dot`, `cblas_?dot?_sub` that
+  `BLAS.dot`, `dotc` and `dotu` use (ulmBLAS has no CBLAS symbols, so LBT
+  leaves them as they are); the BLAS extensions `?gemmtr`, `?omatcopy`,
+  `?imatcopy`, `?geadd`, `i?amin`, `?sum`, ... .
+- The LP64 table (32-bit integers, e.g. OpenBLAS32.jl) is not changed:
+  the library of ulmBLAS has only the ILP64 interface.  With OpenBLAS32
+  loaded, LP64 calls keep going to OpenBLAS32.
+
+The tests check this for every symbol of LBT in a fresh process
+(`test/subprocess/routing.jl`) and run test files of `LinearAlgebra`
+with a counter for calls of routines without implementation
+(`test/subprocess/linalg.jl`, as in the tests of MKL.jl and
+AppleAccelerate.jl).
+
+### Errors
+
+- An invalid argument to a routine of ulmBLAS (e.g. `lda < m`) is
+  reported by `xerbla` on `stderr`, and the routine returns, as in
+  OpenBLAS.
+- `ULMBLAS_LIBRARY` naming a file that does not exist: `using UlmBLAS`
+  warns and leaves the BLAS of Julia unchanged.
+- `UlmBLAS.forward(path)` raises an error if no routine was forwarded;
+  the forwarding table is then unchanged.
 
 ## The library
 
@@ -27,10 +68,10 @@
   `libstdc++` of the compiler);
 - the GEMM with arbitrary strides `ulmblas_{s,d,c,z}gemm_strided`
   (`ulmblas_strided.h` of ulmBLAS).  LBT does not know these names;
-  `ulmBLAS.mul!` calls them with `ccall`.  With a library built before the
-  strided interface, `ulmBLAS.mul!` raises an error.
+  `UlmBLAS.mul!` calls them with `ccall`.  With a library built before the
+  strided interface, `UlmBLAS.mul!` raises an error.
 
-## `ulmBLAS.mul!`
+## `UlmBLAS.mul!`
 
 - For each operand the pointer of element (1,1), the row stride and the
   column stride are passed.  `transpose` swaps the strides, `adjoint`
@@ -38,14 +79,14 @@
   once (`adjoint(transpose(X))` is `conj(X)`).
 - As in BLAS, `C` is not read for `β = 0`, and `A`, `B` are not read for
   `α = 0`.
-- `ulmBLAS.mul_aliased!` checks `Base.mightalias(C, A)` and
+- `UlmBLAS.mul_aliased!` checks `Base.mightalias(C, A)` and
   `Base.mightalias(C, B)`.  On a possible overlap it computes `α A B` into
-  a new matrix and then `C = AB + β C`; otherwise it calls `ulmBLAS.mul!`.
-  It is also available as `ulmBLAS.mul_iansmba!`.
+  a new matrix and then `C = AB + β C`; otherwise it calls `UlmBLAS.mul!`.
+  It is also available as `UlmBLAS.mul_iansmba!`.
 
 ## Kernel selection
 
-`ulmBLAS.variant()` decides from the CPU:
+`UlmBLAS.variant()` decides from the CPU:
 
 - AArch64: `sme` on macOS if `sysctl hw.optional.arm.FEAT_SME2` is 1,
   otherwise `neon`;
@@ -67,7 +108,7 @@
 (each kernel as `-DULMBLAS_?GEMM_UKERNEL_<name>`).  On macOS
 `MACOSX_DEPLOYMENT_TARGET` defaults to 12.0.
 
-`ULMBLAS_LIBRARY` overrides the choice; `ulmBLAS.variant()` still reports
+`ULMBLAS_LIBRARY` overrides the choice; `UlmBLAS.variant()` still reports
 the variant of the CPU.
 
 ## Artifacts
@@ -78,9 +119,9 @@ the variant of the CPU.
   (commit, compiler, flags).  Variants: `neon`, `sme` on macOS arm64;
   `x86_64`, `haswell`, `skylakex`, `zen4` on Linux x86-64.
 - `julia build/artifacts.jl VERSION DIR=TRIPLET ...` packs each directory
-  as `dist/ulmBLAS.vVERSION.TRIPLET.tar.gz` and binds it as artifact
+  as `dist/UlmBLAS.vVERSION.TRIPLET.tar.gz` and binds it as artifact
   `ulmblas` in `Artifacts.toml`, with
-  `https://github.com/michael-lehn/ulmBLAS.jl/releases/download/vVERSION/`
+  `https://github.com/michael-lehn/UlmBLAS.jl/releases/download/vVERSION/`
   as download location.
 - When loaded, the package takes `lib/VARIANT/libulmblas_lbt.*` from the
   artifact of its platform.

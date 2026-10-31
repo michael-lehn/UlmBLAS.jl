@@ -1,5 +1,9 @@
 # First Benchmark on my MacBook :-)
 
+> Recorded before the package was renamed from `ulmBLAS.jl` to `UlmBLAS.jl`:
+> in the recorded output and the chart, `ulmBLAS.mul!` is today's
+> `UlmBLAS.mul!`.  ulmBLAS (the C/C++ library) keeps its name.
+
 I wanted to see how ulmBLAS performs on my MacBook Air with an
 Apple M5, especially when a matrix is not stored contiguously.
 
@@ -21,20 +25,20 @@ per second, so **higher is better**.
 ```julia
 # Start Julia in the bench environment (BenchmarkTools), with
 # ULMBLAS_LIBRARY set:  julia --project=bench
-using LinearAlgebra, Libdl, Printf, Random, BenchmarkTools, ulmBLAS
+using LinearAlgebra, Libdl, Printf, Random, BenchmarkTools, UlmBLAS
 import OpenBLAS_jll
 
-# `using ulmBLAS` routes Julia's BLAS calls to ulmBLAS.  Switch them back to
+# `using UlmBLAS` routes Julia's BLAS calls to ulmBLAS.  Switch them back to
 # OpenBLAS, so that LinearAlgebra.mul! measures OpenBLAS.
 oblib  = OpenBLAS_jll.libopenblas_path
-ulmlib = ulmBLAS.library_path()
+ulmlib = UlmBLAS.library_path()
 BLAS.lbt_forward(oblib; clear=true, suffix_hint="64_")
 
 # Check: Julia's dgemm is the one of OpenBLAS ...
 addr(lib, f) = UInt(dlsym(dlopen(lib), f))
 @assert UInt(BLAS.lbt_get_forward("dgemm_", :ilp64)) == addr(oblib, "dgemm_64_")
-# ... and ulmBLAS.mul! calls ulmblas_dgemm_strided of ulmBLAS.
-@assert UInt(ulmBLAS.gemm_strided_ptr[Float64]) ==
+# ... and UlmBLAS.mul! calls ulmblas_dgemm_strided of ulmBLAS.
+@assert UInt(UlmBLAS.gemm_strided_ptr[Float64]) ==
         addr(ulmlib, "ulmblas_dgemm_strided")
 
 # Check: count the dgemm calls of LinearAlgebra.mul! (the strided view
@@ -81,13 +85,13 @@ for threads in 1:4
         B  = rand(n, n)
         C  = zeros(n, n)
         R  = Ac * B                          # OpenBLAS
-        for (name, X, ulm) in (("ulmBLAS.mul!, strided",          A,  true),
+        for (name, X, ulm) in (("UlmBLAS.mul!, strided",          A,  true),
                                ("LinearAlgebra.mul!, strided",    A,  false),
                                ("LinearAlgebra.mul!, contiguous", Ac, false),
-                               ("ulmBLAS.mul!, contiguous",       Ac, true))
-            ulm ? ulmBLAS.mul!(C, X, B) : LinearAlgebra.mul!(C, X, B)
+                               ("UlmBLAS.mul!, contiguous",       Ac, true))
+            ulm ? UlmBLAS.mul!(C, X, B) : LinearAlgebra.mul!(C, X, B)
             @assert C ≈ R
-            b = ulm ? @benchmark(ulmBLAS.mul!($C, $X, $B)) :
+            b = ulm ? @benchmark(UlmBLAS.mul!($C, $X, $B)) :
                       @benchmark(LinearAlgebra.mul!($C, $X, $B))
             t = minimum(b).time
             th = !ulm && X === Ac ? threads : 1
@@ -101,7 +105,7 @@ end
 **To reproduce the benchmark**, run the Julia example above (start
 Julia with `--project=bench` and set `ULMBLAS_LIBRARY` as described
 under [Installation](../README.md#installation)). It is self-contained: it switches
-Julia's BLAS calls back to OpenBLAS after `using ulmBLAS`, checks which
+Julia's BLAS calls back to OpenBLAS after `using UlmBLAS`, checks which
 implementation is called, verifies the results, and measures execution
 time and allocations.
 
@@ -157,12 +161,12 @@ ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.4 
 
 This long output says it all:
 
-![GFLOPS of ulmBLAS.mul! and LinearAlgebra.mul! for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 OpenBLAS threads, on an Apple M5](../bench/results/2026-10-31-apple-m5.svg)
+![GFLOPS of UlmBLAS.mul! and LinearAlgebra.mul! for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 OpenBLAS threads, on an Apple M5](../bench/results/2026-10-31-apple-m5.svg)
 
 ## Some notes on that
 
 - **The strided view matters.** Julia's usual `LinearAlgebra.mul!`
-  takes about 906 ms for the 1500 × 1500 view. `ulmBLAS.mul!` takes
+  takes about 906 ms for the 1500 × 1500 view. `UlmBLAS.mul!` takes
   about 18 ms for the same operation — roughly **50 times faster**.
 - **Strides cost relatively little in ulmBLAS.** At size 1500,
   the strided multiplication takes about 18 ms, compared with about

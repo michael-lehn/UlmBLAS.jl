@@ -6,8 +6,8 @@
 #  platform), with the release assets of this repository as download
 #  location:
 #
-#      https://github.com/michael-lehn/ulmBLAS.jl/releases/download/vVERSION/
-#          ulmBLAS.vVERSION.TRIPLET.tar.gz
+#      https://github.com/michael-lehn/UlmBLAS.jl/releases/download/vVERSION/
+#          UlmBLAS.vVERSION.TRIPLET.tar.gz
 #
 #  The tarballs are written to dist/; upload them to the release vVERSION.
 #  TRIPLET: aarch64-apple-darwin or x86_64-linux-gnu.
@@ -17,7 +17,7 @@
 #
 using Pkg.Artifacts, Base.BinaryPlatforms, SHA
 
-const REPO = "https://github.com/michael-lehn/ulmBLAS.jl"
+const REPO = "https://github.com/michael-lehn/UlmBLAS.jl"
 
 version = ARGS[1]
 toml = joinpath(@__DIR__, "..", "Artifacts.toml")
@@ -30,7 +30,7 @@ for arg in ARGS[2:end]
     hash = create_artifact() do art
         cp(dir, art; force=true)
     end
-    name = "ulmBLAS.v$version.$triplet.tar.gz"
+    name = "UlmBLAS.v$version.$triplet.tar.gz"
     tarball = joinpath(dist, name)
     archive_artifact(hash, tarball)
     sha = bytes2hex(open(sha256, tarball))

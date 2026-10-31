@@ -1,4 +1,4 @@
-name = "ulmBLAS"
+name = "UlmBLAS"
 uuid = "cd55841f-6472-4438-97d9-4c2d8eed3a6b"
 version = "0.1.0"
 authors = ["Michael Lehn <michael.lehn@uni-ulm.de>"]

@@ -1,5 +1,9 @@
 # Third Benchmark on my MacBook: Accelerate
 
+> Recorded before the package was renamed from `ulmBLAS.jl` to `UlmBLAS.jl`:
+> in the recorded output and the chart, `ulmBLAS.mul!` is today's
+> `UlmBLAS.mul!`.  ulmBLAS (the C/C++ library) keeps its name.
+
 The same benchmark as the [first](benchmark_001.md) and
 [second](benchmark_002.md) one, with Apple's Accelerate instead of
 OpenBLAS behind `LinearAlgebra.mul!`: Accelerate 1.11 (vecLib 3.11) of
@@ -19,7 +23,7 @@ used.
 - Before measuring, the script checks that LBT forwards `dgemm_` to
   `dgemm$NEWLAPACK$ILP64` of Accelerate, counts the `dgemm_` calls of
   `LinearAlgebra.mul!` (strided view: none, contiguous: one), checks that
-  `ulmBLAS.mul!` calls `ulmblas_dgemm_strided` of ulmBLAS, and compares
+  `UlmBLAS.mul!` calls `ulmblas_dgemm_strided` of ulmBLAS, and compares
   all results with Julia's generic multiplication.
 
 ## Threads
@@ -124,7 +128,7 @@ LinearAlgebra.mul!, contiguous  1500  Accelerate                       4    14.6
 ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.0     421.6     1.00      0      0
 ```
 
-![GFLOPS of ulmBLAS.mul! and LinearAlgebra.mul! with Apple Accelerate for strided and contiguous matrices, n = 1000 and 1500, VECLIB_MAXIMUM_THREADS 1 to 4, on an Apple M5](../bench/results/2026-10-31-apple-m5-accelerate.svg)
+![GFLOPS of UlmBLAS.mul! and LinearAlgebra.mul! with Apple Accelerate for strided and contiguous matrices, n = 1000 and 1500, VECLIB_MAXIMUM_THREADS 1 to 4, on an Apple M5](../bench/results/2026-10-31-apple-m5-accelerate.svg)
 
 The y-axis goes to 600 GFLOPS, because Accelerate exceeds 500; the first
 two charts end at 500.
@@ -139,7 +143,7 @@ two charts end at 500.
   and 461.5 to 464.8 for n = 1500: 22 to 25% and 9 to 11% more than the
   single-threaded ulmBLAS.  A maximum of 3 or 4 gives the same as 2.
 - The strided case is unchanged: `LinearAlgebra.mul!` makes no BLAS call
-  for the view (7.2 to 7.8 GFLOPS); `ulmBLAS.mul!` reaches 367 to 415
+  for the view (7.2 to 7.8 GFLOPS); `UlmBLAS.mul!` reaches 367 to 415
   GFLOPS.
 - Differences to the first two benchmarks: one process per thread setting
   (ulmBLAS and generic Julia are measured again in each process), the
