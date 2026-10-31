@@ -1,7 +1,7 @@
 #
 #  Bar chart (SVG) of the results of gemm_threads.jl:
 #
-#      julia plot_gemm_threads.jl results/2026-10-31-apple-m5.tsv
+#      julia plot_gemm_threads.jl results/2026-10-31-apple-m5.tsv [SVG [TITLE]]
 #
 #  writes results/2026-10-31-apple-m5.svg: 8 groups (BLAS threads 1 to 4 x
 #  n = 1000, 1500) of 4 bars, GFLOPS = 2n^3 / minimum time (linear axis
@@ -18,6 +18,7 @@ const COLORS_DARK = ["#3987e5", "#d95926", "#199e70", "#c98500"]
 tsv = length(ARGS) >= 1 ? ARGS[1] :
       joinpath(@__DIR__, "results", "2026-10-31-apple-m5.tsv")
 svg = length(ARGS) >= 2 ? ARGS[2] : replace(tsv, r"\.tsv$" => ".svg")
+label = length(ARGS) >= 3 ? ARGS[3] : "DGEMM on an Apple M5"
 
 #  GFLOPS by (case, n, BLAS threads)
 gf = Dict{Tuple{String,Int,Int},Float64}()
@@ -62,7 +63,7 @@ p("</style>")
 p("""<rect class="surface" x="0" y="0" width="$W" height="$H" rx="8"/>""")
 
 #  title and legend
-p("""<text class="t1" x="$left" y="26" font-size="15" font-weight="600">DGEMM on an Apple M5: GFLOPS (higher is better)</text>""")
+p("""<text class="t1" x="$left" y="26" font-size="15" font-weight="600">$label: GFLOPS (higher is better)</text>""")
 lx = left
 for (i, c) in enumerate(CASES)
     p("""<rect class="s$i" x="$(round(lx, digits=1))" y="42" width="12" height="12" rx="2"/>""")

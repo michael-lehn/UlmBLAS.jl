@@ -1,0 +1,48 @@
+OpenBLAS development version used by 2026-10-31-apple-m5-openblas-dev
+
+source:   https://github.com/OpenMathLib/OpenBLAS, branch develop
+commit:   9d78ff85706b1b70930dc3d15965f8072bbad5cd (2026-10-31 14:24:14 +0100)
+describe: v0.3.34-641-g9d78ff857
+compiler: Homebrew clang version 23.1.4; GNU Fortran (Homebrew GCC 16.2.0) 16.2.0
+
+build (macOS 26.6, Apple M5):
+  make -j10 CC=clang FC=gfortran DYNAMIC_ARCH=1 DYNAMIC_LIST="ARMV8 NEOVERSEN1 VORTEX VORTEXM4" \
+       INTERFACE64=1 USE_OPENMP=0 NUM_THREADS=64 NO_STATIC=1 libs shared
+  make PREFIX=... INTERFACE64=1 NO_STATIC=1 install
+  (no SYMBOLSUFFIX: renaming the symbols needs objconv, which was not available;
+   libblastrampoline detects the ILP64 interface without the suffix)
+
+configuration at run time: vortexm4 (OpenBLAS 0.3.34.dev  USE64BITINT DYNAMIC_ARCH NO_AFFINITY vortexm4 MAX_THREADS=64)
+
+DGEMM kernel actually used (lldb breakpoints, dgemm_ once with 1 and once with 4 threads):
+  n = 600:
+    threads 1: C(3,5) = 1, expected 1
+    threads 4: C(3,5) = 1, expected 1
+    1: name = 'sme_dgemm_kernel_VORTEXM4': hits = 2
+    2: name = 's2_gemm': hits = 2
+    3: name = 's2_drive': hits = 2
+    4: name = 'dgemm_kernel_VORTEXM4': hits = 0
+    5: name = 'dgemm_kernel_VORTEX': hits = 0
+    6: name = 'dgemm_kernel_NEOVERSEN1': hits = 0
+  n = 1000:
+    threads 1: C(3,5) = 9, expected 9
+    threads 4: C(3,5) = 9, expected 9
+    1: name = 'sme_dgemm_kernel_VORTEXM4': hits = 2
+    2: name = 's2_gemm': hits = 2
+    3: name = 's2_drive': hits = 2
+    4: name = 'dgemm_kernel_VORTEXM4': hits = 0
+    5: name = 'dgemm_kernel_VORTEX': hits = 0
+    6: name = 'dgemm_kernel_NEOVERSEN1': hits = 0
+  n = 1500:
+    threads 1: C(3,5) = -6, expected -6
+    threads 4: C(3,5) = -6, expected -6
+    1: name = 'sme_dgemm_kernel_VORTEXM4': hits = 2
+    2: name = 's2_gemm': hits = 2
+    3: name = 's2_drive': hits = 2
+    4: name = 'dgemm_kernel_VORTEXM4': hits = 0
+    5: name = 'dgemm_kernel_VORTEX': hits = 0
+    6: name = 'dgemm_kernel_NEOVERSEN1': hits = 0
+
+sme_dgemm_kernel_VORTEXM4 -> s2_gemm -> s2_drive -> s2_k_* (SME2): entered once per dgemm_ call, also with
+4 threads; the NEON kernels (dgemm_kernel_VORTEX, dgemm_kernel_NEOVERSEN1) and the SME2 level-3 kernel
+dgemm_kernel_VORTEXM4 are not called.

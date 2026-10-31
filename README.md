@@ -316,6 +316,89 @@ comparison of different CPU instruction sets, not just two libraries.
 I'd like to repeat the test with a newer OpenBLAS and with Apple's
 Accelerate library.
 
+## Second test on my MacBook :-(
+
+The same benchmark with the current development version of OpenBLAS
+(`develop` at commit 9d78ff857, `v0.3.34-641`), built from source. This
+version has SME2 kernels for DGEMM. On the M5 it detects the core
+`vortexm4`, and every `dgemm_` call goes through its SME2 kernel
+`sme_dgemm_kernel_VORTEXM4`; this was checked with breakpoints, see the
+[build record](bench/results/2026-10-31-apple-m5-openblas-dev-build.txt),
+which also has the build command.
+
+The benchmark is the [complete script](bench/gemm_threads.jl) of the
+first test, with this OpenBLAS instead of Julia's:
+
+```sh
+cd bench
+OPENBLAS_LIBRARY=/path/to/libopenblas.dylib OPENBLAS_SUFFIX= \
+    ULMBLAS_LIBRARY=/path/to/libulmblas_lbt.dylib julia --project=. gemm_threads.jl
+```
+
+(`OPENBLAS_SUFFIX=` because this build has no `64_` suffix on its symbol
+names.)
+
+The output on my M5:
+
+```text
+library of ulmBLAS: /Users/lehn/git/ulmBLAS.jl/dev/lib/libulmblas_lbt.dylib
+LBT after `using ulmBLAS`: dgemm_ -> ulmBLAS
+LBT for this benchmark:   dgemm_ -> OpenBLAS (libopenblas.dylib)
+ulmBLAS.mul!:             ulmblas_dgemm_strided of libulmblas_lbt.dylib
+dgemm_ calls through LBT: LinearAlgebra.mul! strided 0, contiguous 1; ulmBLAS.mul! 0
+CPU: Apple M5 (4 performance + 6 efficiency cores), Julia 1.13.3, Julia threads 1, OpenBLAS libopenblas.dylib
+OpenBLAS: OpenBLAS 0.3.34.dev  USE64BITINT DYNAMIC_ARCH NO_AFFINITY vortexm4 MAX_THREADS=64; core: vortexm4
+
+case                            n     backend                   threads      ms    GFLOPS   bytes allocs
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)              1     4.9     410.6       0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)        1   253.9       7.9      64      1
+LinearAlgebra.mul!, contiguous  1000  OpenBLAS                        1     4.3     467.3       0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)              1     4.6     430.2       0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)              1    17.9     377.5       0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)        1   927.7       7.3      64      1
+LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        1    15.6     432.8       0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    15.8     426.2       0      0
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)              1     5.1     393.7       0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)        1   269.0       7.4      64      1
+LinearAlgebra.mul!, contiguous  1000  OpenBLAS                        2     4.5     448.3       0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)              1     4.7     423.6       0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)              1    18.3     369.7       0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)        1   964.3       7.0      64      1
+LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        2    16.0     422.0       0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.1     419.1       0      0
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)              1     5.1     391.0       0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)        1   265.0       7.5      64      1
+LinearAlgebra.mul!, contiguous  1000  OpenBLAS                        3     4.5     443.7       0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)              1     4.7     427.2       0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)              1    17.9     376.6       0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)        1   935.3       7.2      64      1
+LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        3    15.6     432.1       0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.1     419.4       0      0
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)              1     5.2     388.1       0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)        1   263.1       7.6      64      1
+LinearAlgebra.mul!, contiguous  1000  OpenBLAS                        4     4.5     449.0       0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)              1     4.7     427.8       0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)              1    18.1     373.4       0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)        1   941.9       7.2      64      1
+LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        4    15.7     430.2       0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.0     421.0       0      0
+```
+
+![GFLOPS of ulmBLAS.mul! and LinearAlgebra.mul! with OpenBLAS develop (SME2) for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 OpenBLAS threads, on an Apple M5](bench/results/2026-10-31-apple-m5-openblas-dev.svg)
+
+What the measurements show:
+
+- With its SME2 kernel, OpenBLAS reaches 430 to 467 GFLOPS for the
+  contiguous matrices, ulmBLAS 419 to 430 GFLOPS.  For n = 1000 OpenBLAS
+  is about 9% faster with one thread; for n = 1500 the two are within 3%.
+- The thread setting makes no difference for this OpenBLAS: the times
+  for 1 to 4 threads are the same within a few percent, and the whole run
+  used one core (CPU time 346 s for 345 s wall time).  The SME2 kernel is
+  entered once per call, also with 4 threads.  So the `threads` column
+  shows the setting, not the number of cores used.
+- The strided case is unchanged: `LinearAlgebra.mul!` does not call BLAS
+  for the view (no `dgemm_` call), whichever OpenBLAS is used.
+
 ## CPU variants
 
 ulmBLAS selects its micro kernels at compile time.  The package is meant

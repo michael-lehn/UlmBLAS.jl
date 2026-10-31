@@ -6,13 +6,19 @@
 #      cd bench
 #      ULMBLAS_LIBRARY=/path/libulmblas_lbt.dylib julia --project=. gemm_threads.jl
 #
+#  OPENBLAS_LIBRARY=/path/libopenblas.dylib uses another OpenBLAS (built with
+#  INTERFACE64=1) instead of the one of OpenBLAS_jll; OPENBLAS_SUFFIX is the
+#  suffix of its symbol names (default 64_, as in Julia's OpenBLAS; empty
+#  for a build without SYMBOLSUFFIX).  RESULTS=name writes name.tsv instead
+#  of gemm_threads.tsv.
+#
 #  `using ulmBLAS` forwards the BLAS routines of libblastrampoline (LBT) to
 #  ulmBLAS.  For this benchmark LBT is switched back to OpenBLAS alone, so
 #  that LinearAlgebra.mul! measures OpenBLAS; ulmBLAS.mul! calls
 #  ulmblas_dgemm_strided through its own function pointer and does not go
 #  through LBT.  Both are checked before measuring:
 #
-#  - the address LBT forwards dgemm_ to is the dgemm_64_ of OpenBLAS;
+#  - the address LBT forwards dgemm_ to is the dgemm of OpenBLAS;
 #  - a counting wrapper in LBT shows how many dgemm_ calls LinearAlgebra.mul!
 #    makes (none for the strided view: generic Julia code instead of BLAS);
 #  - the function pointer of ulmBLAS.mul! is ulmblas_dgemm_strided of the
@@ -30,14 +36,16 @@ using ulmBLAS
 import OpenBLAS_jll
 
 const ulmlib = ulmBLAS.library_path()
-const oblib  = OpenBLAS_jll.libopenblas_path
+const oblib  = get(ENV, "OPENBLAS_LIBRARY", OpenBLAS_jll.libopenblas_path)
+const obsuf  = get(ENV, "OPENBLAS_SUFFIX", "64_")
+obfun(name) = dlsym(dlopen(oblib), name * obsuf)
 
 symaddr(lib, name) = UInt(dlsym(dlopen(lib), name))
 forward(name) = UInt(BLAS.lbt_get_forward(name, :ilp64))
 
 function owner(name)
     a = forward(name)
-    a == symaddr(oblib, name * "64_") ? "OpenBLAS" :
+    a == symaddr(oblib, name * obsuf) ? "OpenBLAS" :
     a == symaddr(ulmlib, name * "64_") ? "ulmBLAS" : "other"
 end
 
@@ -45,7 +53,7 @@ println("library of ulmBLAS: ", ulmlib)
 println("LBT after `using ulmBLAS`: dgemm_ -> ", owner("dgemm_"))
 
 #  LBT: OpenBLAS only
-BLAS.lbt_forward(oblib; clear=true, verbose=false, suffix_hint="64_")
+BLAS.lbt_forward(oblib; clear=true, verbose=false, suffix_hint=obsuf)
 @assert owner("dgemm_") == "OpenBLAS"
 println("LBT for this benchmark:   dgemm_ -> ", owner("dgemm_"),
         " (", basename(oblib), ")")
@@ -95,7 +103,7 @@ let P = rand(64, 32), A = view(P, 1:2:64, :), Ac = Matrix(A), B = rand(32, 32),
 end
 @assert owner("dgemm_") == "OpenBLAS"
 
-obthreads() = ccall((:openblas_get_num_threads64_, oblib), Cint, ())
+obthreads() = ccall(obfun("openblas_get_num_threads"), Cint, ())
 cpu = Sys.isapple() ? readchomp(`sysctl -n machdep.cpu.brand_string`) :
                       Sys.cpu_info()[1].model
 cores = Sys.isapple() ?
@@ -104,6 +112,8 @@ cores = Sys.isapple() ?
     string(Sys.CPU_THREADS, " threads")
 println("CPU: ", cpu, " (", cores, "), Julia ", VERSION, ", Julia threads ",
         Threads.nthreads(), ", OpenBLAS ", BLAS.get_config().loaded_libs[1].libname |> basename)
+println("OpenBLAS: ", unsafe_string(ccall(obfun("openblas_get_config"), Cstring, ())),
+        "; core: ", unsafe_string(ccall(obfun("openblas_get_corename"), Cstring, ())))
 
 #  Benchmarks
 const cases = (("ulmBLAS.mul!, strided",          :ulm, true),
@@ -145,7 +155,7 @@ for t in 1:4
     end
 end
 
-open(joinpath(@__DIR__, "gemm_threads.tsv"), "w") do io
+open(joinpath(@__DIR__, get(ENV, "RESULTS", "gemm_threads") * ".tsv"), "w") do io
     println(io, "case\tn\tbackend\tBLAS_threads\tmin_ns\tmedian_ns\tbytes\tallocs\tsamples")
     for r in results
         println(io, join(r, '\t'))
