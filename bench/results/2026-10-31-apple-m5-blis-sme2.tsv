@@ -1,0 +1,33 @@
+case	n	backend	BLAS_threads	min_ns	median_ns	bytes	allocs	samples	cpu_per_wall
+ulmBLAS.mul!, strided	1000	ulmBLAS (1 thread)	1	4.890458e6	5.16675e6	0	0	961	0.9993395055392148
+LinearAlgebra.mul!, strided	1000	generic Julia (1 thread)	1	2.71092625e8	2.766987705e8	64	1	18	0.9992547032133835
+LinearAlgebra.mul!, contiguous	1000	BLIS	1	4.649167e6	4.874209e6	0	0	1019	0.9963005524109867
+ulmBLAS.mul!, contiguous	1000	ulmBLAS (1 thread)	1	4.645917e6	4.885833e6	0	0	1014	0.9996397993945811
+ulmBLAS.mul!, strided	1500	ulmBLAS (1 thread)	1	1.7762042e7	1.8210542e7	0	0	273	0.9993834782726068
+LinearAlgebra.mul!, strided	1500	generic Julia (1 thread)	1	9.20321167e8	9.34664146e8	64	1	6	0.9995979598748129
+LinearAlgebra.mul!, contiguous	1500	BLIS	1	1.5630541e7	1.5970208e7	0	0	311	0.9992981661455735
+ulmBLAS.mul!, contiguous	1500	ulmBLAS (1 thread)	1	1.5684417e7	1.61455e7	0	0	307	0.999512017767538
+ulmBLAS.mul!, strided	1000	ulmBLAS (1 thread)	2	5.095875e6	5.416458e6	0	0	910	0.9991770812671467
+LinearAlgebra.mul!, strided	1000	generic Julia (1 thread)	2	2.73708959e8	2.788044165e8	64	1	18	0.9996312354382784
+LinearAlgebra.mul!, contiguous	1000	BLIS	2	4.742125e6	5.094917e6	0	0	977	1.9957809604625794
+ulmBLAS.mul!, contiguous	1000	ulmBLAS (1 thread)	2	4.675e6	4.889292e6	0	0	1015	0.9996305573169264
+ulmBLAS.mul!, strided	1500	ulmBLAS (1 thread)	2	1.7958375e7	1.8793167e7	0	0	266	0.999450166531694
+LinearAlgebra.mul!, strided	1500	generic Julia (1 thread)	2	9.39979541e8	9.49234917e8	64	1	6	0.9996475182269842
+LinearAlgebra.mul!, contiguous	1500	BLIS	2	1.6726375e7	1.7580875e7	0	0	279	1.9974395862085303
+ulmBLAS.mul!, contiguous	1500	ulmBLAS (1 thread)	2	1.5924875e7	1.6444e7	0	0	303	0.999716410373001
+ulmBLAS.mul!, strided	1000	ulmBLAS (1 thread)	3	5.323042e6	5.5374585e6	0	0	888	0.9997715498129971
+LinearAlgebra.mul!, strided	1000	generic Julia (1 thread)	3	2.75108834e8	2.859970835e8	64	1	18	0.999448668554806
+LinearAlgebra.mul!, contiguous	1000	BLIS	3	4.568625e6	5.475375e6	0	0	851	2.9856750072374423
+ulmBLAS.mul!, contiguous	1000	ulmBLAS (1 thread)	3	4.751917e6	5.147292e6	0	0	965	0.9991684239810837
+ulmBLAS.mul!, strided	1500	ulmBLAS (1 thread)	3	1.8277042e7	1.8887709e7	0	0	263	0.9996862574169594
+LinearAlgebra.mul!, strided	1500	generic Julia (1 thread)	3	9.7156475e8	9.74825021e8	64	1	6	0.9994994055838858
+LinearAlgebra.mul!, contiguous	1500	BLIS	3	1.6881375e7	2.1320125e7	0	0	235	2.9926687917653636
+ulmBLAS.mul!, contiguous	1500	ulmBLAS (1 thread)	3	1.62295e7	1.697525e7	0	0	295	0.9996878973040417
+ulmBLAS.mul!, strided	1000	ulmBLAS (1 thread)	4	5.131333e6	5.5354165e6	0	0	900	0.9995695992567043
+LinearAlgebra.mul!, strided	1000	generic Julia (1 thread)	4	2.71689333e8	2.797758955e8	64	1	18	0.9998163678791202
+LinearAlgebra.mul!, contiguous	1000	BLIS	4	4.440375e6	6.327479e6	0	0	680	3.981770066333177
+ulmBLAS.mul!, contiguous	1000	ulmBLAS (1 thread)	4	4.808958e6	5.10425e6	0	0	982	0.999513717447594
+ulmBLAS.mul!, strided	1500	ulmBLAS (1 thread)	4	1.8256792e7	1.8967375e7	0	0	259	0.9996106884574125
+LinearAlgebra.mul!, strided	1500	generic Julia (1 thread)	4	9.70352208e8	9.89216563e8	64	1	6	0.9995525529960845
+LinearAlgebra.mul!, contiguous	1500	BLIS	4	1.6171917e7	1.9587042e7	0	0	250	3.9902621315059714
+ulmBLAS.mul!, contiguous	1500	ulmBLAS (1 thread)	4	1.6053709e7	1.6972604e7	0	0	294	0.9993190023233361

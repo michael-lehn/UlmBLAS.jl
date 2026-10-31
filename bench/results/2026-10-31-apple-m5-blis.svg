@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="470" viewBox="0 0 900 470" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+<title>GEMM on an Apple M5: GFLOPS, higher is better</title>
+<style>
+  .surface { fill: #fcfcfb; } .t1 { fill: #0b0b0b; } .t2 { fill: #52514e; }
+  .grid { stroke: #e3e2de; stroke-width: 1; } .axis { stroke: #8f8e88; stroke-width: 1; }
+  .s1 { fill: #2a78d6; }
+  .s2 { fill: #eb6834; }
+  .s3 { fill: #1baf7a; }
+  .s4 { fill: #eda100; }
+  @media (prefers-color-scheme: dark) {
+    .surface { fill: #1a1a19; } .t1 { fill: #f0efec; } .t2 { fill: #c3c2b7; }
+    .grid { stroke: #34332f; } .axis { stroke: #6b6a65; }
+    .s1 { fill: #3987e5; }
+    .s2 { fill: #d95926; }
+    .s3 { fill: #199e70; }
+    .s4 { fill: #c98500; }
+  }
+</style>
+<rect class="surface" x="0" y="0" width="900" height="470" rx="8"/>
+<text class="t1" x="70" y="26" font-size="15" font-weight="600">DGEMM on an Apple M5, BLIS master (NEON): GFLOPS (higher is better)</text>
+<rect class="s1" x="70.0" y="42" width="12" height="12" rx="2"/>
+<text class="t2" x="87.0" y="52" font-size="12">ulmBLAS.mul!, strided</text>
+<rect class="s2" x="251.6" y="42" width="12" height="12" rx="2"/>
+<text class="t2" x="268.6" y="52" font-size="12">LinearAlgebra.mul!, strided</text>
+<rect class="s3" x="472.8" y="42" width="12" height="12" rx="2"/>
+<text class="t2" x="489.8" y="52" font-size="12">LinearAlgebra.mul!, contiguous</text>
+<rect class="s4" x="713.8" y="42" width="12" height="12" rx="2"/>
+<text class="t2" x="730.8" y="52" font-size="12">ulmBLAS.mul!, contiguous</text>
+<line class="grid" x1="70" x2="880" y1="378.0" y2="378.0"/>
+<text class="t2" x="62" y="382.0" font-size="11" text-anchor="end">0</text>
+<line class="grid" x1="70" x2="880" y1="318.0" y2="318.0"/>
+<text class="t2" x="62" y="322.0" font-size="11" text-anchor="end">100</text>
+<line class="grid" x1="70" x2="880" y1="258.0" y2="258.0"/>
+<text class="t2" x="62" y="262.0" font-size="11" text-anchor="end">200</text>
+<line class="grid" x1="70" x2="880" y1="198.0" y2="198.0"/>
+<text class="t2" x="62" y="202.0" font-size="11" text-anchor="end">300</text>
+<line class="grid" x1="70" x2="880" y1="138.0" y2="138.0"/>
+<text class="t2" x="62" y="142.0" font-size="11" text-anchor="end">400</text>
+<line class="grid" x1="70" x2="880" y1="78.0" y2="78.0"/>
+<text class="t2" x="62" y="82.0" font-size="11" text-anchor="end">500</text>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(22 228.0) rotate(-90)">GFLOPS</text>
+<path class="s1" d="M85.625 378 V135.6 Q85.625 131.6 89.625 131.6 H97.625 Q101.625 131.6 101.625 135.6 V378 Z"><title>ulmBLAS.mul!, strided, 1000 × 1000, 1 Thread: 410.7 GFLOPS</title></path>
+<path class="s2" d="M103.625 378 V377.5 Q103.625 373.5 107.625 373.5 H115.625 Q119.625 373.5 119.625 377.5 V378 Z"><title>LinearAlgebra.mul!, strided, 1000 × 1000, 1 Thread: 7.4 GFLOPS</title></path>
+<path class="s3" d="M121.625 378 V343.8 Q121.625 339.8 125.625 339.8 H133.625 Q137.625 339.8 137.625 343.8 V378 Z"><title>LinearAlgebra.mul!, contiguous, 1000 × 1000, 1 Thread: 63.7 GFLOPS</title></path>
+<path class="s4" d="M139.625 378 V124.2 Q139.625 120.2 143.625 120.2 H151.625 Q155.625 120.2 155.625 124.2 V378 Z"><title>ulmBLAS.mul!, contiguous, 1000 × 1000, 1 Thread: 429.7 GFLOPS</title></path>
+<text class="t1" x="120.625" y="396" font-size="12" text-anchor="middle">1 Thread</text>
+<text class="t2" x="120.625" y="411" font-size="12" text-anchor="middle">1000 × 1000</text>
+<path class="s1" d="M186.875 378 V156.7 Q186.875 152.7 190.875 152.7 H198.875 Q202.875 152.7 202.875 156.7 V378 Z"><title>ulmBLAS.mul!, strided, 1500 × 1500, 1 Thread: 375.5 GFLOPS</title></path>
+<path class="s2" d="M204.875 378 V377.6 Q204.875 373.6 208.875 373.6 H216.875 Q220.875 373.6 220.875 377.6 V378 Z"><title>LinearAlgebra.mul!, strided, 1500 × 1500, 1 Thread: 7.3 GFLOPS</title></path>
+<path class="s3" d="M222.875 378 V345.1 Q222.875 341.1 226.875 341.1 H234.875 Q238.875 341.1 238.875 345.1 V378 Z"><title>LinearAlgebra.mul!, contiguous, 1500 × 1500, 1 Thread: 61.6 GFLOPS</title></path>
+<path class="s4" d="M240.875 378 V130.2 Q240.875 126.2 244.875 126.2 H252.875 Q256.875 126.2 256.875 130.2 V378 Z"><title>ulmBLAS.mul!, contiguous, 1500 × 1500, 1 Thread: 419.7 GFLOPS</title></path>
+<text class="t1" x="221.875" y="396" font-size="12" text-anchor="middle">1 Thread</text>
+<text class="t2" x="221.875" y="411" font-size="12" text-anchor="middle">1500 × 1500</text>
+<path class="s1" d="M288.125 378 V149.6 Q288.125 145.6 292.125 145.6 H300.125 Q304.125 145.6 304.125 149.6 V378 Z"><title>ulmBLAS.mul!, strided, 1000 × 1000, 2 Threads: 387.3 GFLOPS</title></path>
+<path class="s2" d="M306.125 378 V377.6 Q306.125 373.6 310.125 373.6 H318.125 Q322.125 373.6 322.125 377.6 V378 Z"><title>LinearAlgebra.mul!, strided, 1000 × 1000, 2 Threads: 7.3 GFLOPS</title></path>
+<path class="s3" d="M324.125 378 V315.8 Q324.125 311.8 328.125 311.8 H336.125 Q340.125 311.8 340.125 315.8 V378 Z"><title>LinearAlgebra.mul!, contiguous, 1000 × 1000, 2 Threads: 110.3 GFLOPS</title></path>
+<path class="s4" d="M342.125 378 V128.2 Q342.125 124.2 346.125 124.2 H354.125 Q358.125 124.2 358.125 128.2 V378 Z"><title>ulmBLAS.mul!, contiguous, 1000 × 1000, 2 Threads: 423.0 GFLOPS</title></path>
+<text class="t1" x="323.125" y="396" font-size="12" text-anchor="middle">2 Threads</text>
+<text class="t2" x="323.125" y="411" font-size="12" text-anchor="middle">1000 × 1000</text>
+<path class="s1" d="M389.375 378 V159.2 Q389.375 155.2 393.375 155.2 H401.375 Q405.375 155.2 405.375 159.2 V378 Z"><title>ulmBLAS.mul!, strided, 1500 × 1500, 2 Threads: 371.3 GFLOPS</title></path>
+<path class="s2" d="M407.375 378 V377.7 Q407.375 373.7 411.375 373.7 H419.375 Q423.375 373.7 423.375 377.7 V378 Z"><title>LinearAlgebra.mul!, strided, 1500 × 1500, 2 Threads: 7.1 GFLOPS</title></path>
+<path class="s3" d="M425.375 378 V317.6 Q425.375 313.6 429.375 313.6 H437.375 Q441.375 313.6 441.375 317.6 V378 Z"><title>LinearAlgebra.mul!, contiguous, 1500 × 1500, 2 Threads: 107.3 GFLOPS</title></path>
+<path class="s4" d="M443.375 378 V132.5 Q443.375 128.5 447.375 128.5 H455.375 Q459.375 128.5 459.375 132.5 V378 Z"><title>ulmBLAS.mul!, contiguous, 1500 × 1500, 2 Threads: 415.8 GFLOPS</title></path>
+<text class="t1" x="424.375" y="396" font-size="12" text-anchor="middle">2 Threads</text>
+<text class="t2" x="424.375" y="411" font-size="12" text-anchor="middle">1500 × 1500</text>
+<path class="s1" d="M490.625 378 V149.2 Q490.625 145.2 494.625 145.2 H502.625 Q506.625 145.2 506.625 149.2 V378 Z"><title>ulmBLAS.mul!, strided, 1000 × 1000, 3 Threads: 387.9 GFLOPS</title></path>
+<path class="s2" d="M508.625 378 V377.6 Q508.625 373.6 512.625 373.6 H520.625 Q524.625 373.6 524.625 377.6 V378 Z"><title>LinearAlgebra.mul!, strided, 1000 × 1000, 3 Threads: 7.3 GFLOPS</title></path>
+<path class="s3" d="M526.625 378 V291.5 Q526.625 287.5 530.625 287.5 H538.625 Q542.625 287.5 542.625 291.5 V378 Z"><title>LinearAlgebra.mul!, contiguous, 1000 × 1000, 3 Threads: 150.8 GFLOPS</title></path>
+<path class="s4" d="M544.625 378 V136.7 Q544.625 132.7 548.625 132.7 H556.625 Q560.625 132.7 560.625 136.7 V378 Z"><title>ulmBLAS.mul!, contiguous, 1000 × 1000, 3 Threads: 408.8 GFLOPS</title></path>
+<text class="t1" x="525.625" y="396" font-size="12" text-anchor="middle">3 Threads</text>
+<text class="t2" x="525.625" y="411" font-size="12" text-anchor="middle">1000 × 1000</text>
+<path class="s1" d="M591.875 378 V168.7 Q591.875 164.7 595.875 164.7 H603.875 Q607.875 164.7 607.875 168.7 V378 Z"><title>ulmBLAS.mul!, strided, 1500 × 1500, 3 Threads: 355.4 GFLOPS</title></path>
+<path class="s2" d="M609.875 378 V377.8 Q609.875 373.8 613.875 373.8 H621.875 Q625.875 373.8 625.875 377.8 V378 Z"><title>LinearAlgebra.mul!, strided, 1500 × 1500, 3 Threads: 7.0 GFLOPS</title></path>
+<path class="s3" d="M627.875 378 V301.2 Q627.875 297.2 631.875 297.2 H639.875 Q643.875 297.2 643.875 301.2 V378 Z"><title>LinearAlgebra.mul!, contiguous, 1500 × 1500, 3 Threads: 134.6 GFLOPS</title></path>
+<path class="s4" d="M645.875 378 V132.7 Q645.875 128.7 649.875 128.7 H657.875 Q661.875 128.7 661.875 132.7 V378 Z"><title>ulmBLAS.mul!, contiguous, 1500 × 1500, 3 Threads: 415.6 GFLOPS</title></path>
+<text class="t1" x="626.875" y="396" font-size="12" text-anchor="middle">3 Threads</text>
+<text class="t2" x="626.875" y="411" font-size="12" text-anchor="middle">1500 × 1500</text>
+<path class="s1" d="M693.125 378 V146.9 Q693.125 142.9 697.125 142.9 H705.125 Q709.125 142.9 709.125 146.9 V378 Z"><title>ulmBLAS.mul!, strided, 1000 × 1000, 4 Threads: 391.8 GFLOPS</title></path>
+<path class="s2" d="M711.125 378 V377.5 Q711.125 373.5 715.125 373.5 H723.125 Q727.125 373.5 727.125 377.5 V378 Z"><title>LinearAlgebra.mul!, strided, 1000 × 1000, 4 Threads: 7.4 GFLOPS</title></path>
+<path class="s3" d="M729.125 378 V276.7 Q729.125 272.7 733.125 272.7 H741.125 Q745.125 272.7 745.125 276.7 V378 Z"><title>LinearAlgebra.mul!, contiguous, 1000 × 1000, 4 Threads: 175.5 GFLOPS</title></path>
+<path class="s4" d="M747.125 378 V125.7 Q747.125 121.7 751.125 121.7 H759.125 Q763.125 121.7 763.125 125.7 V378 Z"><title>ulmBLAS.mul!, contiguous, 1000 × 1000, 4 Threads: 427.2 GFLOPS</title></path>
+<text class="t1" x="728.125" y="396" font-size="12" text-anchor="middle">4 Threads</text>
+<text class="t2" x="728.125" y="411" font-size="12" text-anchor="middle">1000 × 1000</text>
+<path class="s1" d="M794.375 378 V160.0 Q794.375 156.0 798.375 156.0 H806.375 Q810.375 156.0 810.375 160.0 V378 Z"><title>ulmBLAS.mul!, strided, 1500 × 1500, 4 Threads: 370.0 GFLOPS</title></path>
+<path class="s2" d="M812.375 378 V377.7 Q812.375 373.7 816.375 373.7 H824.375 Q828.375 373.7 828.375 377.7 V378 Z"><title>LinearAlgebra.mul!, strided, 1500 × 1500, 4 Threads: 7.2 GFLOPS</title></path>
+<path class="s3" d="M830.375 378 V287.0 Q830.375 283.0 834.375 283.0 H842.375 Q846.375 283.0 846.375 287.0 V378 Z"><title>LinearAlgebra.mul!, contiguous, 1500 × 1500, 4 Threads: 158.3 GFLOPS</title></path>
+<path class="s4" d="M848.375 378 V134.1 Q848.375 130.1 852.375 130.1 H860.375 Q864.375 130.1 864.375 134.1 V378 Z"><title>ulmBLAS.mul!, contiguous, 1500 × 1500, 4 Threads: 413.1 GFLOPS</title></path>
+<text class="t1" x="829.375" y="396" font-size="12" text-anchor="middle">4 Threads</text>
+<text class="t2" x="829.375" y="411" font-size="12" text-anchor="middle">1500 × 1500</text>
+<line class="axis" x1="70" x2="880" y1="378" y2="378"/>
+<text class="t2" x="70" y="452" font-size="11">Threads: BLIS threads (bli_thread_set_num_threads). ulmBLAS and Julia's generic strided multiplication always use one thread.</text>
+</svg>

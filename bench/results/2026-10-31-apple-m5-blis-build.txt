@@ -1,0 +1,72 @@
+BLIS builds used by 2026-10-31-apple-m5-blis (master), -blis-sme2 (pull
+request 921) and -blis-jll (BLISBLAS.jl)
+
+machine:  Apple M5 (MacBook Air, 4 performance + 6 efficiency cores), macOS 26.6 (25G72)
+compiler: Homebrew clang version 23.1.4
+
+1. BLIS master (results 2026-10-31-apple-m5-blis)
+   source:  https://github.com/flame/blis, branch master
+   commit:  a8037cfc4330030c726efaec1ffeb1f93d468aa3 (2026-10-06 12:26:36 -0500)
+   version: BLIS 3.0 (bli_info_get_version_str)
+   build:   ./configure --prefix=... -t pthreads -i 64 -b 64 CC=clang auto
+            make -j10 && make install
+   configure: hardware detection driver returned 'firestorm'
+              (sub-configuration firestorm, kernel set armv8a)
+   flags:   COPTFLAGS -O2 -march=armv8-a, kernels -O3 -ftree-vectorize -march=armv8-a
+
+2. BLIS pull request 921, "Add m4sme_p and m4sme_e sub-configurations"
+   (https://github.com/flame/blis/pull/921, open, not merged;
+   results 2026-10-31-apple-m5-blis-sme2)
+   source:  https://github.com/Luislo1/blis, branch master (refs/pull/921/head)
+   commit:  235ef8ec097c43ab8299c89071af1b5b5e180843 (2026-10-23 11:47:49 +0200)
+   base:    merge base with BLIS master cad4c6db4124315f797d99e710f282a934368ece (2026-06-25)
+            (the pull request does not contain the latest master commits)
+   version: BLIS 3.0
+   build:   same configure and make commands as 1.
+   configure: hardware detection driver returned 'm4sme_p'
+              (sub-configuration m4sme_p, kernel set armsme; selected because
+              sysctl hw.optional.arm.FEAT_SME2 = 1)
+   flags:   COPTFLAGS -O3, kernels -march=armv8-a+sme2+sme-f64f64
+   double-precision configuration (bli_cntx_init_m4sme_p.c, active variant):
+            micro-kernel bli_dgemm_armsme_int_4SVLx2SVL, MR x NR = 32 x 16,
+            MC = 608, KC = 2240, NC = 3072
+
+3. BLIS of BLISBLAS.jl (results 2026-10-31-apple-m5-blis-jll)
+   BLISBLAS.jl 0.2.0 with blis_jll 2.0.0+2 (prebuilt by Yggdrasil): BLIS 2.0,
+   configuration firestorm, 64-bit BLAS interface with symbol suffix 64_,
+   OpenMP threading (libomp of LLVMOpenMP_jll)
+
+Kernels actually used (check_blis_kernel.sh LIBDIR: dgemm_ once with random
+n x n matrices under lldb, auto-continuing breakpoints on all BLIS dgemm
+micro-kernels, dgemmsup kernels and dpackm kernels; functions that were hit,
+with their hit counts):
+
+1. BLIS master
+   n = 1000, BLIS_NUM_THREADS = 1
+       bli_dpackm_armv8a_int_6x8: 292 calls
+       bli_dgemm_armv8a_asm_8x6r: 20875 calls
+   n = 1000, BLIS_NUM_THREADS = 4
+       bli_dpackm_armv8a_int_6x8: 291 calls
+       bli_dgemm_armv8a_asm_8x6r: 20856 calls
+   n = 1500, BLIS_NUM_THREADS = 1
+       bli_dpackm_armv8a_int_6x8: 438 calls
+       bli_dgemm_armv8a_asm_8x6r: 47000 calls
+   n = 1500, BLIS_NUM_THREADS = 4
+       bli_dpackm_armv8a_int_6x8: 438 calls
+       bli_dgemm_armv8a_asm_8x6r: 46968 calls
+
+2. BLIS pull request 921
+   n = 1000, BLIS_NUM_THREADS = 1
+       bli_dpackm_armsme_int_4SVLx2SVL: 95 calls
+       bli_dgemm_armsme_int_4SVLx2SVL: 2016 calls
+   n = 1000, BLIS_NUM_THREADS = 4
+       bli_dpackm_armsme_int_4SVLx2SVL: 95 calls
+       bli_dgemm_armsme_int_4SVLx2SVL: 2015 calls
+   n = 1500, BLIS_NUM_THREADS = 1
+       bli_dpackm_armsme_int_4SVLx2SVL: 141 calls
+       bli_dgemm_armsme_int_4SVLx2SVL: 4418 calls
+   n = 1500, BLIS_NUM_THREADS = 4
+       bli_dpackm_armsme_int_4SVLx2SVL: 141 calls
+       bli_dgemm_armsme_int_4SVLx2SVL: 4417 calls
+
+No dgemmsup (small-matrix) kernel and no reference kernel was called.

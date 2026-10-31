@@ -1,0 +1,45 @@
+# 2026-10-31, Apple M5 (MacBook Air), macOS 26.6 (25G72), Julia 1.13.3
+# ulmBLAS: libulmblas_lbt.dylib built from ulmBLAS master 7cf4d913 + strided GEMM, ARCHFLAGS=-mcpu=apple-m4 (SME2)
+# BLIS master a8037cfc (firestorm, pthreads), see 2026-10-31-apple-m5-blis-build.txt
+# load average before/after: 2.8 / 4.7 (shared machine; after includes the BLIS threads)
+library of ulmBLAS: /Users/lehn/git/ulmBLAS.jl/dev/lib/libulmblas_lbt.dylib
+LBT after `using ulmBLAS`: dgemm_ -> ulmBLAS
+LBT for this benchmark:   dgemm_ -> BLIS (dgemm_ of libblis.dylib, ILP64)
+ulmBLAS.mul!:             ulmblas_dgemm_strided of libulmblas_lbt.dylib
+dgemm_ calls through LBT: LinearAlgebra.mul! strided 0, contiguous 1; ulmBLAS.mul! 0
+BLIS 3.0: configuration firestorm, BLAS integer 64 bit, pthreads true, OpenMP false
+CPU: Apple M5 (4 performance + 6 efficiency cores), macOS 26.6 (25G72), Julia 1.13.3, Julia threads 1
+
+case                            n     backend                  requested      ms    GFLOPS CPU/wall  bytes allocs
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)               -     4.9     410.7     1.00      0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)         -   268.9       7.4     1.00     64      1
+LinearAlgebra.mul!, contiguous  1000  BLIS                             1    31.4      63.7     1.00      0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)               -     4.7     429.7     1.00      0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)               -    18.0     375.5     1.00      0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)         -   928.5       7.3     1.00     64      1
+LinearAlgebra.mul!, contiguous  1500  BLIS                             1   109.6      61.6     1.00      0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.1     419.7     1.00      0      0
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)               -     5.2     387.3     1.00      0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)         -   273.2       7.3     1.00     64      1
+LinearAlgebra.mul!, contiguous  1000  BLIS                             2    18.1     110.3     2.00      0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)               -     4.7     423.0     1.00      0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)               -    18.2     371.3     1.00      0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)         -   947.4       7.1     1.00     64      1
+LinearAlgebra.mul!, contiguous  1500  BLIS                             2    62.9     107.3     2.00      0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.2     415.8     1.00      0      0
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)               -     5.2     387.9     1.00      0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)         -   272.5       7.3     1.00     64      1
+LinearAlgebra.mul!, contiguous  1000  BLIS                             3    13.3     150.8     2.99      0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)               -     4.9     408.8     1.00      0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)               -    19.0     355.4     1.00      0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)         -   966.1       7.0     1.00     64      1
+LinearAlgebra.mul!, contiguous  1500  BLIS                             3    50.2     134.6     3.00      0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.2     415.6     1.00      0      0
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)               -     5.1     391.8     1.00      0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)         -   269.6       7.4     1.00     64      1
+LinearAlgebra.mul!, contiguous  1000  BLIS                             4    11.4     175.5     3.99      0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)               -     4.7     427.2     1.00      0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)               -    18.2     370.0     1.00      0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)         -   939.2       7.2     1.00     64      1
+LinearAlgebra.mul!, contiguous  1500  BLIS                             4    42.7     158.3     3.99      0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.3     413.1     1.00      0      0

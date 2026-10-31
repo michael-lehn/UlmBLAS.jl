@@ -1,2 +1,4 @@
-gemm_threads.tsv
+gemm_accelerate.tsv
+gemm_blis.tsv
 gemm_threads.out
+gemm_threads.tsv
