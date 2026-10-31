@@ -2,6 +2,7 @@
 #  of ulmBLAS is reported (xerbla) and does not end the process.
 using LinearAlgebra, Test
 using UlmBLAS
+UlmBLAS.forward()
 
 @testset "invalid argument" begin
     A = rand(4, 4); C = zeros(4, 4)

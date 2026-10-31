@@ -6,11 +6,14 @@
   [libblastrampoline](https://github.com/JuliaLinearAlgebra/libblastrampoline)
   (LBT), which forwards every routine to a library loaded into it.  By
   default this is OpenBLAS.
-- `using UlmBLAS` (or `UlmBLAS.forward(path)`) calls
-  `BLAS.lbt_forward(path; clear=false, suffix_hint="64_")`: the routines
-  the library of ulmBLAS provides replace those of OpenBLAS, everything
-  else stays with the library that provided it before.
-  `BLAS.get_config()` lists both libraries.
+- `using UlmBLAS` loads the library of ulmBLAS for this CPU with `dlopen`
+  (for `UlmBLAS.mul!`) and does not change LBT.
+- `UlmBLAS.forward()` calls
+  `BLAS.lbt_forward(UlmBLAS.library_path(); clear=false,
+  suffix_hint="64_")`: the routines the library of ulmBLAS provides
+  replace those of OpenBLAS, everything else stays with the library that
+  provided it before.  `BLAS.get_config()` lists both libraries.  Calling
+  it again changes nothing.
 - `UlmBLAS.library_path()` is the library in use.
 
 ### Routines that ulmBLAS does not provide
@@ -50,10 +53,9 @@ AppleAccelerate.jl).
 - An invalid argument to a routine of ulmBLAS (e.g. `lda < m`) is
   reported by `xerbla` on `stderr`, and the routine returns, as in
   OpenBLAS.
-- `ULMBLAS_LIBRARY` naming a file that does not exist: `using UlmBLAS`
-  warns and leaves the BLAS of Julia unchanged.
-- `UlmBLAS.forward(path)` raises an error if no routine was forwarded;
-  the forwarding table is then unchanged.
+- No library (no build for this platform, or `ULMBLAS_LIBRARY` naming a
+  file that does not exist): `using UlmBLAS` warns; `UlmBLAS.mul!` and
+  `UlmBLAS.forward()` raise an error; the BLAS of Julia is unchanged.
 
 ## The library
 

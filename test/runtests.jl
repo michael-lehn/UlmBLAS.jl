@@ -1,28 +1,43 @@
 using LinearAlgebra, Libdl, Test
+const LIBS_BEFORE = [l.libname for l in BLAS.get_config().loaded_libs]
 using UlmBLAS
 
 #  a test script in a fresh Julia process (for tests that need the state
 #  before `using UlmBLAS`, or that could end the process); returns the
 #  process, stdout and stderr
-function run_script(file, env...)
-    cmd = `$(Base.julia_cmd()) --startup-file=no --project=$(Base.active_project())
-           $(joinpath(@__DIR__, "subprocess", file))`
+function run_script(file, env...; threads=1)
+    cmd = `$(Base.julia_cmd()) --startup-file=no --threads=$threads
+           --project=$(Base.active_project()) $(joinpath(@__DIR__, "subprocess", file))`
     out = IOBuffer(); err = IOBuffer()
     p = run(pipeline(ignorestatus(addenv(cmd, env...)); stdout=out, stderr=err))
     return p, String(take!(out)), String(take!(err))
 end
-function script_passes(file, env...)
-    p, out, err = run_script(file, env...)
+function script_passes(file, env...; threads=1)
+    p, out, err = run_script(file, env...; threads)
     success(p) || println(out, err)
     return success(p)
 end
 
 @testset "UlmBLAS" begin
 
+@testset "loading" begin
+    @test isfile(UlmBLAS.library_path())
+    #  `using UlmBLAS` does not change the BLAS of Julia
+    @test [l.libname for l in BLAS.get_config().loaded_libs] == LIBS_BEFORE
+    @test UlmBLAS.variant() in UlmBLAS.variants()
+    @info "UlmBLAS: library $(UlmBLAS.library_path()) ($(UlmBLAS.chosen[])), " *
+          "variants of this CPU: $(join(UlmBLAS.variants(), ", "))"
+end
+
+#  UlmBLAS.mul! before forward()
+include("strided.jl")
+
 @testset "forwarding" begin
     lib = UlmBLAS.library_path()
-    @test isfile(lib)
-    @test any(l -> l.libname == lib, BLAS.get_config().loaded_libs)
+    @test UlmBLAS.forward() > 140
+    @test [l.libname for l in BLAS.get_config().loaded_libs] == [LIBS_BEFORE; lib]
+    @test UlmBLAS.forward() > 140              # again: no change
+    @test [l.libname for l in BLAS.get_config().loaded_libs] == [LIBS_BEFORE; lib]
     h = dlopen(lib)
     for f in ("dgemm", "sgemm", "zgemm", "cgemm", "ddot", "zdotc", "idamax",
               "dtrsm", "dgemv", "dsyrk", "zherk", "drot")
@@ -57,6 +72,7 @@ end
 @testset "fallback $T" for T in (Float32, Float64, ComplexF32, ComplexF64)
     A = rand(T, 9, 6); B = rand(T, 6, 9); C0 = rand(T, 9, 9)
     for uplo in ('U', 'L')
+        isdefined(BLAS, :gemmt!) || break          # Julia 1.11 and later
         C = copy(C0)
         BLAS.gemmt!(uplo, 'N', 'N', T(2), A, B, T(3), C)
         R = 2 * gemm_ref(A, B) + 3 * C0
@@ -85,7 +101,11 @@ end
     end
 end
 
-include("strided.jl")
+#  UlmBLAS.mul! after forward()
+@testset "strided after forward()" begin
+    P = rand(40, 30); A = view(P, 1:2:40, :); B = rand(30, 25); C = zeros(20, 25)
+    @test UlmBLAS.mul!(C, A, B) ≈ Matrix(A) * B
+end
 
 #  in fresh processes
 @testset "routing of all symbols, loading again" begin
@@ -95,6 +115,14 @@ end
     p, out, err = run_script("errors.jl")
     @test success(p)
     @test occursin("DGEMM", err)
+end
+@testset "threads" begin
+    @test script_passes("threads.jl"; threads=4)
+end
+#  every build of the artifact this CPU can run (not with ULMBLAS_LIBRARY)
+@testset "variant $v" for v in (isempty(get(ENV, "ULMBLAS_LIBRARY", "")) ?
+                                UlmBLAS.variants() : String[])
+    @test script_passes("variant.jl", "ULMBLAS_VARIANT" => v)
 end
 @testset "ULMBLAS_LIBRARY does not exist" begin
     p, out, err = run_script("init.jl", "ULMBLAS_LIBRARY" => "/nonexistent/libulmblas_lbt")

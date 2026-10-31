@@ -9,6 +9,7 @@ missing_function() = (MISSING[] += 1; nothing)
 BLAS.lbt_set_default_func(@cfunction(missing_function, Cvoid, ()))
 
 using UlmBLAS
+UlmBLAS.forward()
 
 const DIR = joinpath(dirname(pathof(LinearAlgebra)), "..", "test")
 @testset "LinearAlgebra with UlmBLAS" begin

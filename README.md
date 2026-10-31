@@ -3,17 +3,25 @@
 Use the BLAS of [ulmBLAS](https://github.com/michael-lehn/ulmBLAS) in
 Julia.  The package does two things:
 
-- `using UlmBLAS` makes ulmBLAS the BLAS of Julia: `A * B`, `BLAS.gemm!`,
-  triangular solves etc. then call ulmBLAS.  LAPACK stays with OpenBLAS.
 - `UlmBLAS.mul!` computes `C = α A B + β C` for matrices with arbitrary
   strides, e.g. every second row of a matrix, without copies.
+- `UlmBLAS.forward()` makes ulmBLAS the BLAS of Julia: `A * B`,
+  `BLAS.gemm!`, triangular solves etc. then call ulmBLAS.  LAPACK and the
+  few BLAS routines ulmBLAS does not have stay with OpenBLAS.
+
+`using UlmBLAS` alone does not change the BLAS of Julia.
 
 ```julia
 using LinearAlgebra, UlmBLAS
 
-A = rand(500, 300); B = rand(300, 200);
-C = A * B;                          # dgemm of ulmBLAS
-BLAS.get_config()                   # ulmBLAS for BLAS, OpenBLAS for LAPACK
+P = rand(1000, 300); A = view(P, 1:2:1000, :);   # every second row
+B = rand(300, 200); C = zeros(500, 200);
+UlmBLAS.mul!(C, A, B);              # C = A B, GEMM of ulmBLAS, no copies
+BLAS.get_config()                   # still OpenBLAS only
+
+UlmBLAS.forward();                  # now ulmBLAS for BLAS, OpenBLAS for the rest
+C = rand(500, 300) * B;             # dgemm of ulmBLAS
+BLAS.get_config()                   # OpenBLAS and ulmBLAS
 ```
 
 ## Installation
@@ -38,21 +46,21 @@ In another environment add the package with
 `Pkg.develop(path="/path/to/UlmBLAS.jl")`.
 
 Without `ULMBLAS_LIBRARY` the package looks for a prebuilt library for
-this CPU.  As there is none yet, it prints a warning and Julia keeps
-OpenBLAS.  A library can also be loaded later with
-`UlmBLAS.forward("/path/to/libulmblas_lbt.dylib")`.
+this CPU.  As there is none yet, it prints a warning; `UlmBLAS.mul!` and
+`UlmBLAS.forward()` then raise an error, and Julia keeps OpenBLAS.
 
 `make lbt ARCHFLAGS=...` selects the micro kernels, e.g.
 `ARCHFLAGS=-mcpu=apple-m4` for SME2 (see [CPU variants](#cpu-variants)).
 
 ## ulmBLAS as the BLAS of Julia
 
-After `using UlmBLAS` the BLAS calls of `LinearAlgebra` go to ulmBLAS:
+After `UlmBLAS.forward()` the BLAS calls of `LinearAlgebra` go to ulmBLAS:
 
 ```julia
 using LinearAlgebra, UlmBLAS
 
 UlmBLAS.library_path()              # the library in use
+UlmBLAS.forward();
 A = rand(ComplexF32, 100, 100); B = rand(ComplexF32, 100, 100);
 C = similar(A);
 mul!(C, A, B);                      # cgemm of ulmBLAS
@@ -66,11 +74,14 @@ println(C ≈ A' * B)                 # should print true
   the dot products of `LinearAlgebra.BLAS` keep going to OpenBLAS; see
   [docs/details.md](docs/details.md#routines-that-ulmblas-does-not-provide).
 - Single-threaded: `BLAS.set_num_threads` has no effect on ulmBLAS.
+- `UlmBLAS.forward()` can be called again (no effect).
 
 Julia calls BLAS through
 [libblastrampoline](https://github.com/JuliaLinearAlgebra/libblastrampoline);
-`using UlmBLAS` loads the library of ulmBLAS into it.  Details in
-[docs/details.md](docs/details.md).
+`UlmBLAS.forward()` loads the library of ulmBLAS into it, on top of
+OpenBLAS.  To undo it, load OpenBLAS again:
+`BLAS.lbt_forward(OpenBLAS_jll.libopenblas_path; clear=true)`.  Details
+in [docs/details.md](docs/details.md).
 
 ## GEMM with arbitrary strides: `UlmBLAS.mul!`
 
@@ -236,7 +247,9 @@ using Pkg; Pkg.test("UlmBLAS")
 ```
 
 The tests also run, in fresh processes, a check of every routine of
-libblastrampoline before and after `using UlmBLAS` and the BLAS and matrix
+libblastrampoline before and after `using UlmBLAS` and `UlmBLAS.forward()`,
+concurrent calls from several threads, every build of ulmBLAS the CPU can
+run, and the BLAS and matrix
 product tests of `LinearAlgebra` (about two minutes).  With
 `ULMBLAS_TEST_LINALG=1` the LAPACK, triangular, dense and symmetric tests
 of `LinearAlgebra` are run as well (several minutes).
