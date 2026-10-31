@@ -123,6 +123,72 @@ println(Q[1:n, :] ≈ Q0[n+1:2n, :] * Q0[1:2:2n, :])  # should print true
 It computes `α A B` into a temporary matrix if `Base.mightalias` reports a
 possible overlap, and is `ulmBLAS.mul!` otherwise.
 
+## First test on my MacBook :-)
+
+Here is a first comparison on my MacBook Air with an Apple M5. The
+interesting case is `A`: it takes every second row of `P`, so its
+elements are not laid out like an ordinary Julia matrix.
+
+The benchmark uses two matrix sizes and tries OpenBLAS with 1, 2, 3,
+and 4 threads. ulmBLAS currently uses one thread regardless of that
+setting.
+
+```julia
+using LinearAlgebra, ulmBLAS, BenchmarkTools
+
+# Important: first route Julia's BLAS calls back to OpenBLAS.
+# The full benchmark below verifies the actual GEMM routing.
+for threads in 1:4
+    BLAS.set_num_threads(threads)
+    for n in (1000, 1500)
+        P = rand(2n, n)
+        A = view(P, 1:2:2n, :)
+        Ac = Matrix(A)
+        B = rand(n, n)
+        C = zeros(n, n)
+
+        println("threads = $threads, n = $n")
+        println(ulmBLAS.mul!(C, A, B) ≈ Ac * B) # should print true
+
+        @btime ulmBLAS.mul!($C, $A, $B)
+        @btime LinearAlgebra.mul!($C, $A, $B)
+        @btime LinearAlgebra.mul!($C, $Ac, $B)
+        @btime ulmBLAS.mul!($C, $Ac, $B)
+    end
+end
+```
+
+**Do not run this snippet alone for a comparison with OpenBLAS:**
+`using ulmBLAS` normally makes Julia use ulmBLAS too. Run the
+[complete benchmark](bench/gemm_threads.jl), which explicitly switches
+Julia's BLAS calls to OpenBLAS and checks which implementation each
+operation actually calls. It also checks the results and writes the
+measurements to a file.
+
+First results (minimum measured time, in milliseconds):
+
+| Operation | n = 1000 | n = 1500 | Threads |
+|---|---:|---:|---|
+| ulmBLAS, every second row | 4.9 | 17.9 | 1 |
+| ulmBLAS, ordinary matrix | 4.6 | 16.3 | 1 |
+| OpenBLAS, ordinary matrix | 33.8 | 120 | 1 |
+| OpenBLAS, ordinary matrix | 12.0 | 44.9 | 4 |
+| Julia, every second row | 263 | 906 | 1 |
+
+The full benchmark also measures OpenBLAS with 2 and 3 threads;
+see [bench/](bench/) for the recorded results.
+
+**What does this show?** Julia's usual matrix multiplication takes a
+much slower route for this particular view, while `ulmBLAS.mul!` can
+multiply it directly. On this M5, ulmBLAS is also faster than the
+OpenBLAS version shipped with this Julia installation, even when
+OpenBLAS uses four threads.
+
+This is **not** a general claim that ulmBLAS beats OpenBLAS:
+the ulmBLAS build uses the M5's SME2 matrix instructions, while
+OpenBLAS 0.3.30 uses older NEON kernels here. A newer OpenBLAS or
+Apple Accelerate would be interesting comparisons.
+
 ## CPU variants
 
 ulmBLAS selects its micro kernels at compile time.  The package is meant
