@@ -57,6 +57,56 @@ AppleAccelerate.jl).
   file that does not exist): `using UlmBLAS` warns; `UlmBLAS.mul!` and
   `UlmBLAS.forward()` raise an error; the BLAS of Julia is unchanged.
 
+## Threads
+
+ulmBLAS computes each call in the calling thread (it starts no threads of
+its own; `BLAS.set_num_threads` does not apply).  For calls of
+`UlmBLAS.mul!` and, after `UlmBLAS.forward()`, of BLAS routines from
+several Julia threads at the same time:
+
+- Calls with independent inputs and outputs: safe.
+- Calls sharing inputs that no call writes (e.g. the same `A` in several
+  products): safe.  ulmBLAS never writes its inputs.
+- Calls whose output overlaps an input or output of another concurrent
+  call: not supported (as in any BLAS); the result is unspecified.
+
+Why (source references: ulmBLAS d738372b):
+
+- The packing buffers of the level 2 and 3 routines come from a cache per
+  OS thread (`thread_local` in `MemoryPool::threadCache`,
+  `ulmblas/auxiliary/memorypool.tcc:77`).  Every routine takes its blocks
+  at the beginning of a call and returns them at the end, on the same
+  thread (a Julia task does not change its thread during a `ccall`), with
+  no return in between.  A cached block is used by at most one call at a
+  time; the cache of a thread is only accessed by that thread and frees
+  its blocks when the thread ends.  The `static MemoryPool<T>` objects in
+  the routines have no data members.
+- Everything else is local to a call: tiles of `C` on the stack, the
+  packed operands passed to the micro kernels.  The kernels are selected
+  when ulmBLAS is compiled (no detection at run time); the constant
+  tables of the vendored AVX-512 kernels are only read.  `xerbla` only
+  writes to `stderr`.
+- Julia side: the library path and the addresses of
+  `ulmblas_?gemm_strided` are set once in `__init__` (while Julia loads
+  the package) and only read afterwards; `UlmBLAS.mul!` keeps its
+  operands alive during the call (`GC.@preserve`).
+- `UlmBLAS.forward()`: libblastrampoline does not synchronize
+  `lbt_forward` (its list of loaded libraries, `record_library_load` in
+  `config.c` of LBT 5.15, is written without a lock), so UlmBLAS
+  serializes its own `forward()` calls with a lock.  A BLAS call in
+  another thread while `forward()` runs reads the forwarding table of LBT
+  while it is written: formally a data race in LBT; each entry is one
+  aligned pointer, so on x86-64 and AArch64 the call goes either to
+  OpenBLAS or to ulmBLAS, both correct.  Call `forward()` before
+  starting concurrent BLAS work.
+- Routines that stay with OpenBLAS rely on OpenBLAS being safe for
+  concurrent calls (as Julia does).
+- The library is never unloaded (neither Julia nor LBT call `dlclose`),
+  which the per-thread caches assume.
+
+`test/subprocess/threads.jl` runs such calls concurrently (first calls
+included) and checks the results.
+
 ## The library
 
 `make lbt` in ulmBLAS builds `libulmblas_lbt.so` (macOS: `.dylib`):

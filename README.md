@@ -74,7 +74,9 @@ println(C ≈ A' * B)                 # should print true
   the dot products of `LinearAlgebra.BLAS` keep going to OpenBLAS; see
   [docs/details.md](docs/details.md#routines-that-ulmblas-does-not-provide).
 - Single-threaded: `BLAS.set_num_threads` has no effect on ulmBLAS.
-- `UlmBLAS.forward()` can be called again (no effect).
+- `UlmBLAS.forward()` can be called again (no effect).  Call it before
+  starting concurrent BLAS work; see
+  [docs/details.md](docs/details.md#threads) for concurrent calls.
 
 Julia calls BLAS through
 [libblastrampoline](https://github.com/JuliaLinearAlgebra/libblastrampoline);

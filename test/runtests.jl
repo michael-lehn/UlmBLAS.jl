@@ -38,6 +38,19 @@ include("strided.jl")
     @test [l.libname for l in BLAS.get_config().loaded_libs] == [LIBS_BEFORE; lib]
     @test UlmBLAS.forward() > 140              # again: no change
     @test [l.libname for l in BLAS.get_config().loaded_libs] == [LIBS_BEFORE; lib]
+    #  forward() calls are serialized (lbt_forward is not thread-safe): a
+    #  call waits while another one holds the lock
+    lock(UlmBLAS.FORWARD_LOCK)
+    t = Threads.@spawn UlmBLAS.forward()
+    sleep(0.5)
+    @test !istaskdone(t)
+    unlock(UlmBLAS.FORWARD_LOCK)
+    @test fetch(t) > 140
+    #  concurrent calls: one entry in the list of libraries
+    @sync for _ in 1:8
+        Threads.@spawn UlmBLAS.forward()
+    end
+    @test [l.libname for l in BLAS.get_config().loaded_libs] == [LIBS_BEFORE; lib]
     h = dlopen(lib)
     for f in ("dgemm", "sgemm", "zgemm", "cgemm", "ddot", "zdotc", "idamax",
               "dtrsm", "dgemv", "dsyrk", "zherk", "drot")

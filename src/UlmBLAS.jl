@@ -141,10 +141,18 @@ a result).  To undo `forward()`, load the previous library again with
 `clear=true`, e.g. `BLAS.lbt_forward(OpenBLAS_jll.libopenblas_path;
 clear=true)`.
 """
+#  libblastrampoline does not synchronize lbt_forward: concurrent calls
+#  write its list of loaded libraries (record_library_load in config.c of
+#  LBT 5.15) without a lock.  forward() calls are serialized by this lock
+#  (calls of BLAS.lbt_forward by other code are not).
+const FORWARD_LOCK = ReentrantLock()
+
 function forward()
     path = library[]
     isempty(path) && error("UlmBLAS: no library of ulmBLAS loaded")
-    n = BLAS.lbt_forward(path; clear=false, suffix_hint="64_")
+    n = lock(FORWARD_LOCK) do
+        BLAS.lbt_forward(path; clear=false, suffix_hint="64_")
+    end
     n > 0 || error("UlmBLAS: no BLAS routines forwarded from $path")
     return n
 end
