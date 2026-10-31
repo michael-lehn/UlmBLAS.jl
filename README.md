@@ -57,7 +57,7 @@ A = rand(ComplexF32, 100, 100); B = rand(ComplexF32, 100, 100);
 C = similar(A);
 mul!(C, A, B);                      # cgemm of ulmBLAS
 BLAS.gemm!('C', 'N', one(ComplexF32), A, B, zero(ComplexF32), C);
-C ≈ A' * B                          # true
+println(C ≈ A' * B)                 # should print true
 ```
 
 - LAPACK (`lu`, `qr`, `eigen`, ...) comes from OpenBLAS and uses OpenBLAS's
@@ -86,17 +86,17 @@ B = rand(n, n);
 C = zeros(n, n);
 
 ulmBLAS.mul!(C, A, B);              # C = A B
-C ≈ A * B                           # true
+println(C ≈ A * B)                  # should print true
 
 C0 = rand(n, n); C = copy(C0);
 ulmBLAS.mul!(C, A', B, 2.0, -1.0);  # C = 2 A' B - C
-C ≈ 2 * A' * B - C0                 # true
+println(C ≈ 2 * A' * B - C0)        # should print true
 
 Z = rand(ComplexF64, n, n); W = rand(ComplexF64, 2n, n);
 X = view(W, 2n:-2:1, :);            # negative row stride
 Y = zeros(ComplexF64, n, n);
 ulmBLAS.mul!(Y, transpose(Z), X');  # Y = Zᵀ Xᴴ
-Y ≈ transpose(Z) * X'               # true
+println(Y ≈ transpose(Z) * X')      # should print true
 ```
 
 - Types: `Float32`, `Float64`, `ComplexF32`, `ComplexF64`, the same for
@@ -117,7 +117,7 @@ of length 1).  `A` and `B` may overlap.  If `C` might share memory with
 ```julia
 Q = rand(2n, n); Q0 = copy(Q);
 ulmBLAS.mul_aliased!(view(Q, 1:n, :), view(Q, n+1:2n, :), view(Q, 1:2:2n, :));
-Q[1:n, :] ≈ Q0[n+1:2n, :] * Q0[1:2:2n, :]          # true
+println(Q[1:n, :] ≈ Q0[n+1:2n, :] * Q0[1:2:2n, :])  # should print true
 ```
 
 It computes `α A B` into a temporary matrix if `Base.mightalias` reports a
