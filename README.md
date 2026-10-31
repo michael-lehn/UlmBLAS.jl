@@ -175,8 +175,10 @@ Some possibilities worth exploring:
   matrices and expensive element access. Preserve the existing fast path
   for ordinary strided arrays.
 
-These are ideas for future experiments, **not implemented features or an
-immediate development plan**.
+I'm currently preparing for job interviews, which means I welcome just about
+any distraction. :D Still, these are ideas for future experiments,
+**not implemented features or an immediate development plan** for the next
+few weeks.
 
 ## CPU variants
 
