@@ -1,7 +1,11 @@
 #
 #  Bar chart (SVG) of the results of gemm_threads.jl:
 #
-#      julia plot_gemm_threads.jl results/2026-10-31-apple-m5.tsv [SVG [TITLE]]
+#      julia plot_gemm_threads.jl results/2026-10-31-apple-m5.tsv [SVG [TITLE [GROUP [NOTE]]]]
+#
+#  GROUP is the first line below each group, with %t for the value of the
+#  BLAS_threads column and %s for a plural "s" (default "%t Thread%s"); NOTE
+#  is the line at the bottom.
 #
 #  writes results/2026-10-31-apple-m5.svg: 8 groups (BLAS threads 1 to 4 x
 #  n = 1000, 1500) of 4 bars, GFLOPS = 2n^3 / minimum time (linear axis
@@ -19,6 +23,11 @@ tsv = length(ARGS) >= 1 ? ARGS[1] :
       joinpath(@__DIR__, "results", "2026-10-31-apple-m5.tsv")
 svg = length(ARGS) >= 2 ? ARGS[2] : replace(tsv, r"\.tsv$" => ".svg")
 label = length(ARGS) >= 3 ? ARGS[3] : "DGEMM on an Apple M5"
+grouplabel = length(ARGS) >= 4 ? ARGS[4] : "%t Thread%s"
+glabel(t) = replace(grouplabel, "%t" => string(t), "%s" => t > 1 ? "s" : "")
+tlabel(t) = length(ARGS) >= 4 ? glabel(t) : string(t, " BLAS thread", t > 1 ? "s" : "")
+note = length(ARGS) >= 5 ? ARGS[5] :
+       "Threads: OpenBLAS threads (BLAS.set_num_threads). ulmBLAS and Julia's generic strided multiplication always use one thread."
 
 #  GFLOPS by (case, n, BLAS threads)
 gf = Dict{Tuple{String,Int,Int},Float64}()
@@ -86,14 +95,14 @@ for (g, (t, n)) in enumerate(groups)
         v  = gf[(c, n, t)]
         x  = x0 + (i - 1)*(bw + gap)
         yt = y(v); yb = top + ph; r = 4
-        p("""<path class="s$i" d="M$(x) $(yb) V$(round(yt + r, digits=1)) Q$(x) $(round(yt, digits=1)) $(x + r) $(round(yt, digits=1)) H$(x + bw - r) Q$(x + bw) $(round(yt, digits=1)) $(x + bw) $(round(yt + r, digits=1)) V$(yb) Z"><title>$c, $n × $n, $t BLAS thread$(t > 1 ? "s" : ""): $(round(v, digits=1)) GFLOPS</title></path>""")
+        p("""<path class="s$i" d="M$(x) $(yb) V$(round(yt + r, digits=1)) Q$(x) $(round(yt, digits=1)) $(x + r) $(round(yt, digits=1)) H$(x + bw - r) Q$(x + bw) $(round(yt, digits=1)) $(x + bw) $(round(yt + r, digits=1)) V$(yb) Z"><title>$c, $n × $n, $(tlabel(t)): $(round(v, digits=1)) GFLOPS</title></path>""")
     end
     cx = left + (g - 0.5)*gw
-    p("""<text class="t1" x="$cx" y="$(top + ph + 18)" font-size="12" text-anchor="middle">$t Thread$(t > 1 ? "s" : "")</text>""")
+    p("""<text class="t1" x="$cx" y="$(top + ph + 18)" font-size="12" text-anchor="middle">$(glabel(t))</text>""")
     p("""<text class="t2" x="$cx" y="$(top + ph + 33)" font-size="12" text-anchor="middle">$n × $n</text>""")
 end
 p("""<line class="axis" x1="$left" x2="$(W - right)" y1="$(top + ph)" y2="$(top + ph)"/>""")
-p("""<text class="t2" x="$left" y="$(H - 18)" font-size="11">Threads: OpenBLAS threads (BLAS.set_num_threads). ulmBLAS and Julia's generic strided multiplication always use one thread.</text>""")
+p("""<text class="t2" x="$left" y="$(H - 18)" font-size="11">$note</text>""")
 p("</svg>")
 
 write(svg, String(take!(io)))

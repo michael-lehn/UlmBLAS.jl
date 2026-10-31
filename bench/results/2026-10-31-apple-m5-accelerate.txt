@@ -1,0 +1,77 @@
+# 2026-10-31, Apple M5 (MacBook Air), macOS 26.6 (25G72), Accelerate 1.11 (vecLib 3.11), Julia 1.13.3
+# ulmBLAS: libulmblas_lbt.dylib built from ulmBLAS master 7cf4d913 + strided GEMM, ARCHFLAGS=-mcpu=apple-m4 (SME2)
+# run_accelerate.sh: one Julia process per VECLIB_MAXIMUM_THREADS = 1..4, BLASSetThreading(MULTI_THREADED)
+# load average before/after: 3.0 / 4.7 (shared machine; after includes Accelerate's own threads)
+######## VECLIB_MAXIMUM_THREADS=1
+library of ulmBLAS: /Users/lehn/git/ulmBLAS.jl/dev/lib/libulmblas_lbt.dylib
+LBT after `using ulmBLAS`: dgemm_ -> ulmBLAS
+LBT for this benchmark:   dgemm_ -> Accelerate (dgemm$NEWLAPACK$ILP64, ILP64)
+ulmBLAS.mul!:             ulmblas_dgemm_strided of libulmblas_lbt.dylib
+dgemm_ calls through LBT: LinearAlgebra.mul! strided 0, contiguous 1; ulmBLAS.mul! 0
+Accelerate threading:     BLASSetThreading(MULTI_THREADED), VECLIB_MAXIMUM_THREADS=1, BLAS.get_num_threads() = 1
+CPU: Apple M5 (4 performance + 6 efficiency cores), macOS 26.6 (25G72), Julia 1.13.3, Julia threads 1
+
+case                            n     backend                  requested      ms    GFLOPS CPU/wall  bytes allocs
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)               -     4.8     415.1     1.00      0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)         -   254.8       7.8     1.00     64      1
+LinearAlgebra.mul!, contiguous  1000  Accelerate                       1     4.1     482.6     1.00      0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)               -     4.7     426.5     1.00      0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)               -    17.6     383.6     0.99      0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)         -   924.6       7.3     1.00     64      1
+LinearAlgebra.mul!, contiguous  1500  Accelerate                       1    16.4     410.9     1.00      0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    15.7     431.1     1.00      0      0
+######## VECLIB_MAXIMUM_THREADS=2
+library of ulmBLAS: /Users/lehn/git/ulmBLAS.jl/dev/lib/libulmblas_lbt.dylib
+LBT after `using ulmBLAS`: dgemm_ -> ulmBLAS
+LBT for this benchmark:   dgemm_ -> Accelerate (dgemm$NEWLAPACK$ILP64, ILP64)
+ulmBLAS.mul!:             ulmblas_dgemm_strided of libulmblas_lbt.dylib
+dgemm_ calls through LBT: LinearAlgebra.mul! strided 0, contiguous 1; ulmBLAS.mul! 0
+Accelerate threading:     BLASSetThreading(MULTI_THREADED), VECLIB_MAXIMUM_THREADS=2, BLAS.get_num_threads() = 1
+CPU: Apple M5 (4 performance + 6 efficiency cores), macOS 26.6 (25G72), Julia 1.13.3, Julia threads 1
+
+case                            n     backend                  requested      ms    GFLOPS CPU/wall  bytes allocs
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)               -     5.0     399.3     1.00      0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)         -   261.0       7.7     1.00     64      1
+LinearAlgebra.mul!, contiguous  1000  Accelerate                       2     3.7     540.0     1.93      0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)               -     4.6     430.6     1.00      0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)               -    17.7     381.6     1.00      0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)         -   921.5       7.3     1.00     64      1
+LinearAlgebra.mul!, contiguous  1500  Accelerate                       2    14.5     464.8     1.81      0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.2     417.5     1.00      0      0
+######## VECLIB_MAXIMUM_THREADS=3
+library of ulmBLAS: /Users/lehn/git/ulmBLAS.jl/dev/lib/libulmblas_lbt.dylib
+LBT after `using ulmBLAS`: dgemm_ -> ulmBLAS
+LBT for this benchmark:   dgemm_ -> Accelerate (dgemm$NEWLAPACK$ILP64, ILP64)
+ulmBLAS.mul!:             ulmblas_dgemm_strided of libulmblas_lbt.dylib
+dgemm_ calls through LBT: LinearAlgebra.mul! strided 0, contiguous 1; ulmBLAS.mul! 0
+Accelerate threading:     BLASSetThreading(MULTI_THREADED), VECLIB_MAXIMUM_THREADS=3, BLAS.get_num_threads() = 1
+CPU: Apple M5 (4 performance + 6 efficiency cores), macOS 26.6 (25G72), Julia 1.13.3, Julia threads 1
+
+case                            n     backend                  requested      ms    GFLOPS CPU/wall  bytes allocs
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)               -     5.0     403.3     1.00      0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)         -   271.8       7.4     1.00     64      1
+LinearAlgebra.mul!, contiguous  1000  Accelerate                       3     3.8     519.8     1.91      0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)               -     4.7     427.9     1.00      0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)               -    18.4     366.6     1.00      0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)         -   935.9       7.2     1.00     64      1
+LinearAlgebra.mul!, contiguous  1500  Accelerate                       3    14.6     462.7     1.82      0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.1     418.5     1.00      0      0
+######## VECLIB_MAXIMUM_THREADS=4
+library of ulmBLAS: /Users/lehn/git/ulmBLAS.jl/dev/lib/libulmblas_lbt.dylib
+LBT after `using ulmBLAS`: dgemm_ -> ulmBLAS
+LBT for this benchmark:   dgemm_ -> Accelerate (dgemm$NEWLAPACK$ILP64, ILP64)
+ulmBLAS.mul!:             ulmblas_dgemm_strided of libulmblas_lbt.dylib
+dgemm_ calls through LBT: LinearAlgebra.mul! strided 0, contiguous 1; ulmBLAS.mul! 0
+Accelerate threading:     BLASSetThreading(MULTI_THREADED), VECLIB_MAXIMUM_THREADS=4, BLAS.get_num_threads() = 1
+CPU: Apple M5 (4 performance + 6 efficiency cores), macOS 26.6 (25G72), Julia 1.13.3, Julia threads 1
+
+case                            n     backend                  requested      ms    GFLOPS CPU/wall  bytes allocs
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)               -     5.0     397.7     1.00      0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)         -   267.5       7.5     1.00     64      1
+LinearAlgebra.mul!, contiguous  1000  Accelerate                       4     3.8     519.8     1.90      0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)               -     4.7     427.1     1.00      0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)               -    18.0     375.9     1.00      0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)         -   938.0       7.2     1.00     64      1
+LinearAlgebra.mul!, contiguous  1500  Accelerate                       4    14.6     461.5     1.80      0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)               -    16.0     421.6     1.00      0      0
+
