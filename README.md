@@ -125,19 +125,30 @@ possible overlap, and is `ulmBLAS.mul!` otherwise.
 
 ## First test on my MacBook :-)
 
-Here is a first comparison on my MacBook Air with an Apple M5. The
-interesting case is `A`: it takes every second row of `P`, so its
-elements are not laid out like an ordinary Julia matrix.
+I wanted to see how ulmBLAS performs on my MacBook Air with an
+Apple M5, especially when a matrix is not stored contiguously.
 
-The benchmark uses two matrix sizes and tries OpenBLAS with 1, 2, 3,
-and 4 threads. ulmBLAS currently uses one thread regardless of that
-setting.
+Here is what I tested:
+
+- Two square matrix sizes: 1000 × 1000 and 1500 × 1500.
+- **Contiguous matrices:** ordinary Julia matrices.
+- **Strided matrices:** a view taking every second row of a larger
+  matrix. No data is copied to make the view.
+- **ulmBLAS:** always one thread.
+- **OpenBLAS:** one, two, three, and four threads.
+- **Julia's generic multiplication:** what `LinearAlgebra.mul!` uses
+  for this particular strided view.
+
+The smaller the time in milliseconds (`ms`), the faster the
+multiplication. `GFLOPS` measures billions of floating-point operations
+per second, so **higher is better**.
 
 ```julia
 using LinearAlgebra, ulmBLAS, BenchmarkTools
 
-# Important: first route Julia's BLAS calls back to OpenBLAS.
-# The full benchmark below verifies the actual GEMM routing.
+# Illustration of the four operations.
+# For a valid OpenBLAS comparison, run bench/gemm_threads.jl instead:
+# it switches Julia's BLAS backend to OpenBLAS and verifies the routing.
 for threads in 1:4
     BLAS.set_num_threads(threads)
     for n in (1000, 1500)
@@ -158,15 +169,15 @@ for threads in 1:4
 end
 ```
 
-**Do not run this snippet alone for a comparison with OpenBLAS:**
-`using ulmBLAS` normally makes Julia use ulmBLAS too. Run the
-[complete benchmark](bench/gemm_threads.jl), which explicitly switches
-Julia's BLAS calls to OpenBLAS and checks which implementation each
-operation actually calls. It also checks the results and writes the
-measurements to a file.
+**To reproduce the results**, run the
+[complete benchmark](bench/gemm_threads.jl), not just the short example
+above. Normally, `using ulmBLAS` also redirects Julia's regular BLAS
+calls to ulmBLAS. The complete script switches those calls back to
+OpenBLAS, verifies that each operation uses the intended implementation,
+checks the answers, and records the timings.
 
-Output of the complete benchmark on the M5 (`ms` is the minimum time
-measured by BenchmarkTools):
+Here is the actual output from my M5. The times are the fastest
+measurements reported by BenchmarkTools:
 
 ```text
 library of ulmBLAS: /Users/lehn/git/ulmBLAS.jl/dev/lib/libulmblas_lbt.dylib
@@ -211,21 +222,37 @@ LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        4    44.9 
 ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.4     410.8       0      0
 ```
 
-The rows come in four blocks, for 1, 2, 3 and 4 BLAS threads; the
-`threads` column shows how many threads the operation actually uses.
-Only OpenBLAS's contiguous GEMM uses the BLAS threads. ulmBLAS and
-Julia's generic strided path remain single-threaded.
+### What I learned
 
-**What does this show?** Julia's usual matrix multiplication takes a
-much slower route for this particular view, while `ulmBLAS.mul!` can
-multiply it directly. On this M5, ulmBLAS is also faster than the
-OpenBLAS version shipped with this Julia installation, even when
-OpenBLAS uses four threads.
+- **The strided view matters.** Julia's usual `LinearAlgebra.mul!`
+  takes about 906 ms for the 1500 × 1500 view. `ulmBLAS.mul!` takes
+  about 18 ms for the same operation — roughly **50 times faster**.
+- **Strides cost relatively little in ulmBLAS.** At size 1500,
+  the strided multiplication takes about 18 ms, compared with about
+  16 ms for a contiguous matrix. No contiguous copy of the input
+  matrix is needed.
+- **More OpenBLAS threads help.** For a contiguous 1500 × 1500
+  matrix, OpenBLAS goes from about 120 ms with one thread to
+  45 ms with four.
+- **ulmBLAS is still faster in this test.** Its single-threaded
+  contiguous multiplication takes about 16 ms.
+- **No extra allocations in ulmBLAS.** The `bytes` and `allocs`
+  columns are both zero for its operations.
 
-This is **not** a general claim that ulmBLAS beats OpenBLAS:
-the ulmBLAS build uses the M5's SME2 matrix instructions, while
-OpenBLAS 0.3.30 uses older NEON kernels here. A newer OpenBLAS or
-Apple Accelerate would be interesting comparisons.
+The output is arranged in four groups, one for each OpenBLAS thread
+setting. Only OpenBLAS uses the extra threads. ulmBLAS and Julia's
+generic strided multiplication remain single-threaded.
+
+### One important caveat
+
+This does **not** mean ulmBLAS is always faster than OpenBLAS.
+My ulmBLAS build uses the Apple M5's **SME2 matrix instructions**,
+while the OpenBLAS 0.3.30 shipped with this Julia installation uses
+older **NEON instructions** on this machine. So this is also a
+comparison of different CPU instruction sets, not just two libraries.
+
+I'd like to repeat the test with a newer OpenBLAS and with Apple's
+Accelerate library.
 
 ## CPU variants
 
