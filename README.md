@@ -175,6 +175,15 @@ Some possibilities worth exploring:
   overhead against the current native implementation, especially for small
   matrices and expensive element access. Preserve the existing fast path
   for ordinary strided arrays.
+- **Beyond BLAS: The Linear Algebra Mapping Problem (LAMP).** Even
+  support for arbitrary strides, optimized kernels, and all BLAS
+  operations does not solve LAMP: finding an efficient mapping from a
+  mathematical linear algebra expression to a sequence of computational
+  kernels. This requires reasoning about the entire expression, including
+  algebraic transformations, matrix properties, and kernel selection. A
+  promising direction is a domain-specific language (DSL) and compiler, as
+  demonstrated by [Linnea](https://arxiv.org/abs/1912.12924) by Henrik
+  Barthels, Christos Psarras, and Paolo Bientinesi.
 
 I'm currently preparing for job interviews, which means I welcome just about
 any distraction. :D Still, these are ideas for future experiments,
