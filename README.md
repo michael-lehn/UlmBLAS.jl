@@ -318,16 +318,17 @@ Accelerate library.
 
 ## Second test on my MacBook :-(
 
-The same benchmark with the current development version of OpenBLAS
-(`develop` at commit 9d78ff857, `v0.3.34-641`), built from source. This
-version has SME2 kernels for DGEMM. On the M5 it detects the core
-`vortexm4`, and every `dgemm_` call goes through its SME2 kernel
-`sme_dgemm_kernel_VORTEXM4`; this was checked with breakpoints, see the
-[build record](bench/results/2026-10-31-apple-m5-openblas-dev-build.txt),
-which also has the build command.
+Well, that changes the picture. :-) This time I repeated the benchmark
+with a recent development version of OpenBLAS (`develop`, commit `9d78ff857`,
+`v0.3.34-641`), built from source. Unlike Julia's bundled OpenBLAS, this
+version has SME2 kernels for DGEMM. And it really uses them on my M5:
+OpenBLAS detects the `vortexm4` core, and breakpoints confirmed that
+`dgemm_` reaches `sme_dgemm_kernel_VORTEXM4`, not a NEON kernel. The
+[build record](bench/results/2026-10-31-apple-m5-openblas-dev-build.txt)
+contains the compiler, build command, and kernel checks.
 
-The benchmark is the [complete script](bench/gemm_threads.jl) of the
-first test, with this OpenBLAS instead of Julia's:
+I used the [same benchmark script](bench/gemm_threads.jl) as before,
+this time pointing it at the locally built OpenBLAS:
 
 ```sh
 cd bench
@@ -338,7 +339,7 @@ OPENBLAS_LIBRARY=/path/to/libopenblas.dylib OPENBLAS_SUFFIX= \
 (`OPENBLAS_SUFFIX=` because this build has no `64_` suffix on its symbol
 names.)
 
-The output on my M5:
+Here is the output from a run on my M5 with the machine otherwise quiet:
 
 ```text
 library of ulmBLAS: /Users/lehn/git/ulmBLAS.jl/dev/lib/libulmblas_lbt.dylib
@@ -386,18 +387,23 @@ ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.0 
 
 ![GFLOPS of ulmBLAS.mul! and LinearAlgebra.mul! with OpenBLAS develop (SME2) for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 OpenBLAS threads, on an Apple M5](bench/results/2026-10-31-apple-m5-openblas-dev.svg)
 
-What the measurements show:
+### Some notes on that
 
-- With its SME2 kernel, OpenBLAS reaches 430 to 467 GFLOPS for the
-  contiguous matrices, ulmBLAS 419 to 430 GFLOPS.  For n = 1000 OpenBLAS
-  is about 9% faster with one thread; for n = 1500 the two are within 3%.
-- The thread setting makes no difference for this OpenBLAS: the times
-  for 1 to 4 threads are the same within a few percent, and the whole run
-  used one core (CPU time 346 s for 345 s wall time).  The SME2 kernel is
-  entered once per call, also with 4 threads.  So the `threads` column
-  shows the setting, not the number of cores used.
-- The strided case is unchanged: `LinearAlgebra.mul!` does not call BLAS
-  for the view (no `dgemm_` call), whichever OpenBLAS is used.
+- **Now we're talking.** With SME2 on both sides, OpenBLAS reaches
+  430–467 GFLOPS for contiguous matrices, versus 419–430 GFLOPS for
+  ulmBLAS. At n = 1000, OpenBLAS is about 9% faster with one thread;
+  at n = 1500, they're within 3%. My big lead from the first test is gone. :-)
+- **But where are the other threads?** Changing OpenBLAS's thread setting
+  from 1 to 4 barely changes the results. The complete run used about
+  one CPU core (346 seconds of CPU time over 345 seconds of wall time),
+  and the SME2 kernel was entered once per call, even with four threads
+  requested. So the `threads` column records the *requested setting*,
+  not the number of cores actually doing work. This observation applies
+  to this build and these measurements; it isn't a general claim about
+  all OpenBLAS kernels.
+- **Arbitrary strides still matter.** `LinearAlgebra.mul!` makes no
+  BLAS `dgemm_` call for the strided view, regardless of which OpenBLAS
+  is selected. `ulmBLAS.mul!` continues to use its strided GEMM directly.
 
 ## CPU variants
 
