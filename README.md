@@ -407,6 +407,13 @@ ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.0 
 
 ## Further Ideas
 
+I explored related approaches years ago in
+[C++/uBLAS](https://www.mathematik.uni-ulm.de/~lehn/test_ublas/) and
+[Blaze](https://www.mathematik.uni-ulm.de/~lehn/test_blaze/session1/page01.html).
+The Blaze example in particular evaluates expressions such as
+`trans(A) + A` and `2 * B` while packing, rather than first constructing
+full temporary matrices.
+
 The current interface already supports matrices with arbitrary row and column
 strides. But why stop at matrices whose elements are stored in memory?
 
@@ -445,12 +452,7 @@ Some possibilities worth exploring:
   for ordinary strided arrays.
 
 These are ideas for future experiments, **not implemented features or an
-immediate development plan**. I explored related approaches years ago in
-[C++/uBLAS](https://www.mathematik.uni-ulm.de/~lehn/test_ublas/) and
-[Blaze](https://www.mathematik.uni-ulm.de/~lehn/test_blaze/session1/page01.html).
-The Blaze example in particular evaluates expressions such as
-`trans(A) + A` and `2 * B` while packing, rather than first constructing
-full temporary matrices.
+immediate development plan**.
 
 ## CPU variants
 
