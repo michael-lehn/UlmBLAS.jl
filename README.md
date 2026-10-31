@@ -144,27 +144,81 @@ multiplication. `GFLOPS` measures billions of floating-point operations
 per second, so **higher is better**.
 
 ```julia
-using LinearAlgebra, ulmBLAS, BenchmarkTools
+# Start Julia in the bench environment (BenchmarkTools), with
+# ULMBLAS_LIBRARY set:  julia --project=bench
+using LinearAlgebra, Libdl, Printf, Random, BenchmarkTools, ulmBLAS
+import OpenBLAS_jll
 
-# Illustration of the four operations.
-# For a valid OpenBLAS comparison, run bench/gemm_threads.jl instead:
-# it switches Julia's BLAS backend to OpenBLAS and verifies the routing.
+# `using ulmBLAS` routes Julia's BLAS calls to ulmBLAS.  Switch them back to
+# OpenBLAS, so that LinearAlgebra.mul! measures OpenBLAS.
+oblib  = OpenBLAS_jll.libopenblas_path
+ulmlib = ulmBLAS.library_path()
+BLAS.lbt_forward(oblib; clear=true, suffix_hint="64_")
+
+# Check: Julia's dgemm is the one of OpenBLAS ...
+addr(lib, f) = UInt(dlsym(dlopen(lib), f))
+@assert UInt(BLAS.lbt_get_forward("dgemm_", :ilp64)) == addr(oblib, "dgemm_64_")
+# ... and ulmBLAS.mul! calls ulmblas_dgemm_strided of ulmBLAS.
+@assert UInt(ulmBLAS.gemm_strided_ptr[Float64]) ==
+        addr(ulmlib, "ulmblas_dgemm_strided")
+
+# Check: count the dgemm calls of LinearAlgebra.mul! (the strided view
+# gets none: Julia uses its generic loop instead of BLAS).
+realgemm = BLAS.lbt_get_forward("dgemm_", :ilp64)
+ncalls = Ref(0)
+function countgemm(ta::Ptr{UInt8}, tb::Ptr{UInt8}, m::Ptr{Int64},
+                   n::Ptr{Int64}, k::Ptr{Int64}, al::Ptr{Float64},
+                   A::Ptr{Float64}, lda::Ptr{Int64}, B::Ptr{Float64},
+                   ldb::Ptr{Int64}, be::Ptr{Float64}, C::Ptr{Float64},
+                   ldc::Ptr{Int64}, l1::Csize_t, l2::Csize_t)
+    ncalls[] += 1
+    ccall(realgemm, Cvoid,
+          (Ptr{UInt8}, Ptr{UInt8}, Ptr{Int64}, Ptr{Int64}, Ptr{Int64},
+           Ptr{Float64}, Ptr{Float64}, Ptr{Int64}, Ptr{Float64}, Ptr{Int64},
+           Ptr{Float64}, Ptr{Float64}, Ptr{Int64}, Csize_t, Csize_t),
+          ta, tb, m, n, k, al, A, lda, B, ldb, be, C, ldc, l1, l2)
+end
+cf = @cfunction(countgemm, Cvoid,
+                (Ptr{UInt8}, Ptr{UInt8}, Ptr{Int64}, Ptr{Int64}, Ptr{Int64},
+                 Ptr{Float64}, Ptr{Float64}, Ptr{Int64}, Ptr{Float64},
+                 Ptr{Int64}, Ptr{Float64}, Ptr{Float64}, Ptr{Int64}, Csize_t,
+                 Csize_t))
+let P = rand(64, 32), A = view(P, 1:2:64, :), B = rand(32, 32),
+    C = zeros(32, 32)
+    BLAS.lbt_set_forward("dgemm_", cf, :ilp64)
+    ncalls[] = 0; LinearAlgebra.mul!(C, A, B);          s = ncalls[]
+    ncalls[] = 0; LinearAlgebra.mul!(C, Matrix(A), B);  c = ncalls[]
+    BLAS.lbt_set_forward("dgemm_", realgemm, :ilp64)
+    @assert s == 0 && c == 1
+end
+
+oblas_threads() = ccall((:openblas_get_num_threads64_, oblib), Cint, ())
+gflops(n, t) = 2.0*n^3/t
+
 for threads in 1:4
-    BLAS.set_num_threads(threads)
+    BLAS.set_num_threads(threads)            # affects OpenBLAS only
+    @assert oblas_threads() == threads
     for n in (1000, 1500)
-        P = rand(2n, n)
-        A = view(P, 1:2:2n, :)
-        Ac = Matrix(A)
-        B = rand(n, n)
-        C = zeros(n, n)
-
-        println("threads = $threads, n = $n")
-        println(ulmBLAS.mul!(C, A, B) ≈ Ac * B) # should print true
-
-        @btime ulmBLAS.mul!($C, $A, $B)
-        @btime LinearAlgebra.mul!($C, $A, $B)
-        @btime LinearAlgebra.mul!($C, $Ac, $B)
-        @btime ulmBLAS.mul!($C, $Ac, $B)
+        Random.seed!(n)
+        P  = rand(2n, n)
+        A  = view(P, 1:2:2n, :)              # every second row: stride 2
+        Ac = Matrix(A)                       # the same matrix, contiguous
+        B  = rand(n, n)
+        C  = zeros(n, n)
+        R  = Ac * B                          # OpenBLAS
+        for (name, X, ulm) in (("ulmBLAS.mul!, strided",          A,  true),
+                               ("LinearAlgebra.mul!, strided",    A,  false),
+                               ("LinearAlgebra.mul!, contiguous", Ac, false),
+                               ("ulmBLAS.mul!, contiguous",       Ac, true))
+            ulm ? ulmBLAS.mul!(C, X, B) : LinearAlgebra.mul!(C, X, B)
+            @assert C ≈ R
+            b = ulm ? @benchmark(ulmBLAS.mul!($C, $X, $B)) :
+                      @benchmark(LinearAlgebra.mul!($C, $X, $B))
+            t = minimum(b).time
+            th = !ulm && X === Ac ? threads : 1
+            @printf("%-31s %-5d threads %d %8.1f ms %7.1f GFLOPS %3d bytes %d allocs\n",
+                    name, n, th, t/1e6, gflops(n, t), b.memory, b.allocs)
+        end
     end
 end
 ```
