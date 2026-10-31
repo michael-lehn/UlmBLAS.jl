@@ -223,12 +223,16 @@ for threads in 1:4
 end
 ```
 
-**To reproduce the results**, run the
-[complete benchmark](bench/gemm_threads.jl), not just the short example
-above. Normally, `using ulmBLAS` also redirects Julia's regular BLAS
-calls to ulmBLAS. The complete script switches those calls back to
-OpenBLAS, verifies that each operation uses the intended implementation,
-checks the answers, and records the timings.
+**To reproduce the benchmark**, run the Julia example above (start
+Julia with `--project=bench` and set `ULMBLAS_LIBRARY` as described
+under [Installation](#installation)). It is self-contained: it switches
+Julia's BLAS calls back to OpenBLAS after `using ulmBLAS`, checks which
+implementation is called, verifies the results, and measures execution
+time and allocations.
+
+You can also run the [full benchmark script](bench/gemm_threads.jl),
+which records the measurements in a TSV file. The output below is from
+the original M5 run; individual timings will vary slightly between runs.
 
 Here is the actual output from my M5. The times are the fastest
 measurements reported by BenchmarkTools:
