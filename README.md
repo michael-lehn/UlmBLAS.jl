@@ -165,10 +165,11 @@ Some possibilities worth exploring:
   implement indexed element access, even when no dense backing storage
   exists. Elements could be computed on demand during packing,
   without materializing the matrix itself.
-- **More general matrix expressions.** Explore products involving sums,
-  transposes, and scaled operands. This would need careful treatment of
-  repeated evaluation, aliasing, type promotion, and the cost of computing
-  each element; it would not automatically make every lazy expression fast.
+- **More general matrix expressions.** Explore products involving
+  element-wise sums and other expressions evaluated during packing.
+  This would need careful treatment of repeated evaluation, aliasing,
+  type promotion, and the cost of computing each element; it would not
+  automatically make every lazy expression fast.
 - **Performance experiments.** Compare Julia-level packing and frame-loop
   overhead against the current native implementation, especially for small
   matrices and expensive element access. Preserve the existing fast path
