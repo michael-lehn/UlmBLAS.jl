@@ -131,7 +131,7 @@ possible overlap, and is `ulmBLAS.mul!` otherwise.
 
 ## Further Ideas
 
-I explored related approaches years ago in
+I explored related approaches in 2016 in
 [C++/uBLAS](https://www.mathematik.uni-ulm.de/~lehn/test_ublas/) and
 [Blaze](https://www.mathematik.uni-ulm.de/~lehn/test_blaze/session1/page01.html).
 The Blaze example in particular evaluates expressions such as
