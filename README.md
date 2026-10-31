@@ -167,16 +167,19 @@ measurements to a file.
 
 First results (minimum measured time, in milliseconds):
 
-| Operation | n = 1000 | n = 1500 | Threads |
-|---|---:|---:|---|
-| ulmBLAS, every second row | 4.9 | 17.9 | 1 |
-| ulmBLAS, ordinary matrix | 4.6 | 16.3 | 1 |
-| OpenBLAS, ordinary matrix | 33.8 | 120 | 1 |
-| OpenBLAS, ordinary matrix | 12.0 | 44.9 | 4 |
-| Julia, every second row | 263 | 906 | 1 |
+| Operation | Threads | n = 1000 | n = 1500 |
+|---|---:|---:|---:|
+| ulmBLAS, every second row | 1 (always) | 4.9 | 17.9 |
+| ulmBLAS, ordinary matrix | 1 (always) | 4.6 | 16.3 |
+| OpenBLAS, ordinary matrix | 1 | 33.8 | 120 |
+| OpenBLAS, ordinary matrix | 4 | 12.0 | 44.9 |
+| Julia, every second row (generic) | 1 (always) | 263 | 906 |
 
-The full benchmark also measures OpenBLAS with 2 and 3 threads;
-see [bench/](bench/) for the recorded results.
+The thread setting is varied from 1 to 4, but only OpenBLAS's
+contiguous GEMM uses those threads. ulmBLAS and Julia's generic strided
+path remain single-threaded. The table shows the available 1- and
+4-thread results; the full benchmark also measures OpenBLAS with 2
+and 3 threads (see [bench/](bench/) for the recorded results).
 
 **What does this show?** Julia's usual matrix multiplication takes a
 much slower route for this particular view, while `ulmBLAS.mul!` can
