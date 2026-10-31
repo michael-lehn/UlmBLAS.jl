@@ -280,6 +280,8 @@ LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        4    44.9 
 ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.4     410.8       0      0
 ```
 
+This long output says it all:
+
 ![GFLOPS of ulmBLAS.mul! and LinearAlgebra.mul! for strided and contiguous matrices, n = 1000 and 1500, 1 to 4 OpenBLAS threads, on an Apple M5](bench/results/2026-10-31-apple-m5.svg)
 
 ### Some notes on that
