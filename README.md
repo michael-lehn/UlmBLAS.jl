@@ -163,9 +163,8 @@ Some possibilities worth exploring:
   suitable arithmetic semantics and kernels.
 - **Matrices computed on demand.** Accept read-only matrix objects that
   implement indexed element access, even when no dense backing storage
-  exists. For example, a transposed or scaled matrix expression could be
-  evaluated as its elements are packed, without materializing the entire
-  intermediate matrix.
+  exists. Elements could be computed on demand during packing,
+  without materializing the matrix itself.
 - **More general matrix expressions.** Explore products involving sums,
   transposes, and scaled operands. This would need careful treatment of
   repeated evaluation, aliasing, type promotion, and the cost of computing
