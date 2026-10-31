@@ -280,7 +280,7 @@ LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        4    44.9 
 ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.4     410.8       0      0
 ```
 
-### What I learned
+### Some notes on that
 
 - **The strided view matters.** Julia's usual `LinearAlgebra.mul!`
   takes about 906 ms for the 1500 × 1500 view. `ulmBLAS.mul!` takes
