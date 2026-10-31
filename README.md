@@ -419,12 +419,17 @@ the buffers expected by the existing kernels.
 Some possibilities worth exploring:
 
 - **Mixed element types.** Allow `A`, `B`, and `C` to have different
-  element types. Start with supported floating-point and complex types,
-  selecting an appropriate computation type for the packed panels. A
-  different type for `C` may require a temporary output tile and explicit
-  conversion on write-back. Integer inputs could eventually be converted
-  during packing, but that would *not* be integer GEMM or provide integer
-  micro-kernels.
+  element types, with the computation type determined by `A` and `B`
+  (and the scaling factors), rather than by `C`. A different element
+  type for `C` is not fundamentally difficult: the existing buffered
+  micro-kernel path can accumulate into a tile of the computation type,
+  then copy or convert the result into `C`. I already explored and
+  tested this approach in the earlier C++ experiments. Mixed integer
+  and floating-point operands may be worth considering with explicit
+  promotion rules, but **integer × integer should not silently become
+  floating-point GEMM**: conversion and accumulation can change the
+  numerical result. Supporting genuine integer GEMM would require
+  suitable arithmetic semantics and kernels.
 - **Matrices computed on demand.** Accept read-only matrix objects that
   implement indexed element access, even when no dense backing storage
   exists. For example, a transposed or scaled matrix expression could be
