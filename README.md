@@ -165,21 +165,56 @@ Julia's BLAS calls to OpenBLAS and checks which implementation each
 operation actually calls. It also checks the results and writes the
 measurements to a file.
 
-First results (minimum measured time, in milliseconds):
+Output of the complete benchmark on the M5 (`ms` is the minimum time
+measured by BenchmarkTools):
 
-| Operation | Threads | n = 1000 | n = 1500 |
-|---|---:|---:|---:|
-| ulmBLAS, every second row | 1 (always) | 4.9 | 17.9 |
-| ulmBLAS, ordinary matrix | 1 (always) | 4.6 | 16.3 |
-| OpenBLAS, ordinary matrix | 1 | 33.8 | 120 |
-| OpenBLAS, ordinary matrix | 4 | 12.0 | 44.9 |
-| Julia, every second row (generic) | 1 (always) | 263 | 906 |
+```text
+library of ulmBLAS: /Users/lehn/git/ulmBLAS.jl/dev/lib/libulmblas_lbt.dylib
+LBT after `using ulmBLAS`: dgemm_ -> ulmBLAS
+LBT for this benchmark:   dgemm_ -> OpenBLAS (libopenblas64_.0.3.30.dylib)
+ulmBLAS.mul!:             ulmblas_dgemm_strided of libulmblas_lbt.dylib
+dgemm_ calls through LBT: LinearAlgebra.mul! strided 0, contiguous 1; ulmBLAS.mul! 0
+CPU: Apple M5 (4 performance + 6 efficiency cores), Julia 1.13.3, Julia threads 1, OpenBLAS libopenblas64_.0.3.30.dylib
 
-The thread setting is varied from 1 to 4, but only OpenBLAS's
-contiguous GEMM uses those threads. ulmBLAS and Julia's generic strided
-path remain single-threaded. The table shows the available 1- and
-4-thread results; the full benchmark also measures OpenBLAS with 2
-and 3 threads (see [bench/](bench/) for the recorded results).
+case                            n     backend                   threads      ms    GFLOPS   bytes allocs
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)              1     4.9     408.5       0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)        1   262.5       7.6      64      1
+LinearAlgebra.mul!, contiguous  1000  OpenBLAS                        1    33.8      59.2       0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)              1     4.6     438.9       0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)              1    17.9     378.1       0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)        1   905.7       7.5      64      1
+LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        1   119.6      56.5       0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.3     415.1       0      0
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)              1     5.2     386.4       0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)        1   270.0       7.4      64      1
+LinearAlgebra.mul!, contiguous  1000  OpenBLAS                        2    20.1      99.3       0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)              1     4.7     425.1       0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)              1    18.0     374.9       0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)        1   954.1       7.1      64      1
+LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        2    70.4      95.9       0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.0     421.5       0      0
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)              1     5.2     384.7       0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)        1   276.5       7.2      64      1
+LinearAlgebra.mul!, contiguous  1000  OpenBLAS                        3    15.2     131.6       0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)              1     4.8     414.5       0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)              1    18.1     373.5       0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)        1   931.1       7.2      64      1
+LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        3    51.5     131.1       0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.1     419.4       0      0
+ulmBLAS.mul!, strided           1000  ulmBLAS (1 thread)              1     5.2     383.7       0      0
+LinearAlgebra.mul!, strided     1000  generic Julia (1 thread)        1   277.7       7.2      64      1
+LinearAlgebra.mul!, contiguous  1000  OpenBLAS                        4    12.0     166.6       0      0
+ulmBLAS.mul!, contiguous        1000  ulmBLAS (1 thread)              1     4.8     420.1       0      0
+ulmBLAS.mul!, strided           1500  ulmBLAS (1 thread)              1    18.2     371.7       0      0
+LinearAlgebra.mul!, strided     1500  generic Julia (1 thread)        1   939.4       7.2      64      1
+LinearAlgebra.mul!, contiguous  1500  OpenBLAS                        4    44.9     150.4       0      0
+ulmBLAS.mul!, contiguous        1500  ulmBLAS (1 thread)              1    16.4     410.8       0      0
+```
+
+The rows come in four blocks, for 1, 2, 3 and 4 BLAS threads; the
+`threads` column shows how many threads the operation actually uses.
+Only OpenBLAS's contiguous GEMM uses the BLAS threads. ulmBLAS and
+Julia's generic strided path remain single-threaded.
 
 **What does this show?** Julia's usual matrix multiplication takes a
 much slower route for this particular view, while `ulmBLAS.mul!` can
