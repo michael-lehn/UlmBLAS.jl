@@ -10,6 +10,11 @@ using LinearAlgebra: BlasFloat, Adjoint, Transpose
 const gemm_strided_ptr = Dict{DataType,Ptr{Cvoid}}()
 
 function load_strided(path)
+    #  Windows: with Julia 1.13, dlopen of a file that is no DLL did not
+    #  return (GitHub Actions); a DLL starts with "MZ"
+    if Sys.iswindows() && open(io -> read(io, 2), path) != b"MZ"
+        error("$path is no DLL")
+    end
     h = Libdl.dlopen(path)
     for (T, c) in ((Float32, 's'), (Float64, 'd'),
                    (ComplexF32, 'c'), (ComplexF64, 'z'))

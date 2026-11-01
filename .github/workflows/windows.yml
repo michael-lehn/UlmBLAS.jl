@@ -122,6 +122,23 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
         with:
           project: pkg
+      - name: dlopen of a file that is no DLL, without UlmBLAS (at most 2 minutes)
+        shell: bash
+        timeout-minutes: 4
+        run: |
+          julia --startup-file=no -e '
+              cmd = `$(Base.julia_cmd()) --startup-file=no -e "using Libdl; try; dlopen(raw\"pkg/test/runtests.jl\"); catch e; println(\"error: \", sprint(showerror, e)); end"`
+              out = IOBuffer(); err = IOBuffer()
+              p = run(pipeline(ignorestatus(cmd); stdout=out, stderr=err); wait=false)
+              t0 = time()
+              while !process_exited(p) && time() - t0 < 120
+                  sleep(1)
+              end
+              ok = process_exited(p)
+              ok || kill(p)
+              sleep(2)
+              println("finished: ", ok, " after ", round(time() - t0; digits=1), " s")
+              println(String(take!(out)), String(take!(err)))'
       - name: subprocess scripts of the tests, one at a time
         shell: bash
         timeout-minutes: 60
