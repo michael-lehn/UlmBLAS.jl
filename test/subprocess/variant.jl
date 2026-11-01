@@ -7,7 +7,7 @@ using UlmBLAS
 const V = ENV["ULMBLAS_VARIANT"]
 @testset "variant $V" begin
     @test UlmBLAS.chosen[] == V
-    @test occursin(joinpath("lib", V, UlmBLAS.LIBNAME), UlmBLAS.library_path())
+    @test occursin("libulmblas_$V.", UlmBLAS.library_path())
     for T in (Float32, Float64, ComplexF32, ComplexF64), n in (5, 64, 301)
         P = rand(T, 2n, n); A = view(P, 1:2:2n, :); B = rand(T, n, n)
         C = zeros(T, n, n)

@@ -22,7 +22,7 @@ variant of the package's libraries (if the CPU can run it).
 """
 module UlmBLAS
 
-using Artifacts, Libdl, LinearAlgebra
+using Libdl, LinearAlgebra, ulmBLAS_jll
 using Base.BinaryPlatforms.CPUID
 
 const LIBNAME = Sys.isapple() ? "libulmblas_lbt.dylib" : "libulmblas_lbt.so"
@@ -76,15 +76,10 @@ The build of ulmBLAS for this CPU (the first of [`variants`](@ref)), or
 """
 variant() = (v = variants(); isempty(v) ? nothing : first(v))
 
-#  the library of variant v in the artifact of this platform (installed by
-#  Pkg together with the package; nothing if there is none)
+#  the library of variant v from ulmBLAS_jll (nothing if there is none)
 function artifact_library(v)
-    toml = joinpath(@__DIR__, "..", "Artifacts.toml")
-    isfile(toml) || return nothing
-    meta = artifact_meta("ulmblas", toml)
-    meta === nothing && return nothing
-    path = joinpath(artifact_path(Base.SHA1(meta["git-tree-sha1"])),
-                    "lib", v, LIBNAME)
+    ulmBLAS_jll.is_available() || return nothing
+    path = getfield(ulmBLAS_jll, Symbol("libulmblas_", v, "_path"))
     return isfile(path) ? path : nothing
 end
 

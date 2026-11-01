@@ -4,12 +4,12 @@ version = "0.1.0"
 authors = ["Michael Lehn <michael.lehn@uni-ulm.de>"]
 
 [deps]
-Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+ulmBLAS_jll = "6931dcbc-e4a6-5649-8a08-f9a6a2759721"
 
 [compat]
-Artifacts = "1"
 Libdl = "1"
 LinearAlgebra = "1"
 julia = "1.9"
+ulmBLAS_jll = "0.1"
