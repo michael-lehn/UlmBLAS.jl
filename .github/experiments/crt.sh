@@ -11,6 +11,7 @@ sed -i 's/807f069c54dc20cb47b21c1f6acafdd9c649f3ae015609040d6182cab01140f4/33192
 sed -i 's/BuildDependency(PackageSpec(name="LLVM_full_jll"; version))/BuildDependency(PackageSpec(name="LLVM_full_jll", version=string(version)))/' build_tarballs.jl
 sed -i '/atomic_patch -p1 ..\/patches\/do-not-codesign.patch/d; /# We.ll codesign during audit/d' build_tarballs.jl
 sed -i 's|    -DCMAKE_LIBTOOL=$(which libtool) \\|    -DCMAKE_LIBTOOL=$(which libtool) \\\n    -DCODESIGN=OFF \\|' build_tarballs.jl
+sed -i 's|julia_compat="1.6", preferred_gcc_version=v"8", preferred_llvm_version=version)|julia_compat="1.6", preferred_gcc_version=v"8", preferred_llvm_version=version,\n               lock_microarchitecture=false)|' build_tarballs.jl
 git -C $W/ygg diff
 julia $P build_tarballs.jl --verbose --deploy=local aarch64-apple-darwin
 mkdir -p $W/out/crt && tar -xzf products/LLVMCompilerRT.v*.tar.gz -C $W/out/crt
