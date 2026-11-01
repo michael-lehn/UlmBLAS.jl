@@ -133,8 +133,7 @@ jobs:
                       sleep(1)
                   end
                   println("finished: ", istaskdone(t))
-                  println("stdout:
-", String(take!(out)), "stderr:
-", String(take!(err)))
+                  println("stdout:"); println(String(take!(out)))
+                  println("stderr:"); println(String(take!(err)))
                   istaskdone(t) || exit(3)'
           done
