@@ -1,7 +1,7 @@
 #  Windows diagnostics (run with ULMBLAS_LIBRARY): xerbla, invalid
 #  arguments through libblastrampoline, and the complex return style of
 #  libblastrampoline for ulmBLAS (zdotc, zdotu).
-using LinearAlgebra, UlmBLAS
+using Libdl, LinearAlgebra, UlmBLAS
 step(s) = (println(s); flush(stdout))
 lib = UlmBLAS.library_path()
 step("julia $VERSION, library $lib")

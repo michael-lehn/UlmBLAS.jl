@@ -13,6 +13,10 @@ on:
       ulmblas:
         description: 'branch or commit of ulmBLAS'
         default: 'windows'
+      only_diag:
+        description: 'only the diagnostics job'
+        type: boolean
+        default: false
 
 env:
   ULMBLAS: ${{ inputs.ulmblas || 'windows' }}
@@ -20,6 +24,7 @@ env:
 jobs:
   test:
     name: Julia ${{ matrix.version }}, ${{ matrix.os }}
+    if: ${{ !inputs.only_diag }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 120
     strategy:
