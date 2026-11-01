@@ -41,9 +41,10 @@ jobs:
           BINARYBUILDER_RUNNER: userns
         run: |
           julia --project=ygg/.ci/bb1_project -e 'using Pkg; Pkg.instantiate()'
-          cd pkg/yggdrasil/U/ulmBLAS
+          cp -R pkg/yggdrasil/U ygg/
+          cd ygg/U/ulmBLAS
           julia --project=$GITHUB_WORKSPACE/ygg/.ci/bb1_project build_tarballs.jl --verbose ${{ matrix.platform }}
       - uses: actions/upload-artifact@v7
         with:
           name: ulmBLAS-${{ matrix.platform }}
-          path: pkg/yggdrasil/U/ulmBLAS/products
+          path: ygg/U/ulmBLAS/products

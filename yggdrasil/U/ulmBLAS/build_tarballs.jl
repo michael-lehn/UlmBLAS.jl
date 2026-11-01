@@ -2,6 +2,9 @@
 # `julia build_tarballs.jl --help` to see a usage message.
 using BinaryBuilder, Pkg
 
+const YGGDRASIL_DIR = "../.."
+include(joinpath(YGGDRASIL_DIR, "fancy_toys.jl"))
+
 name = "ulmBLAS"
 version = v"0.1.0"
 
