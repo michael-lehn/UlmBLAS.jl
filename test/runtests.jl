@@ -142,6 +142,11 @@ end
     @test success(p)
     @test occursin("does not exist", err)
 end
+@testset "ULMBLAS_LIBRARY cannot be loaded" begin
+    p, out, err = run_script("init.jl", "ULMBLAS_LIBRARY" => joinpath(@__DIR__, "runtests.jl"))
+    @test success(p)
+    @test occursin("cannot be loaded", err)
+end
 #  test files of LinearAlgebra; ULMBLAS_TEST_LINALG=1 adds more (several
 #  minutes)
 @testset "LinearAlgebra" begin

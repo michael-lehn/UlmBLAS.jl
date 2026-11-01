@@ -1,5 +1,5 @@
 #  Run in a fresh process by runtests.jl with ULMBLAS_LIBRARY set to a file
-#  that does not exist: `using UlmBLAS` warns, the BLAS of Julia is
+#  that does not exist or is no library: `using UlmBLAS` warns, the BLAS of Julia is
 #  unchanged, UlmBLAS.mul! and UlmBLAS.forward() raise errors.
 using LinearAlgebra, Test
 before = [l.libname for l in BLAS.get_config().loaded_libs]

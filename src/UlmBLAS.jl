@@ -160,8 +160,15 @@ end
 function __init__()
     path = find_library()
     path === nothing && return
+    #  a library that cannot be loaded (e.g. built for a newer glibc): as
+    #  without a library, the BLAS of Julia stays unchanged
+    try
+        load_strided(path)
+    catch err
+        @warn "UlmBLAS: library $path cannot be loaded" exception = err
+        return
+    end
     library[] = path
-    load_strided(path)
 end
 
 include("strided.jl")
