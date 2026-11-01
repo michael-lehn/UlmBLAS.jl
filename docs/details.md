@@ -53,9 +53,19 @@ AppleAccelerate.jl).
 - An invalid argument to a routine of ulmBLAS (e.g. `lda < m`) is
   reported by `xerbla` on `stderr`, and the routine returns, as in
   OpenBLAS.
-- No library (no build for this platform, or `ULMBLAS_LIBRARY` naming a
-  file that does not exist): `using UlmBLAS` warns; `UlmBLAS.mul!` and
-  `UlmBLAS.forward()` raise an error; the BLAS of Julia is unchanged.
+- Out of memory: if ulmBLAS cannot allocate a buffer for packed operands
+  (a fixed size of a few MB per thread, independent of the matrix
+  dimensions), it prints `ulmBLAS: out of memory ...` on `stderr` and
+  terminates the process (`abort`, as BLIS does).  The BLAS interface
+  cannot report the error, and returning without computing would leave
+  a wrong result.  No C++ exception reaches Julia; the build of the
+  library checks that it refers to no function that throws (ulmBLAS
+  6c554eec, tests T0357 and T0358 with fault injection).
+- No library (no build for this platform, `ULMBLAS_LIBRARY` naming a
+  file that does not exist, or a library that cannot be loaded, e.g.
+  because the system's glibc is too old): `using UlmBLAS` warns;
+  `UlmBLAS.mul!` and `UlmBLAS.forward()` raise an error; the BLAS of Julia
+  is unchanged.
 
 ## Threads
 
@@ -70,11 +80,11 @@ several Julia threads at the same time:
 - Calls whose output overlaps an input or output of another concurrent
   call: not supported (as in any BLAS); the result is unspecified.
 
-Why (source references: ulmBLAS d738372b):
+Why (source references: ulmBLAS 6c554eec):
 
 - The packing buffers of the level 2 and 3 routines come from a cache per
   OS thread (`thread_local` in `MemoryPool::threadCache`,
-  `ulmblas/auxiliary/memorypool.tcc:77`).  Every routine takes its blocks
+  `ulmblas/auxiliary/memorypool.tcc:105`).  Every routine takes its blocks
   at the beginning of a call and returns them at the end, on the same
   thread (a Julia task does not change its thread during a `ccall`), with
   no return in between.  A cached block is used by at most one call at a
@@ -182,11 +192,19 @@ used).  The tests run every build in `UlmBLAS.variants()`.
 - Pkg downloads the artifact of the platform when the package is
   installed and checks its SHA-256 and tree hash.  When loaded, the
   package takes `lib/VARIANT/libulmblas_lbt.*` from it.
-- Current libraries (release `libulmblas-d738372b`): ulmBLAS d738372b;
+- Current libraries (release `libulmblas-6c554eec`): ulmBLAS 6c554eec;
   macOS with Apple clang 21.0.0 (`MACOSX_DEPLOYMENT_TARGET=12.0`, links
-  only `libSystem` and `libc++`); Linux with GCC 14.2.0 on RHEL 9.6
-  (links only `libc`, `libm`; libstdc++ static; glibc symbol versions up
-  to `GLIBC_2.34`).
+  only `libSystem` and `libc++`); Linux with GCC 14.2.1 (gcc-toolset-14)
+  in the container `quay.io/pypa/manylinux_2_28_x86_64` (AlmaLinux 8.10,
+  glibc 2.28, image pinned by digest in
+  `.github/workflows/build-linux.yml`), built by that workflow.  The
+  Linux libraries link only `libc`, `libm` and the dynamic loader
+  (libstdc++ static) and need glibc symbol versions up to `GLIBC_2.25`
+  (`getentropy`, from the static libstdc++); declared and tested: glibc
+  2.28 or later.
+- Builds are not bit-identical across build machines: the objects are
+  added to the static library in the order a parallel `make` finishes
+  them, which changes the layout of the linked library.
 
 ## Licenses
 

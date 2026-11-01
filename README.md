@@ -37,8 +37,8 @@ the one for the CPU (see [CPU variants](#cpu-variants)):
 
 - macOS on Apple silicon (macOS 12 or later): `sme` (M4 and later),
   `neon`;
-- Linux on x86-64 with glibc 2.34 or later (e.g. Ubuntu 22.04, Debian 12,
-  RHEL 9): `zen4`, `skylakex`, `haswell`, `x86_64`.
+- Linux on x86-64 with glibc 2.28 or later (e.g. RHEL 8, Ubuntu 20.04,
+  Debian 10): `zen4`, `skylakex`, `haswell`, `x86_64`.
 
 Julia 1.9 or later.  On other platforms the package prints a warning;
 `UlmBLAS.mul!` and `UlmBLAS.forward()` then raise an error, and Julia
@@ -227,11 +227,12 @@ one library per kind of CPU and loads the one for the CPU it runs on
 | `haswell` | AVX2 and FMA | OpenBLAS HASWELL |
 | `x86_64` | other x86-64 | ulmBLAS SSE (D), reference kernels |
 
-Platforms: macOS on Apple silicon, Linux on x86-64 (glibc 2.34 or
+Platforms: macOS on Apple silicon, Linux on x86-64 (glibc 2.28 or
 later).  The libraries are built from ulmBLAS
-[d738372b](https://github.com/michael-lehn/ulmBLAS/commit/d738372b42969fb3142d8bb6f711fdf5551035d8)
-(macOS: Apple clang 21, deployment target 12.0; Linux: GCC 14.2 on RHEL 9,
-libstdc++ linked statically); `share/ulmBLAS/build.txt` in the artifact
+[6c554eec](https://github.com/michael-lehn/ulmBLAS/commit/6c554eec707e22f118bae5dcaea10ad9945aac54)
+(macOS: Apple clang 21, deployment target 12.0; Linux: GCC 14.2 in the
+container manylinux_2_28 (AlmaLinux 8, glibc 2.28), libstdc++ linked
+statically); `share/ulmBLAS/build.txt` in the artifact
 records the commit, compilers and flags.  The choice
 follows the
 [benchmark campaigns](https://github.com/michael-lehn/ulmBLAS/tree/master/benchmark_results)
@@ -242,13 +243,18 @@ of ulmBLAS; the flags of each variant are in
 
 ```sh
 build/build.sh ~/ulmBLAS out-mac        # all variants of this platform
-julia build/artifacts.jl libulmblas-d738372b out-mac=aarch64-apple-darwin \
+gh workflow run build-linux.yml -f ulmblas=COMMIT   # Linux, in a container
+julia build/artifacts.jl libulmblas-6c554eec out-mac=aarch64-apple-darwin \
                                              out-linux=x86_64-linux-gnu
 ```
 
 - `build/build.sh SRC OUT [VARIANT ...]` builds
   `OUT/lib/VARIANT/libulmblas_lbt.*` from the ulmBLAS sources in `SRC`,
   with the license and a record of the build (commit, compiler, flags).
+- `build/linux-container.sh SRC OUT` runs `build.sh` in the container
+  `manylinux_2_28` (glibc 2.28, GCC 14) and checks that the libraries need
+  no newer glibc and no libstdc++; the workflow `build-linux` runs it in
+  the image pinned by digest and uploads the result for testing.
 - `build/artifacts.jl TAG ...` packs these directories into `dist/` and
   writes `Artifacts.toml`; the tarballs are the assets of the release
   `TAG` of this repository (named after the ulmBLAS commit, not after a

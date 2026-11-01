@@ -40,3 +40,29 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         env:
           ULMBLAS_TEST_LINALG: '1'
+
+  #  the oldest Linux distributions supported (glibc 2.28 and 2.31): the
+  #  Linux libraries are built for glibc 2.28 (build/linux-container.sh)
+  old-glibc:
+    name: Julia ${{ matrix.version }}, ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['1.9', '1']
+        image: ['almalinux:8', 'ubuntu:20.04']
+    steps:
+      - name: tools
+        run: |
+          if command -v dnf > /dev/null; then
+              dnf install -y -q git tar gzip
+          else
+              apt-get update -qq && apt-get install -y -qq git curl ca-certificates
+          fi
+      - uses: actions/checkout@v7
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.version }}
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1

@@ -10,17 +10,20 @@
 #          TAG.TRIPLET.tar.gz
 #
 #  TAG names the libraries, not a version of the package, e.g.
-#  libulmblas-d738372b for libraries built from ulmBLAS d738372b.  The
-#  tarballs are written to dist/; upload them to the release TAG.
+#  libulmblas-6c554eec for libraries built from ulmBLAS 6c554eec.  The
+#  tarballs are written to dist/; upload them to the release TAG.  A
+#  tarball already in dist/ (e.g. downloaded from the published release) is
+#  not packed again, since the same files packed again give a different
+#  sha256; it is checked to contain the files of DIR.
 #  TRIPLET: aarch64-apple-darwin or x86_64-linux-gnu.
 #
-#      julia build/artifacts.jl libulmblas-d738372b out-mac=aarch64-apple-darwin \
+#      julia build/artifacts.jl libulmblas-6c554eec out-mac=aarch64-apple-darwin \
 #                                                   out-linux=x86_64-linux-gnu
 #
 #  With BASEURL=file:///path/to/dist the tarballs are bound with that
 #  location instead, to test the installation before the release exists.
 #
-using Pkg.Artifacts, Base.BinaryPlatforms, SHA
+using Pkg, Pkg.Artifacts, Base.BinaryPlatforms, SHA
 
 const REPO = "https://github.com/michael-lehn/UlmBLAS.jl"
 
@@ -38,7 +41,14 @@ for arg in ARGS[2:end]
     end
     name = "$tag.$triplet.tar.gz"
     tarball = joinpath(dist, name)
-    archive_artifact(hash, tarball)
+    if isfile(tarball)
+        unpacked = mktempdir()
+        Pkg.PlatformEngines.unpack(tarball, unpacked)
+        Base.SHA1(Pkg.GitTools.tree_hash(unpacked)) == hash ||
+            error("$tarball does not contain the files of $dir")
+    else
+        archive_artifact(hash, tarball)
+    end
     sha = bytes2hex(open(sha256, tarball))
     bind_artifact!(toml, "ulmblas", hash; platform=platform, force=true,
                    download_info=[("$base/$name", sha)])
