@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Julia ${{ matrix.version }}, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        #  oldest supported version, long-term support, current release
+        version: ['1.9', 'lts', '1']
+        #  macos-latest: Apple silicon (arm64, without SME2: variant neon);
+        #  ubuntu-latest: x86-64 (variants as the CPU of the runner allows)
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.version }}
+      - uses: julia-actions/cache@v3
+      - uses: julia-actions/julia-buildpkg@v1
+      #  the libraries of ulmBLAS come from the artifact (Artifacts.toml),
+      #  not from ULMBLAS_LIBRARY; the tests also run every variant the CPU
+      #  can run and the LAPACK, triangular, dense and symmetric tests of
+      #  LinearAlgebra
+      - uses: julia-actions/julia-runtest@v1
+        env:
+          ULMBLAS_TEST_LINALG: '1'

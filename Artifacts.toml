@@ -1,0 +1,17 @@
+[[ulmblas]]
+arch = "aarch64"
+git-tree-sha1 = "8961a22722e0bff8c9b4630af4d4b22d9e77e90a"
+os = "macos"
+
+    [[ulmblas.download]]
+    sha256 = "f36bb3460117111aa844d4a1e49a4ffe915cdf20924f13b1545359a856437af8"
+    url = "https://github.com/michael-lehn/UlmBLAS.jl/releases/download/libulmblas-d738372b/libulmblas-d738372b.aarch64-apple-darwin.tar.gz"
+[[ulmblas]]
+arch = "x86_64"
+git-tree-sha1 = "e9b9417c115490ea31a15db9b1fbb35c3882c97e"
+libc = "glibc"
+os = "linux"
+
+    [[ulmblas.download]]
+    sha256 = "e769d030497d8b857baf3f914765f1466b9ea077382a83958738f5af6306c26c"
+    url = "https://github.com/michael-lehn/UlmBLAS.jl/releases/download/libulmblas-d738372b/libulmblas-d738372b.x86_64-linux-gnu.tar.gz"
