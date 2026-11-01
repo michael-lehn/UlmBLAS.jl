@@ -15,6 +15,6 @@ if [[ "${CRT_MUSL_NO_SANITIZERS:-}" == 1 ]]; then
     sed -i 's|^FLAGS=()$|FLAGS=()\nif [[ "${target}" == *-musl* ]]; then\n    FLAGS+=(-DCOMPILER_RT_BUILD_SANITIZERS=OFF -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_BUILD_LIBFUZZER=OFF -DCOMPILER_RT_BUILD_MEMPROF=OFF -DCOMPILER_RT_BUILD_CTX_PROFILE=OFF -DCOMPILER_RT_BUILD_ORC=OFF)\nfi|' build_tarballs.jl
 fi
 git -C $W/ygg diff
-julia --project=$W/ygg/.ci/bb1_project build_tarballs.jl --verbose $1
+julia --project=$W/ygg/.ci/bb1_project build_tarballs.jl --verbose ${CRT_DEPLOY:+--deploy=$CRT_DEPLOY} $1
 mkdir -p $W/out && tar -tzf products/LLVMCompilerRT.v*.tar.gz | grep -E '\.(a|so|dylib|dll)$' | sort > $W/out/files-$1.txt
 wc -l $W/out/files-$1.txt
