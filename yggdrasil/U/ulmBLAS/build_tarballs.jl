@@ -78,12 +78,19 @@ if [[ ${target} == *-apple-* ]]; then
 fi
 """
 
-# The platforms of UlmBLAS.jl: the micro kernels are for x86-64 and Apple
-# silicon (SME2 and NEON), the makefiles for Linux and macOS.
-platforms = filter(supported_platforms()) do p
-    (arch(p) == "x86_64" && Sys.islinux(p) && libc(p) == "glibc") ||
-        (arch(p) == "aarch64" && Sys.isapple(p))
-end
+platforms = supported_platforms()
+# UlmBLAS.jl selects variants only on x86-64 and AArch64; other architectures
+# (portable reference kernels only) are not built or tested yet.
+filter!(p -> arch(p) in ("x86_64", "aarch64"), platforms)
+# Not built or tested yet: the NEON variant on Linux.
+filter!(p -> !(Sys.islinux(p) && arch(p) == "aarch64"), platforms)
+# Not built or tested yet: the x86-64 variants on macOS.
+filter!(p -> !(Sys.isapple(p) && arch(p) == "x86_64"), platforms)
+# Windows needs changes to ulmBLAS (aligned allocation, 64-bit indices in the
+# kernels) that are not yet in a release.
+filter!(!Sys.iswindows, platforms)
+# Not built or tested yet: FreeBSD and musl.
+filter!(p -> !Sys.isfreebsd(p) && libc(p) != "musl", platforms)
 
 variants(p) = Sys.isapple(p) ? ["neon", "sme"] : ["x86_64", "haswell", "skylakex", "zen4"]
 
