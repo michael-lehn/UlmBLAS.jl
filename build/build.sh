@@ -17,7 +17,9 @@
 #  of CPU).  CXX and CC can be set as usual; J = number of parallel jobs;
 #  the build logs go to LOGDIR (default OUT.logs, not into the artifact);
 #  on Linux the debug information is stripped;
-#  ULMBLAS_COMMIT names the commit of SRC if SRC is no git checkout.
+#  ULMBLAS_COMMIT names the commit of SRC if SRC is no git checkout;
+#  ULMBLAS_BUILD_ENV describes the build environment (e.g. the container,
+#  see linux-container.sh) in build.txt.
 #
 set -eu
 SRC=$(cd "$1" && pwd); OUT=$2; shift 2
@@ -70,6 +72,8 @@ R=$OUT/share/ulmBLAS/build.txt
     echo "built $(date -u +%Y-%m-%dT%H:%M:%SZ) on $(uname -s) $(uname -m)"
     echo "CXX: $(${CXX:-c++} --version | head -1)"
     [ -n "${MACOSX_DEPLOYMENT_TARGET:-}" ] && echo "MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
+    [ -n "${ULMBLAS_BUILD_ENV:-}" ] && echo "environment: $ULMBLAS_BUILD_ENV"
+    true
 } > "$R"
 
 for v in "$@"; do

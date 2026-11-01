@@ -1,0 +1,41 @@
+#  The Linux x86-64 libraries of ulmBLAS for the artifact, built from a
+#  commit of ulmBLAS in a container with glibc 2.28 (build/linux-container.sh).
+#  Started by hand; the result (workflow artifact) is tested on the target
+#  machines before it is published as a release asset (build/artifacts.jl).
+name: build-linux
+
+on:
+  workflow_dispatch:
+    inputs:
+      ulmblas:
+        description: 'commit of ulmBLAS (full SHA)'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      #  manylinux_2_28 2026.10.31-1 (AlmaLinux 8, glibc 2.28)
+      image: quay.io/pypa/manylinux_2_28_x86_64@sha256:43f7ce12d79ed98b6dbfa3291d5afe389efd40a7e76de089959ffe99501b6edf
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      - uses: actions/checkout@v7
+        with:
+          repository: michael-lehn/ulmBLAS
+          ref: ${{ inputs.ulmblas }}
+          path: src
+      - name: build and check
+        env:
+          IMAGE: quay.io/pypa/manylinux_2_28_x86_64@sha256:43f7ce12d79ed98b6dbfa3291d5afe389efd40a7e76de089959ffe99501b6edf
+          ULMBLAS_COMMIT: ${{ inputs.ulmblas }}
+          J: '4'
+        run: sh pkg/build/linux-container.sh src out-linux
+      - name: logs
+        if: always()
+        run: tail -n 30 out-linux.logs/*.log || true
+      - uses: actions/upload-artifact@v7
+        with:
+          name: out-linux-${{ inputs.ulmblas }}
+          path: out-linux
