@@ -87,7 +87,7 @@ jobs:
   diag:
     name: diagnostics, Julia ${{ matrix.version }}
     runs-on: windows-2022
-    timeout-minutes: 40
+    timeout-minutes: 100
     strategy:
       fail-fast: false
       matrix:
@@ -107,15 +107,25 @@ jobs:
           install: >-
             make
             mingw-w64-ucrt-x86_64-gcc
-      - name: build x86_64
+      - name: build the libraries
         shell: msys2 {0}
-        run: J=4 sh pkg/build/build.sh src out-win x86_64
+        run: J=4 sh pkg/build/build.sh src out-win
       - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
+      - name: bind the libraries (this runner only)
+        shell: bash
+        run: |
+          cd pkg
+          export BASEURL="file:///$(cygpath -m "$PWD/dist")"
+          julia --startup-file=no build/artifacts.jl ulmblas-windows-ci ../out-win=x86_64-w64-mingw32
       - uses: julia-actions/julia-buildpkg@v1
         with:
           project: pkg
+      - name: subprocess scripts of the tests, one at a time
+        shell: bash
+        timeout-minutes: 60
+        run: julia --startup-file=no --project=pkg pkg/.github/windows/diag_subprocess.jl
       - name: console stdio
         shell: bash
         timeout-minutes: 5
