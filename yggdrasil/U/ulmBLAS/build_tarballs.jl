@@ -11,6 +11,11 @@ version = v"0.1.0"
 sources = [
     GitSource("https://github.com/michael-lehn/ulmBLAS.git",
               "6c554eec707e22f118bae5dcaea10ad9945aac54"),
+    # SME support routines (`__arm_tpidr2_save`, ...) for macOS: Apple's
+    # clang links them from its libclang_rt.osx.a, LLVMCompilerRT_jll
+    # (17.0.6) doesn't have them yet.
+    ArchiveSource("https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/compiler-rt-20.1.8.src.tar.xz",
+                  "15277402f6fd63397c0917a5c7171cda82d16d226094b828c1ed0f58f73b9c69"),
 ]
 
 # One library per kind of CPU, `libulmblas_VARIANT`; the variant differs in
@@ -55,12 +60,21 @@ for v in ${variants}; do
     out=${WORKSPACE}/out/${v}
     build=${WORKSPACE}/build/${v}
     if [[ ${target} == *apple* ]]; then
+        smeabi=
+        if [[ ${v} == sme ]]; then
+            # hidden, as in libclang_rt.osx.a
+            mkdir -p ${WORKSPACE}/build
+            smeabi=${WORKSPACE}/build/arm_apple_sme_abi.o
+            cc -c -x assembler-with-cpp -DVISIBILITY_HIDDEN \
+               ${WORKSPACE}/srcdir/compiler-rt-*/lib/builtins/aarch64/arm_apple_sme_abi.s \
+               -o ${smeabi}
+        fi
         # The makefile decides between .so and .dylib with `uname`, which
         # is the build machine here.
         make -j${nproc} lbt CXX=c++ CC=cc ARCHFLAGS="$(flags ${v})" \
              OUTDIR=${out} BUILD_DIR=${build} \
              LBT_LIB=${out}/${lib} \
-             LBT_LINK="-dynamiclib -install_name @rpath/${lib} -Wl,-force_load,${build}/liblbtblas.a"
+             LBT_LINK="-dynamiclib -install_name @rpath/${lib} -Wl,-force_load,${build}/liblbtblas.a ${smeabi}"
     else
         # libstdc++ is linked statically; don't export its symbols.
         make -j${nproc} lbt CXX=c++ CC=cc ARCHFLAGS="$(flags ${v})" \
@@ -76,6 +90,9 @@ done
 
 # ulmBLAS and the micro kernels from BLIS, AOCL-BLAS and OpenBLAS
 install_license LICENSE
+if [[ ${target} == *apple* ]]; then
+    install_license ${WORKSPACE}/srcdir/compiler-rt-*/LICENSE.TXT
+fi
 """
 
 # The libraries are not loaded when the JLL is loaded: a library for a newer
