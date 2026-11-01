@@ -46,8 +46,8 @@ flags() {
 }
 
 case ${target} in
-    x86_64-linux-gnu)     variants="x86_64 haswell skylakex zen4";;
-    aarch64-apple-darwin) variants="neon sme";;
+    x86_64-linux-gnu*)    variants="x86_64 haswell skylakex zen4";;
+    aarch64-apple-darwin*) variants="neon sme";;
 esac
 
 for v in ${variants}; do
