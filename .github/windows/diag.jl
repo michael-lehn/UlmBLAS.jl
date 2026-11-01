@@ -33,6 +33,19 @@ if mode in ("all", "zdot")
                    length(x), x, 1, y, 1)
     viaLBT = BLAS.dotc(x, y)
     step("zdotc: direct $direct, via LBT $viaLBT, bitwise equal: $(direct === viaLBT)")
+    ob = BLAS.get_config().loaded_libs[1].libname
+    hob = Libdl.dlopen(ob)
+    zdot(f) = ccall(f, ComplexF64,
+                    (Ref{Int64}, Ptr{ComplexF64}, Ref{Int64}, Ptr{ComplexF64}, Ref{Int64}),
+                    length(x), x, 1, y, 1)
+    openblas = zdot(Libdl.dlsym(hob, :zdotc_64_))
+    step("zdotc of OpenBLAS ($(basename(ob))) directly: $openblas, equal to via LBT: $(openblas === viaLBT)")
+    #  the same for ddot (normal return style): routed to ulmBLAS
+    xd = real.(x); yd = real.(y)
+    dd(f) = ccall(f, Float64, (Ref{Int64}, Ptr{Float64}, Ref{Int64}, Ptr{Float64}, Ref{Int64}),
+                  length(xd), xd, 1, yd, 1)
+    step("ddot: ulmBLAS $(dd(Libdl.dlsym(h, :ddot_64_))), OpenBLAS $(dd(Libdl.dlsym(hob, :ddot_64_))), " *
+         "via LBT (ccall ddot_64_) $(ccall((:ddot_64_, BLAS.libblastrampoline), Float64, (Ref{Int64}, Ptr{Float64}, Ref{Int64}, Ptr{Float64}, Ref{Int64}), length(xd), xd, 1, yd, 1))")
     step("forward zdotc_: $(BLAS.lbt_get_forward("zdotc_", :ilp64)), dlsym: $(Libdl.dlsym(h, :zdotc_64_))")
 end
 step("done")

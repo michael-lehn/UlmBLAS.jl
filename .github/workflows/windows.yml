@@ -142,3 +142,22 @@ jobs:
                   println("stderr:"); println(String(take!(err)))
                   istaskdone(t) || exit(3)'
           done
+      - name: threads.jl with progress, 4 threads, at most 5 minutes
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          export ULMBLAS_LIBRARY="$(cygpath -w "$PWD/out-win/lib/x86_64/libulmblas_lbt.dll")"
+          julia --startup-file=no --project=pkg -e '
+              cmd = `$(Base.julia_cmd()) --startup-file=no --threads=4 --project=pkg pkg/.github/windows/diag_threads.jl`
+              out = IOBuffer(); err = IOBuffer()
+              p = run(pipeline(ignorestatus(cmd); stdout=out, stderr=err); wait=false)
+              for _ in 1:300
+                  process_exited(p) && break
+                  sleep(1)
+              end
+              ok = process_exited(p)
+              ok || kill(p)
+              sleep(2)
+              println("exited: ", ok, ", exit code: ", ok ? p.exitcode : "-")
+              println("stdout:"); println(String(take!(out)))
+              println("stderr:"); println(String(take!(err)))'
