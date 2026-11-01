@@ -1,0 +1,77 @@
+#  Windows x86-64: the libraries of ulmBLAS built with MinGW-w64 (MSYS2
+#  UCRT64) from the ulmBLAS branch or commit ULMBLAS, bound in Artifacts.toml
+#  of the runner only (file:// URLs, nothing is published), then the tests
+#  of the package (every variant the CPU can run) and a comparison with
+#  OpenBLAS (.github/windows/compare.jl).
+name: windows
+
+on:
+  push:
+    branches: [windows]
+  workflow_dispatch:
+    inputs:
+      ulmblas:
+        description: 'branch or commit of ulmBLAS'
+        default: 'windows'
+
+env:
+  ULMBLAS: ${{ inputs.ulmblas || 'windows' }}
+
+jobs:
+  test:
+    name: Julia ${{ matrix.version }}, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        version: ['1.10', '1']
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      - uses: actions/checkout@v7
+        with:
+          repository: michael-lehn/ulmBLAS
+          ref: ${{ env.ULMBLAS }}
+          path: src
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: >-
+            make
+            mingw-w64-ucrt-x86_64-gcc
+      - name: build the libraries
+        shell: msys2 {0}
+        run: |
+          grep -m1 "model name" /proc/cpuinfo
+          J=4 sh pkg/build/build.sh src out-win || { tail -n 40 out-win.logs/*.log; exit 1; }
+          for d in out-win/lib/*/libulmblas_lbt.dll; do
+              objdump -p $d > o.txt
+              n=$(sed -n '/\[Ordinal\/Name Pointer\] Table/,/^$/p' o.txt | grep -c '_64_$')
+              s=$(sed -n '/\[Ordinal\/Name Pointer\] Table/,/^$/p' o.txt | grep -c 'gemm_strided$')
+              echo "$d: $(stat -c %s $d) bytes, _64_: $n, strided: $s, imports: $(grep 'DLL Name' o.txt | awk '{print $3}' | sort -u | tr '\n' ' ')"
+              test "$n" = 171 && test "$s" = 4
+          done
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.version }}
+      - name: bind the libraries (this runner only)
+        shell: bash
+        run: |
+          cd pkg
+          export BASEURL="file:///$(cygpath -m "$PWD/dist")"
+          julia --startup-file=no build/artifacts.jl ulmblas-windows-ci ../out-win=x86_64-w64-mingw32
+          cat Artifacts.toml
+      - uses: julia-actions/julia-buildpkg@v1
+        with:
+          project: pkg
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          project: pkg
+        env:
+          ULMBLAS_TEST_LINALG: '1'
+      - name: comparison with OpenBLAS
+        shell: bash
+        run: julia --startup-file=no --project=pkg pkg/.github/windows/compare.jl

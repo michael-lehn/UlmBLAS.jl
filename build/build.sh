@@ -3,7 +3,7 @@
 #  build.sh SRC OUT [VARIANT ...]: the shared libraries of ulmBLAS for
 #  Julia (make lbt) from the ulmBLAS source tree SRC, one per variant, in
 #
-#      OUT/lib/VARIANT/libulmblas_lbt.{so,dylib}
+#      OUT/lib/VARIANT/libulmblas_lbt.{so,dylib,dll}
 #
 #  together with the license of ulmBLAS (OUT/share/licenses/ulmBLAS/LICENSE)
 #  and a record of the build (OUT/share/ulmBLAS/build.txt: commit, compiler,
@@ -11,12 +11,13 @@
 #
 #      macOS arm64:   neon, sme
 #      Linux x86-64:  x86_64, haswell, skylakex, zen4
+#      Windows x86-64 (MSYS2 with MinGW-w64): as Linux
 #
 #  The flags of each variant select the micro kernels for S, D, C and
 #  ZGEMM (the fastest of the benchmark campaigns of ulmBLAS for this kind
 #  of CPU).  CXX and CC can be set as usual; J = number of parallel jobs;
 #  the build logs go to LOGDIR (default OUT.logs, not into the artifact);
-#  on Linux the debug information is stripped;
+#  on Linux and Windows the debug information is stripped;
 #  ULMBLAS_COMMIT names the commit of SRC if SRC is no git checkout;
 #  ULMBLAS_BUILD_ENV describes the build environment (e.g. the container,
 #  see linux-container.sh) in build.txt.
@@ -57,7 +58,8 @@ flags() {
 if [ $# -eq 0 ]; then
     case $(uname -s)-$(uname -m) in
     Darwin-arm64)  set -- neon sme;;
-    Linux-x86_64)  set -- x86_64 haswell skylakex zen4;;
+    Linux-x86_64|*_NT-*-x86_64)
+                   set -- x86_64 haswell skylakex zen4;;
     *)             echo "no variants for $(uname -s)-$(uname -m)" >&2; exit 1;;
     esac
 fi
@@ -82,8 +84,11 @@ for v in "$@"; do
     make -C "$SRC" -j$J lbt ARCHFLAGS="$f" OUTDIR="$OUT/lib/$v" \
          BUILD_DIR="$b" > "$LOGDIR/build-$v.log" 2>&1 \
         || { echo "build of $v failed, see $LOGDIR/build-$v.log" >&2; exit 1; }
-    #  Linux: no debug information (mostly of the static libstdc++)
-    [ "$(uname -s)" = Linux ] && strip --strip-debug "$OUT/lib/$v/libulmblas_lbt.so"
+    #  Linux, Windows: no debug information (mostly of the static libstdc++)
+    case $(uname -s) in
+    Linux)  strip --strip-debug "$OUT/lib/$v/libulmblas_lbt.so";;
+    *_NT-*) strip --strip-debug "$OUT/lib/$v/libulmblas_lbt.dll";;
+    esac
     echo "$v: ARCHFLAGS=$f" >> "$R"
 done
 rm -rf "$OUT/build"

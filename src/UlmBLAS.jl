@@ -25,7 +25,8 @@ module UlmBLAS
 using Artifacts, Libdl, LinearAlgebra
 using Base.BinaryPlatforms.CPUID
 
-const LIBNAME = Sys.isapple() ? "libulmblas_lbt.dylib" : "libulmblas_lbt.so"
+const LIBNAME = Sys.isapple() ? "libulmblas_lbt.dylib" :
+                Sys.iswindows() ? "libulmblas_lbt.dll" : "libulmblas_lbt.so"
 
 #  path and variant of the library in use (set by __init__)
 const library = Ref{String}("")
