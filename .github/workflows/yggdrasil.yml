@@ -95,7 +95,7 @@ jobs:
           julia --project=$GITHUB_WORKSPACE/ygg/.ci/bb1_project build_tarballs.jl --verbose x86_64-linux-gnu
       - name: symbols
         run: |
-          cd ygg/U/ulmBLAS/products && mkdir x && tar -xzf *.tar.gz -C x
+          cd ygg/U/ulmBLAS/products && mkdir x && tar -xzf ulmBLAS.v*.tar.gz -C x
           for f in x/lib/libulmblas_*.so; do
             echo "$f: $(nm -D --defined-only $f | grep -c '_64_$') _64_, $(nm -D --defined-only $f | grep -c gemm_strided) strided, GLIBCXX $(objdump -T $f | grep -c GLIBCXX)"
           done
