@@ -18,6 +18,10 @@ on:
         description: 'experiment: LLVMCompilerRT 20 and the recipe linking it'
         type: boolean
         default: false
+      crt_file:
+        description: 'with crt_platforms: the LLVMCompilerRT recipe in .github/experiments/LLVMCompilerRT'
+        type: boolean
+        default: false
       crt_consumers:
         description: 'experiment: recipes without a version bound on LLVMCompilerRT, built with 17.0.6 and 20.1.8'
         type: boolean
@@ -186,7 +190,7 @@ jobs:
           BINARYBUILDER_RUNNER: userns
         run: |
           julia --project=ygg/.ci/bb1_project -e 'using Pkg; Pkg.instantiate()'
-          CRT_MUSL_NO_SANITIZERS=1 bash pkg/.github/experiments/crt-platform.sh ${{ matrix.platform }}
+          CRT_FILE=${{ inputs.crt_file && '1' || '' }} CRT_MUSL_NO_SANITIZERS=1 bash pkg/.github/experiments/crt-platform.sh ${{ matrix.platform }}
       - uses: actions/upload-artifact@v7
         if: always()
         with:

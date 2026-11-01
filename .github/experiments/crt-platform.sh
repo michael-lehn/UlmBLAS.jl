@@ -4,6 +4,11 @@ set -euxo pipefail
 W=$GITHUB_WORKSPACE
 cd $W/ygg/L/LLVMCompilerRT
 sed -n '/^version = /p' build_tarballs.jl
+if [[ "${CRT_FILE:-}" == 1 ]]; then
+    # the recipe as committed for the PR
+    cp $W/pkg/.github/experiments/LLVMCompilerRT/build_tarballs.jl build_tarballs.jl
+    rm -f bundled/patches/do-not-codesign.patch
+else
 sed -i 's/^version = v"17.0.6"/version = v"20.1.8"/' build_tarballs.jl
 sed -i 's/11b8d09dcf92a0f91c5c82defb5ad9ff4acf5cf073a80c317204baa922d136b4/15277402f6fd63397c0917a5c7171cda82d16d226094b828c1ed0f58f73b9c69/' build_tarballs.jl
 sed -i 's/807f069c54dc20cb47b21c1f6acafdd9c649f3ae015609040d6182cab01140f4/3319203cfd1172bbac50f06fa68e318af84dcb5d65353310c0586354069d6634/' build_tarballs.jl
@@ -13,6 +18,7 @@ sed -i 's|    -DCMAKE_LIBTOOL=$(which libtool) \\|    -DCMAKE_LIBTOOL=$(which li
 sed -i 's|julia_compat="1.6", preferred_gcc_version=v"8", preferred_llvm_version=version)|julia_compat="1.6", preferred_gcc_version=v"8", preferred_llvm_version=version,\n               lock_microarchitecture=false)|' build_tarballs.jl
 if [[ "${CRT_MUSL_NO_SANITIZERS:-}" == 1 ]]; then
     sed -i 's|^FLAGS=()$|FLAGS=()\nif [[ "${target}" == *-musl* ]]; then\n    FLAGS+=(-DCOMPILER_RT_BUILD_SANITIZERS=OFF -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_BUILD_LIBFUZZER=OFF -DCOMPILER_RT_BUILD_MEMPROF=OFF -DCOMPILER_RT_BUILD_CTX_PROFILE=OFF -DCOMPILER_RT_BUILD_ORC=OFF)\nfi|' build_tarballs.jl
+fi
 fi
 git -C $W/ygg diff
 julia --project=$W/ygg/.ci/bb1_project build_tarballs.jl --verbose ${CRT_DEPLOY:+--deploy=$CRT_DEPLOY} $1
