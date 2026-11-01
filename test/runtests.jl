@@ -34,6 +34,7 @@ include("strided.jl")
 
 @testset "forwarding" begin
     lib = UlmBLAS.library_path()
+    zdotc_before = UInt(BLAS.lbt_get_forward("zdotc_", :ilp64))
     @test UlmBLAS.forward() > 140
     @test [l.libname for l in BLAS.get_config().loaded_libs] == [LIBS_BEFORE; lib]
     @test UlmBLAS.forward() > 140              # again: no change
@@ -54,7 +55,11 @@ include("strided.jl")
     h = dlopen(lib)
     for f in ("dgemm", "sgemm", "zgemm", "cgemm", "ddot", "zdotc", "idamax",
               "dtrsm", "dgemv", "dsyrk", "zherk", "drot")
-        @test UInt(BLAS.lbt_get_forward(f * "_", :ilp64)) == UInt(dlsym(h, f * "_64_"))
+        #  Windows: zdotc through the adapter of libblastrampoline, which
+        #  still calls OpenBLAS (see subprocess/routing.jl)
+        expected = f == "zdotc" && BLAS.get_config().loaded_libs[end].complex_retstyle ===
+                   :float_normal_double_argument ? zdotc_before : UInt(dlsym(h, f * "_64_"))
+        @test UInt(BLAS.lbt_get_forward(f * "_", :ilp64)) == expected
     end
 end
 
