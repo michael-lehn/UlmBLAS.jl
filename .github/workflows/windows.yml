@@ -68,6 +68,7 @@ jobs:
         with:
           project: pkg
       - uses: julia-actions/julia-runtest@v1
+        timeout-minutes: 60
         with:
           project: pkg
         env:
@@ -75,3 +76,65 @@ jobs:
       - name: comparison with OpenBLAS
         shell: bash
         run: julia --startup-file=no --project=pkg pkg/.github/windows/compare.jl
+
+  #  invalid arguments (xerbla) and complex return values through
+  #  libblastrampoline, with stdio of the console and with pipes
+  diag:
+    name: diagnostics, Julia ${{ matrix.version }}
+    runs-on: windows-2022
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['1.10', '1']
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      - uses: actions/checkout@v7
+        with:
+          repository: michael-lehn/ulmBLAS
+          ref: ${{ env.ULMBLAS }}
+          path: src
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: >-
+            make
+            mingw-w64-ucrt-x86_64-gcc
+      - name: build x86_64
+        shell: msys2 {0}
+        run: J=4 sh pkg/build/build.sh src out-win x86_64
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.version }}
+      - uses: julia-actions/julia-buildpkg@v1
+        with:
+          project: pkg
+      - name: console stdio
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          export ULMBLAS_LIBRARY="$(cygpath -w "$PWD/out-win/lib/x86_64/libulmblas_lbt.dll")"
+          julia --startup-file=no --project=pkg pkg/.github/windows/diag.jl all
+      - name: pipes (as the tests), one case at a time
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          export ULMBLAS_LIBRARY="$(cygpath -w "$PWD/out-win/lib/x86_64/libulmblas_lbt.dll")"
+          for m in xerbla dgemm zdot; do
+              echo "== $m"
+              julia --startup-file=no --project=pkg -e '
+                  cmd = `$(Base.julia_cmd()) --startup-file=no --project=pkg pkg/.github/windows/diag.jl '$m'`
+                  out = IOBuffer(); err = IOBuffer()
+                  t = @async run(pipeline(ignorestatus(cmd); stdout=out, stderr=err))
+                  for _ in 1:120
+                      istaskdone(t) && break
+                      sleep(1)
+                  end
+                  println("finished: ", istaskdone(t))
+                  println("stdout:
+", String(take!(out)), "stderr:
+", String(take!(err)))
+                  istaskdone(t) || exit(3)'
+          done
