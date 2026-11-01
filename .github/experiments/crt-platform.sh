@@ -12,7 +12,7 @@ sed -i '/atomic_patch -p1 ..\/patches\/do-not-codesign.patch/d; /# We.ll codesig
 sed -i 's|    -DCMAKE_LIBTOOL=$(which libtool) \\|    -DCMAKE_LIBTOOL=$(which libtool) \\\n    -DCODESIGN=OFF \\|' build_tarballs.jl
 sed -i 's|julia_compat="1.6", preferred_gcc_version=v"8", preferred_llvm_version=version)|julia_compat="1.6", preferred_gcc_version=v"8", preferred_llvm_version=version,\n               lock_microarchitecture=false)|' build_tarballs.jl
 if [[ "${CRT_MUSL_NO_SANITIZERS:-}" == 1 ]]; then
-    sed -i 's|^FLAGS=()$|FLAGS=()\nif [[ "${target}" == *-musl* ]]; then\n    FLAGS+=(-DCOMPILER_RT_BUILD_SANITIZERS=OFF)\nfi|' build_tarballs.jl
+    sed -i 's|^FLAGS=()$|FLAGS=()\nif [[ "${target}" == *-musl* ]]; then\n    FLAGS+=(-DCOMPILER_RT_BUILD_SANITIZERS=OFF -DCOMPILER_RT_BUILD_XRAY=OFF -DCOMPILER_RT_BUILD_LIBFUZZER=OFF -DCOMPILER_RT_BUILD_MEMPROF=OFF -DCOMPILER_RT_BUILD_CTX_PROFILE=OFF -DCOMPILER_RT_BUILD_ORC=OFF)\nfi|' build_tarballs.jl
 fi
 git -C $W/ygg diff
 julia --project=$W/ygg/.ci/bb1_project build_tarballs.jl --verbose $1
