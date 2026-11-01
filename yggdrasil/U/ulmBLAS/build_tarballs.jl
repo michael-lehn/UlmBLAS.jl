@@ -102,9 +102,10 @@ dependencies = Dependency[]
 
 for platform in platforms
     should_build_platform(triplet(platform)) || continue
-    # GCC 11 is the oldest GCC without large slowdowns (GCC 10: dgemv up to 27%,
-    # GCC 6: zgemm up to 2.8x in the SSE3 variant); GCC 5 fails.  libstdc++ is
-    # linked statically.
+    # GCC 11 is the oldest GCC without broad slowdowns (GCC 10: dgemv up to 27%,
+    # GCC 6: zgemm up to 2.8x in the SSE3 variant); GCC 5 fails.  With GCC 11
+    # only zgemv without transposition is slower than with GCC 14 (about 3x).
+    # libstdc++ is linked statically.
     compilers = Sys.islinux(platform) ? (; preferred_gcc_version=v"11") : (;)
     build_tarballs(ARGS, name, version, sources,
                    "variants=\"$(join(variants(platform), ' '))\"\n" * script,
