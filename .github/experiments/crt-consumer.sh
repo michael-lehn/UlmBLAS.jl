@@ -9,7 +9,8 @@ if [[ "$4" == 20 ]]; then
     CRT_MUSL_NO_SANITIZERS=1 CRT_DEPLOY=local bash $W/pkg/.github/experiments/crt-platform.sh $3
     J=$HOME/.julia/dev/LLVMCompilerRT_jll
     git -C $J init -q && git -C $J add -A && git -C $J -c user.name=ci -c user.email=ci@localhost commit -qm jll
-    sed -i "s|BuildDependency(\"LLVMCompilerRT_jll\"|BuildDependency(PackageSpec(name=\"LLVMCompilerRT_jll\", path=\"$J\")|" $W/ygg/$1/build_tarballs.jl
+    sed -i "s|BuildDependency(\"LLVMCompilerRT_jll\"|BuildDependency(Pkg.PackageSpec(name=\"LLVMCompilerRT_jll\", path=\"$J\")|" $W/ygg/$1/build_tarballs.jl
+    sed -i '1i import Pkg' $W/ygg/$1/build_tarballs.jl
 fi
 git -C $W/ygg diff -- $1
 cd $W/ygg/$1
