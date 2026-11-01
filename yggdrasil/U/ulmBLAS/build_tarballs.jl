@@ -11,6 +11,11 @@ version = v"0.1.0"
 sources = [
     GitSource("https://github.com/michael-lehn/ulmBLAS.git",
               "6c554eec707e22f118bae5dcaea10ad9945aac54"),
+    # The SME support routines (`__arm_tpidr2_save`, ...) for macOS, which
+    # Apple's clang links from libclang_rt.osx.a.  The toolchain doesn't
+    # have them and LLVMCompilerRT_jll (17.0.6) predates them.
+    ArchiveSource("https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/compiler-rt-20.1.8.src.tar.xz",
+                  "15277402f6fd63397c0917a5c7171cda82d16d226094b828c1ed0f58f73b9c69"),
 ]
 
 # One library per instruction set, `libulmblas_VARIANT`, with the BLAS
@@ -48,6 +53,13 @@ for v in ${variants}; do
     # The makefile picks these with `uname`, i.e. for the build host.
     if [[ ${target} == *-apple-* ]]; then
         link="-dynamiclib -Wl,-force_load,${build}/liblbtblas.a"
+        if [[ ${v} == sme ]]; then
+            mkdir -pv ${build}
+            # hidden, as in libclang_rt.osx.a
+            ${CC} -c -x assembler-with-cpp -DVISIBILITY_HIDDEN -o ${build}/sme_abi.o \
+                ${WORKSPACE}/srcdir/compiler-rt-*/lib/builtins/aarch64/arm_apple_sme_abi.s
+            link+=" ${build}/sme_abi.o"
+        fi
     else
         link="-shared -Wl,--whole-archive ${build}/liblbtblas.a -Wl,--no-whole-archive"
         link+=" -static-libstdc++ -static-libgcc -Wl,--no-undefined -Wl,--strip-debug"
@@ -61,6 +73,9 @@ done
 
 # includes the licenses of the micro kernels from BLIS, AOCL-BLAS and OpenBLAS
 install_license LICENSE
+if [[ ${target} == *-apple-* ]]; then
+    install_license ${WORKSPACE}/srcdir/compiler-rt-*/LICENSE.TXT
+fi
 """
 
 # The platforms of UlmBLAS.jl: the micro kernels are for x86-64 and Apple
