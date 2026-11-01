@@ -11,6 +11,9 @@ on:
       gcc:
         description: 'GCC versions to try for x86_64-linux-gnu (JSON list); empty: normal build'
         default: ''
+      crt_platforms:
+        description: 'experiment: LLVMCompilerRT 20 for these platforms (JSON list)'
+        default: ''
       crt:
         description: 'experiment: LLVMCompilerRT 20 and the recipe linking it'
         type: boolean
@@ -18,7 +21,7 @@ on:
 
 jobs:
   build:
-    if: inputs.gcc == '' && !inputs.crt
+    if: inputs.gcc == '' && !inputs.crt && inputs.crt_platforms == ''
     name: ${{ matrix.platform }}
     runs-on: ubuntu-latest
     strategy:
@@ -144,4 +147,44 @@ jobs:
         if: always()
         with:
           name: crt-experiment
+          path: out
+
+  crt-platforms:
+    if: inputs.crt_platforms != ''
+    name: crt ${{ matrix.platform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(inputs.crt_platforms) }}
+    steps:
+      - name: free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+      - name: allow user namespaces
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      - uses: actions/checkout@v7
+        with:
+          repository: JuliaPackaging/Yggdrasil
+          ref: 85d4372420a4ae8f5ebc4426b000ce0b513478de
+          path: ygg
+          sparse-checkout: |
+            .ci/bb1_project
+            L/LLVMCompilerRT
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1.13'
+      - name: build
+        env:
+          BINARYBUILDER_AUTOMATIC_APPLE: 'true'
+          BINARYBUILDER_RUNNER: userns
+        run: |
+          julia --project=ygg/.ci/bb1_project -e 'using Pkg; Pkg.instantiate()'
+          bash pkg/.github/experiments/crt-platform.sh ${{ matrix.platform }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: crt-${{ matrix.platform }}
           path: out
