@@ -8,6 +8,7 @@ cd $W/ygg/L/LLVMCompilerRT
 sed -i 's/^version = v"17.0.6"/version = v"20.1.8"/' build_tarballs.jl
 sed -i 's/11b8d09dcf92a0f91c5c82defb5ad9ff4acf5cf073a80c317204baa922d136b4/15277402f6fd63397c0917a5c7171cda82d16d226094b828c1ed0f58f73b9c69/' build_tarballs.jl
 sed -i 's/807f069c54dc20cb47b21c1f6acafdd9c649f3ae015609040d6182cab01140f4/3319203cfd1172bbac50f06fa68e318af84dcb5d65353310c0586354069d6634/' build_tarballs.jl
+sed -i 's/BuildDependency(PackageSpec(name="LLVM_full_jll"; version))/BuildDependency(PackageSpec(name="LLVM_full_jll", version=string(version)))/' build_tarballs.jl
 git -C $W/ygg diff
 julia $P build_tarballs.jl --verbose --deploy=local aarch64-apple-darwin
 mkdir -p $W/out/crt && tar -xzf products/*.tar.gz -C $W/out/crt
