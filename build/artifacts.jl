@@ -1,27 +1,33 @@
 #
-#  julia build/artifacts.jl VERSION DIR=TRIPLET ...
+#  julia build/artifacts.jl TAG DIR=TRIPLET ...
 #
 #  Packs the output directories of build.sh (one per platform) as artifacts
 #  and binds them in Artifacts.toml (artifact "ulmblas", one entry per
-#  platform), with the release assets of this repository as download
-#  location:
+#  platform), with the assets of the release TAG of this repository as
+#  download location:
 #
-#      https://github.com/michael-lehn/UlmBLAS.jl/releases/download/vVERSION/
-#          UlmBLAS.vVERSION.TRIPLET.tar.gz
+#      https://github.com/michael-lehn/UlmBLAS.jl/releases/download/TAG/
+#          TAG.TRIPLET.tar.gz
 #
-#  The tarballs are written to dist/; upload them to the release vVERSION.
+#  TAG names the libraries, not a version of the package, e.g.
+#  libulmblas-d738372b for libraries built from ulmBLAS d738372b.  The
+#  tarballs are written to dist/; upload them to the release TAG.
 #  TRIPLET: aarch64-apple-darwin or x86_64-linux-gnu.
 #
-#      julia build/artifacts.jl 0.1.0 out-mac=aarch64-apple-darwin \
-#                                     out-linux=x86_64-linux-gnu
+#      julia build/artifacts.jl libulmblas-d738372b out-mac=aarch64-apple-darwin \
+#                                                   out-linux=x86_64-linux-gnu
+#
+#  With BASEURL=file:///path/to/dist the tarballs are bound with that
+#  location instead, to test the installation before the release exists.
 #
 using Pkg.Artifacts, Base.BinaryPlatforms, SHA
 
 const REPO = "https://github.com/michael-lehn/UlmBLAS.jl"
 
-version = ARGS[1]
+tag = ARGS[1]
 toml = joinpath(@__DIR__, "..", "Artifacts.toml")
 dist = joinpath(@__DIR__, "..", "dist")
+base = get(ENV, "BASEURL", "$REPO/releases/download/$tag")
 mkpath(dist)
 
 for arg in ARGS[2:end]
@@ -30,12 +36,11 @@ for arg in ARGS[2:end]
     hash = create_artifact() do art
         cp(dir, art; force=true)
     end
-    name = "UlmBLAS.v$version.$triplet.tar.gz"
+    name = "$tag.$triplet.tar.gz"
     tarball = joinpath(dist, name)
     archive_artifact(hash, tarball)
     sha = bytes2hex(open(sha256, tarball))
-    url = "$REPO/releases/download/v$version/$name"
     bind_artifact!(toml, "ulmblas", hash; platform=platform, force=true,
-                   download_info=[(url, sha)])
+                   download_info=[("$base/$name", sha)])
     println("$triplet: git-tree-sha1 $hash, $name sha256 $sha")
 end

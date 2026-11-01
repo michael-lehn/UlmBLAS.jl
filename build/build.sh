@@ -16,6 +16,7 @@
 #  ZGEMM (the fastest of the benchmark campaigns of ulmBLAS for this kind
 #  of CPU).  CXX and CC can be set as usual; J = number of parallel jobs;
 #  the build logs go to LOGDIR (default OUT.logs, not into the artifact);
+#  on Linux the debug information is stripped;
 #  ULMBLAS_COMMIT names the commit of SRC if SRC is no git checkout.
 #
 set -eu
@@ -77,6 +78,8 @@ for v in "$@"; do
     make -C "$SRC" -j$J lbt ARCHFLAGS="$f" OUTDIR="$OUT/lib/$v" \
          BUILD_DIR="$b" > "$LOGDIR/build-$v.log" 2>&1 \
         || { echo "build of $v failed, see $LOGDIR/build-$v.log" >&2; exit 1; }
+    #  Linux: no debug information (mostly of the static libstdc++)
+    [ "$(uname -s)" = Linux ] && strip --strip-debug "$OUT/lib/$v/libulmblas_lbt.so"
     echo "$v: ARCHFLAGS=$f" >> "$R"
 done
 rm -rf "$OUT/build"

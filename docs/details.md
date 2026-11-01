@@ -138,13 +138,14 @@ included) and checks the results.
 
 ## Kernel selection
 
-`UlmBLAS.variant()` decides from the CPU:
+`UlmBLAS.variants()` lists the builds the CPU can run, the preferred one
+first; `UlmBLAS.variant()` is the first:
 
-- AArch64: `sme` on macOS if `sysctl hw.optional.arm.FEAT_SME2` is 1,
-  otherwise `neon`;
-- x86-64: `zen4` (AMD) or `skylakex` (others) with AVX-512 F and DQ,
-  `haswell` with AVX2 and FMA, otherwise `x86_64`.  AMD is recognized by
-  the model name of the CPU.
+- AArch64: `sme` on macOS if `sysctl hw.optional.arm.FEAT_SME2` is 1;
+  `neon`;
+- x86-64: with AVX-512 F and DQ `zen4` and `skylakex` (`zen4` first on
+  AMD, recognized by the model name of the CPU); `haswell` with AVX2 and
+  FMA; `x86_64` with SSE3.
 
 `build/build.sh` builds each variant with `make lbt ARCHFLAGS=...`:
 
@@ -160,8 +161,10 @@ included) and checks the results.
 (each kernel as `-DULMBLAS_?GEMM_UKERNEL_<name>`).  On macOS
 `MACOSX_DEPLOYMENT_TARGET` defaults to 12.0.
 
-`ULMBLAS_LIBRARY` overrides the choice; `UlmBLAS.variant()` still reports
-the variant of the CPU.
+`ULMBLAS_LIBRARY` (a library built with `make lbt`) overrides the choice;
+`ULMBLAS_VARIANT` selects another build of the artifact if it is in
+`UlmBLAS.variants()` (otherwise a warning, and the preferred one is
+used).  The tests run every build in `UlmBLAS.variants()`.
 
 ## Artifacts
 
@@ -169,14 +172,21 @@ the variant of the CPU.
   `OUT/lib/VARIANT/libulmblas_lbt.*`,
   `OUT/share/licenses/ulmBLAS/LICENSE` and `OUT/share/ulmBLAS/build.txt`
   (commit, compiler, flags).  Variants: `neon`, `sme` on macOS arm64;
-  `x86_64`, `haswell`, `skylakex`, `zen4` on Linux x86-64.
-- `julia build/artifacts.jl VERSION DIR=TRIPLET ...` packs each directory
-  as `dist/UlmBLAS.vVERSION.TRIPLET.tar.gz` and binds it as artifact
-  `ulmblas` in `Artifacts.toml`, with
-  `https://github.com/michael-lehn/UlmBLAS.jl/releases/download/vVERSION/`
-  as download location.
-- When loaded, the package takes `lib/VARIANT/libulmblas_lbt.*` from the
-  artifact of its platform.
+  `x86_64`, `haswell`, `skylakex`, `zen4` on Linux x86-64.  On Linux the
+  debug information is stripped.
+- `julia build/artifacts.jl TAG DIR=TRIPLET ...` packs each directory as
+  `dist/TAG.TRIPLET.tar.gz` and binds it as artifact `ulmblas` in
+  `Artifacts.toml`, with
+  `https://github.com/michael-lehn/UlmBLAS.jl/releases/download/TAG/`
+  as download location (`BASEURL` overrides it for tests).
+- Pkg downloads the artifact of the platform when the package is
+  installed and checks its SHA-256 and tree hash.  When loaded, the
+  package takes `lib/VARIANT/libulmblas_lbt.*` from it.
+- Current libraries (release `libulmblas-d738372b`): ulmBLAS d738372b;
+  macOS with Apple clang 21.0.0 (`MACOSX_DEPLOYMENT_TARGET=12.0`, links
+  only `libSystem` and `libc++`); Linux with GCC 14.2.0 on RHEL 9.6
+  (links only `libc`, `libm`; libstdc++ static; glibc symbol versions up
+  to `GLIBC_2.34`).
 
 ## Licenses
 

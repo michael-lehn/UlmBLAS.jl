@@ -26,31 +26,37 @@ BLAS.get_config()                   # OpenBLAS and ulmBLAS
 
 ## Installation
 
-The package is not registered, and there are no prebuilt libraries yet.
-Build the library with ulmBLAS:
+```julia
+using Pkg
+Pkg.add(url="https://github.com/michael-lehn/UlmBLAS.jl")
+```
+
+The package is not registered yet.  Pkg installs prebuilt libraries of
+ulmBLAS together with the package (an artifact), and the package loads
+the one for the CPU (see [CPU variants](#cpu-variants)):
+
+- macOS on Apple silicon (macOS 12 or later): `sme` (M4 and later),
+  `neon`;
+- Linux on x86-64 with glibc 2.34 or later (e.g. Ubuntu 22.04, Debian 12,
+  RHEL 9): `zen4`, `skylakex`, `haswell`, `x86_64`.
+
+Julia 1.9 or later.  On other platforms the package prints a warning;
+`UlmBLAS.mul!` and `UlmBLAS.forward()` then raise an error, and Julia
+keeps OpenBLAS.
+
+For development, a library built with ulmBLAS replaces the prebuilt ones:
 
 ```sh
 git clone https://github.com/michael-lehn/ulmBLAS
 cd ulmBLAS
 make lbt                    # libulmblas_lbt.dylib (macOS) or .so (Linux)
+export ULMBLAS_LIBRARY=$PWD/libulmblas_lbt.dylib
 ```
-
-and set `ULMBLAS_LIBRARY` before `using UlmBLAS`:
-
-```sh
-export ULMBLAS_LIBRARY=$HOME/ulmBLAS/libulmblas_lbt.dylib
-julia --project=/path/to/UlmBLAS.jl     # Pkg.instantiate() once
-```
-
-In another environment add the package with
-`Pkg.develop(path="/path/to/UlmBLAS.jl")`.
-
-Without `ULMBLAS_LIBRARY` the package looks for a prebuilt library for
-this CPU.  As there is none yet, it prints a warning; `UlmBLAS.mul!` and
-`UlmBLAS.forward()` then raise an error, and Julia keeps OpenBLAS.
 
 `make lbt ARCHFLAGS=...` selects the micro kernels, e.g.
-`ARCHFLAGS=-mcpu=apple-m4` for SME2 (see [CPU variants](#cpu-variants)).
+`ARCHFLAGS=-mcpu=apple-m4` for SME2.  `ULMBLAS_VARIANT=haswell` (for
+example) selects another of the prebuilt libraries, if the CPU can run it
+(`UlmBLAS.variants()`).
 
 ## ulmBLAS as the BLAS of Julia
 
@@ -208,9 +214,9 @@ few weeks.
 
 ## CPU variants
 
-ulmBLAS selects its micro kernels at compile time.  The package is meant
-to contain one library per kind of CPU and to load the one for the CPU it
-runs on (`UlmBLAS.variant()`):
+ulmBLAS selects its micro kernels at compile time.  The package contains
+one library per kind of CPU and loads the one for the CPU it runs on
+(`UlmBLAS.variant()`; `UlmBLAS.variants()` lists all the CPU can run):
 
 | Variant | CPU | Micro kernels (S, D, C, Z) |
 |---|---|---|
@@ -221,7 +227,12 @@ runs on (`UlmBLAS.variant()`):
 | `haswell` | AVX2 and FMA | OpenBLAS HASWELL |
 | `x86_64` | other x86-64 | ulmBLAS SSE (D), reference kernels |
 
-Platforms: macOS on Apple silicon, Linux on x86-64 (glibc).  The choice
+Platforms: macOS on Apple silicon, Linux on x86-64 (glibc 2.34 or
+later).  The libraries are built from ulmBLAS
+[d738372b](https://github.com/michael-lehn/ulmBLAS/commit/d738372b42969fb3142d8bb6f711fdf5551035d8)
+(macOS: Apple clang 21, deployment target 12.0; Linux: GCC 14.2 on RHEL 9,
+libstdc++ linked statically); `share/ulmBLAS/build.txt` in the artifact
+records the commit, compilers and flags.  The choice
 follows the
 [benchmark campaigns](https://github.com/michael-lehn/ulmBLAS/tree/master/benchmark_results)
 of ulmBLAS; the flags of each variant are in
@@ -231,16 +242,18 @@ of ulmBLAS; the flags of each variant are in
 
 ```sh
 build/build.sh ~/ulmBLAS out-mac        # all variants of this platform
-julia build/artifacts.jl 0.1.0 out-mac=aarch64-apple-darwin \
-                               out-linux=x86_64-linux-gnu
+julia build/artifacts.jl libulmblas-d738372b out-mac=aarch64-apple-darwin \
+                                             out-linux=x86_64-linux-gnu
 ```
 
 - `build/build.sh SRC OUT [VARIANT ...]` builds
   `OUT/lib/VARIANT/libulmblas_lbt.*` from the ulmBLAS sources in `SRC`,
   with the license and a record of the build (commit, compiler, flags).
-- `build/artifacts.jl` packs these directories into `dist/` and writes
-  `Artifacts.toml`; the tarballs belong to the release `vVERSION` of this
-  repository.
+- `build/artifacts.jl TAG ...` packs these directories into `dist/` and
+  writes `Artifacts.toml`; the tarballs are the assets of the release
+  `TAG` of this repository (named after the ulmBLAS commit, not after a
+  version of the package).  With `BASEURL=file:///path/to/dist` they are
+  bound to local files, to test the installation before the release.
 
 ## Tests
 
