@@ -13,11 +13,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #  oldest supported version, long-term support, current release
-        version: ['1.9', 'lts', '1']
+        #  long-term support, current release
+        version: ['lts', '1']
         #  macos-latest: Apple silicon (arm64, without SME2: variant neon);
         #  ubuntu-latest: x86-64 (variants as the CPU of the runner allows)
         os: [ubuntu-latest, macos-latest]
+        #  the oldest supported version; Julia 1.9 does not start on
+        #  ubuntu-latest (its libopenlibm requests an executable stack,
+        #  which newer versions of glibc refuse)
+        include:
+          - version: '1.9'
+            os: ubuntu-22.04
+          - version: '1.9'
+            os: macos-latest
     steps:
       - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@v3
