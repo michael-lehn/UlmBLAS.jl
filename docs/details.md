@@ -160,9 +160,10 @@ first; `UlmBLAS.variant()` is the first:
   with `RDSVL` as `sme_max_svl_b` (`osfmk/arm64/sme.c` of XNU); user
   processes cannot change it, so the kernels need not configure or check
   it.
-- x86-64: with AVX-512 F and DQ `zen4` and `skylakex` (`zen4` first on
-  AMD, recognized by the model name of the CPU); `haswell` with AVX2 and
-  FMA; `x86_64` with SSE3.
+- x86-64: with AVX-512 F, DQ and VL `zen4` and `skylakex` (`zen4` first
+  on AMD, recognized by the model name of the CPU); `haswell` with AVX2 and
+  FMA; `x86_64` with SSE3.  The AVX-512 libraries are compiled with F and
+  DQ; VL is used by the vendored assembly kernels.
 
 `build/build.sh` builds each variant with `make lbt ARCHFLAGS=...`:
 

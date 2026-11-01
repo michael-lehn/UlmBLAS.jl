@@ -64,6 +64,31 @@ end
     end
 end
 
+@testset "x86-64 variants" begin
+    X = Base.BinaryPlatforms.CPUID
+    feats(fs...) = f -> f in fs
+    sse3, avx2 = (X.JL_X86_sse3,), (X.JL_X86_sse3, X.JL_X86_avx2, X.JL_X86_fma)
+    f_dq = (avx2..., X.JL_X86_avx512f, X.JL_X86_avx512dq)
+    @test UlmBLAS.x86_variants(feats(), false) == String[]
+    @test UlmBLAS.x86_variants(feats(sse3...), false) == ["x86_64"]
+    @test UlmBLAS.x86_variants(feats(X.JL_X86_sse3, X.JL_X86_avx2), false) == ["x86_64"]
+    @test UlmBLAS.x86_variants(feats(avx2...), true) == ["haswell", "x86_64"]
+    #  AVX-512 needs F, DQ and VL
+    @test UlmBLAS.x86_variants(feats(f_dq...), false) == ["haswell", "x86_64"]
+    @test UlmBLAS.x86_variants(feats(avx2..., X.JL_X86_avx512f, X.JL_X86_avx512vl), false) ==
+          ["haswell", "x86_64"]
+    @test UlmBLAS.x86_variants(feats(f_dq..., X.JL_X86_avx512vl), false) ==
+          ["skylakex", "zen4", "haswell", "x86_64"]
+    @test UlmBLAS.x86_variants(feats(f_dq..., X.JL_X86_avx512vl), true) ==
+          ["zen4", "skylakex", "haswell", "x86_64"]
+    if Sys.ARCH === :x86_64
+        #  this CPU: an AVX-512 variant only with F, DQ and VL
+        avx512 = any(in(UlmBLAS.variants()), ("zen4", "skylakex"))
+        @test avx512 == all(X.test_cpu_feature,
+                            (X.JL_X86_avx512f, X.JL_X86_avx512dq, X.JL_X86_avx512vl))
+    end
+end
+
 #  UlmBLAS.mul! before forward()
 include("strided.jl")
 

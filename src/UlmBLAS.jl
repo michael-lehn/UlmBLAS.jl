@@ -69,23 +69,31 @@ The builds of ulmBLAS this CPU can run, the preferred one first:
 
 - AArch64: `"sme"` (Apple M4 and later: SME2 with FEAT_SME_F64F64 and a
   streaming vector length of 512 bits), `"neon"`;
-- x86-64: `"zen4"` (AMD with AVX-512 F and DQ: Zen 4, Zen 5) or
-  `"skylakex"` (Intel with AVX-512 F and DQ), `"haswell"` (AVX2 and FMA),
-  `"x86_64"` (SSE3).  With AVX-512 both `"zen4"` and `"skylakex"` run.
+- x86-64: `"zen4"` (AMD with AVX-512 F, DQ and VL: Zen 4, Zen 5) or
+  `"skylakex"` (Intel with AVX-512 F, DQ and VL), `"haswell"` (AVX2 and
+  FMA), `"x86_64"` (SSE3).  With AVX-512 both `"zen4"` and `"skylakex"` run.
 """
 function variants()
     if Sys.ARCH === :aarch64
         return Sys.isapple() ? arm_variants(sysctl_int) : ["neon"]
     elseif Sys.ARCH === :x86_64
-        v = String[]
-        if has(CPUID.JL_X86_avx512f) && has(CPUID.JL_X86_avx512dq)
-            append!(v, is_amd() ? ["zen4", "skylakex"] : ["skylakex", "zen4"])
-        end
-        has(CPUID.JL_X86_avx2) && has(CPUID.JL_X86_fma) && push!(v, "haswell")
-        has(CPUID.JL_X86_sse3) && push!(v, "x86_64")
-        return v
+        return x86_variants(has, is_amd())
     end
     return String[]
+end
+
+#  x86-64: the variants for the features has(CPUID.JL_X86_...) reports, AMD
+#  preferring zen4.  The AVX-512 libraries are compiled with AVX-512 F and DQ,
+#  and the vendored assembly kernels also use AVX-512 VL.
+function x86_variants(has, amd)
+    v = String[]
+    if has(CPUID.JL_X86_avx512f) && has(CPUID.JL_X86_avx512dq) &&
+       has(CPUID.JL_X86_avx512vl)
+        append!(v, amd ? ["zen4", "skylakex"] : ["skylakex", "zen4"])
+    end
+    has(CPUID.JL_X86_avx2) && has(CPUID.JL_X86_fma) && push!(v, "haswell")
+    has(CPUID.JL_X86_sse3) && push!(v, "x86_64")
+    return v
 end
 
 """
