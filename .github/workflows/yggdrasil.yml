@@ -11,10 +11,14 @@ on:
       gcc:
         description: 'GCC versions to try for x86_64-linux-gnu (JSON list); empty: normal build'
         default: ''
+      crt:
+        description: 'experiment: LLVMCompilerRT 20 and the recipe linking it'
+        type: boolean
+        default: false
 
 jobs:
   build:
-    if: inputs.gcc == ''
+    if: inputs.gcc == '' && !inputs.crt
     name: ${{ matrix.platform }}
     runs-on: ubuntu-latest
     strategy:
@@ -99,3 +103,45 @@ jobs:
         with:
           name: ulmBLAS-gcc${{ matrix.gcc }}
           path: ygg/U/ulmBLAS/products
+
+  crt:
+    if: inputs.crt
+    runs-on: ubuntu-latest
+    steps:
+      - name: free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+      - name: allow user namespaces
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      - uses: actions/checkout@v7
+        with:
+          repository: JuliaPackaging/Yggdrasil
+          ref: 85d4372420a4ae8f5ebc4426b000ce0b513478de
+          path: ygg
+          sparse-checkout: |
+            .ci/bb1_project
+            L/LLVMCompilerRT
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1.13'
+      - name: build
+        env:
+          BINARYBUILDER_AUTOMATIC_APPLE: 'true'
+          BINARYBUILDER_RUNNER: userns
+        run: |
+          julia --project=ygg/.ci/bb1_project -e 'using Pkg; Pkg.instantiate()'
+          cp -R pkg/yggdrasil/U ygg/
+          bash pkg/.github/experiments/crt.sh
+      - name: symbols
+        if: always()
+        run: |
+          sudo apt-get install -y -qq llvm >/dev/null
+          for a in $(find out/crt -name 'libclang_rt.osx.a'); do echo "$a"; llvm-nm $a 2>/dev/null | grep -E '__arm_(tpidr2|za_|sme_state|get_current)' ; done
+          for f in out/ulm/lib/*.dylib; do echo "$f"; llvm-nm -m $f | grep -E '__arm_|ugemm_32x16_streaming' | head; llvm-nm -gU $f | grep -c '_64_$'; done
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: crt-experiment
+          path: out
