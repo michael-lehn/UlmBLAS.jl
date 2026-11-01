@@ -11,7 +11,10 @@ sed -i 's/BuildDependency(PackageSpec(name="LLVM_full_jll"; version))/BuildDepen
 sed -i '/atomic_patch -p1 ..\/patches\/do-not-codesign.patch/d; /# We.ll codesign during audit/d' build_tarballs.jl
 sed -i 's|    -DCMAKE_LIBTOOL=$(which libtool) \\|    -DCMAKE_LIBTOOL=$(which libtool) \\\n    -DCODESIGN=OFF \\|' build_tarballs.jl
 sed -i 's|julia_compat="1.6", preferred_gcc_version=v"8", preferred_llvm_version=version)|julia_compat="1.6", preferred_gcc_version=v"8", preferred_llvm_version=version,\n               lock_microarchitecture=false)|' build_tarballs.jl
-git -C $W/ygg diff --stat
+if [[ "${CRT_MUSL_NO_SANITIZERS:-}" == 1 ]]; then
+    sed -i 's|^FLAGS=()$|FLAGS=()\nif [[ "${target}" == *-musl* ]]; then\n    FLAGS+=(-DCOMPILER_RT_BUILD_SANITIZERS=OFF)\nfi|' build_tarballs.jl
+fi
+git -C $W/ygg diff
 julia --project=$W/ygg/.ci/bb1_project build_tarballs.jl --verbose $1
 mkdir -p $W/out && tar -tzf products/LLVMCompilerRT.v*.tar.gz | grep -E '\.(a|so|dylib|dll)$' | sort > $W/out/files-$1.txt
 wc -l $W/out/files-$1.txt

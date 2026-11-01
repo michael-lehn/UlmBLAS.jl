@@ -182,7 +182,7 @@ jobs:
           BINARYBUILDER_RUNNER: userns
         run: |
           julia --project=ygg/.ci/bb1_project -e 'using Pkg; Pkg.instantiate()'
-          bash pkg/.github/experiments/crt-platform.sh ${{ matrix.platform }}
+          CRT_MUSL_NO_SANITIZERS=1 bash pkg/.github/experiments/crt-platform.sh ${{ matrix.platform }}
       - uses: actions/upload-artifact@v7
         if: always()
         with:
