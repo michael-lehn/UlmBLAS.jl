@@ -216,6 +216,80 @@ speedup over OpenBLAS (time of OpenBLAS / time, random → column-dominant):
   0.84–0.93, Zen 4 0.92–1.02 → 0.87–1.03 for n ≥ 1024; without the swaps
   the BLAS is a larger part of the time.
 
+## Time per BLAS routine: ulmBLAS against OpenBLAS's BLAS
+
+Where Netlib LAPACK + ulmBLAS loses against Netlib LAPACK + OpenBLAS's
+BLAS (the same LAPACK, the same DLASWP, the same block sizes: NB = 64 of
+ILAENV, 32 columns in DLASWP).  `profile.jl` replaces the LBT entries of
+the four BLAS routines DGETRF calls (DGEMM, DTRSM, IDAMAX, DSCAL) by
+wrappers that time every call (`time_ns`) and call the previous target.
+For each n, DGETRF is called repeatedly (0.5 s, at least 5 calls); per
+call the time in each routine and the rest ("rest of DGETRF": DLASWP and
+the code of DGETRF and DGETRF2 in liblapack, plus the wrappers' own cost)
+are recorded, medians reported.  "DGETRF" is the time without wrappers.
+The wrappers cost about 35 ns per BLAS call, which matters only for the
+smallest n (n = 8: about 30 calls; "rest" there is mostly this cost).
+Jobs 8244291 (Ice Lake, uc2n602) and 8244292 (Zen 4, uc3n070),
+`cluster/job-profile.sh`, `results/*-profile.*`.
+
+Random matrices, time per DGETRF with OpenBLAS's BLAS → with ulmBLAS
+(ratio), Intel Xeon Platinum 8358 (Ice Lake):
+
+| n | DGEMM | DTRSM | IDAMAX | DSCAL | rest of DGETRF | DGETRF |
+|---:|---:|---:|---:|---:|---:|---:|
+| 8 | 0.35 → 1.67 µs (4.76×) | 0.78 → 7.12 µs (9.13×) | 0.21 → 0.28 µs (1.35×) | 0.19 → 0.16 µs (0.82×) | 1.12 → 1.17 µs (1.05×) | 1.25 → 8.92 µs (7.15×) |
+| 32 | 2.33 → 9.77 µs (4.20×) | 5.34 → 33.9 µs (6.35×) | 1.07 → 1.64 µs (1.54×) | 0.88 → 0.70 µs (0.80×) | 5.29 → 5.58 µs (1.05×) | 8.81 → 43.5 µs (4.94×) |
+| 128 | 24.2 → 91.8 µs (3.80×) | 60.4 → 179 µs (2.96×) | 5.90 → 10.7 µs (1.82×) | 4.18 → 3.89 µs (0.93×) | 34.4 → 35.6 µs (1.04×) | 104 → 287 µs (2.77×) |
+| 512 | 1.32 → 1.91 ms (1.45×) | 941 → 1302 µs (1.38×) | 50.6 → 123 µs (2.44×) | 29.7 → 29.5 µs (0.99×) | 1.43 → 1.44 ms (1.01×) | 3.65 → 4.67 ms (1.28×) |
+| 1024 | 9.55 → 11.6 ms (1.21×) | 3.72 → 4.23 ms (1.14×) | 179 → 424 µs (2.37×) | 102 → 94.7 µs (0.93×) | 6.09 → 6.12 ms (1.00×) | 19.4 → 22.2 ms (1.14×) |
+| 2048 | 73.0 → 81.0 ms (1.11×) | 16.9 → 18.5 ms (1.09×) | 630 → 1510 µs (2.40×) | 359 → 347 µs (0.97×) | 33.0 → 33.0 ms (1.00×) | 123 → 134 ms (1.08×) |
+| 4096 | 637 → 679 ms (1.07×) | 70.1 → 78.7 ms (1.12×) | 2.33 → 5.67 ms (2.44×) | 1.41 → 1.38 ms (0.98×) | 208 → 208 ms (1.00×) | 918 → 972 ms (1.06×) |
+
+AMD EPYC 9454 (Zen 4):
+
+| n | DGEMM | DTRSM | IDAMAX | DSCAL | rest of DGETRF | DGETRF |
+|---:|---:|---:|---:|---:|---:|---:|
+| 8 | 0.28 → 0.98 µs (3.53×) | 0.49 → 6.60 µs (13.47×) | 0.19 → 0.18 µs (0.95×) | 0.19 → 0.17 µs (0.90×) | 0.94 → 0.96 µs (1.02×) | 0.79 → 7.77 µs (9.84×) |
+| 32 | 1.79 → 5.47 µs (3.06×) | 3.53 → 33.9 µs (9.60×) | 0.89 → 0.92 µs (1.03×) | 0.83 → 0.78 µs (0.94×) | 4.38 → 4.49 µs (1.03×) | 5.89 → 40.5 µs (6.87×) |
+| 128 | 26.2 → 53.0 µs (2.02×) | 43.0 → 175 µs (4.06×) | 4.50 → 6.42 µs (1.43×) | 3.82 → 3.64 µs (0.95×) | 29.3 → 29.6 µs (1.01×) | 84.0 → 246 µs (2.93×) |
+| 512 | 1.64 → 1.80 ms (1.10×) | 663 → 1271 µs (1.92×) | 33.8 → 90.2 µs (2.66×) | 22.9 → 22.3 µs (0.98×) | 2.34 → 2.34 ms (1.00×) | 4.61 → 5.44 ms (1.18×) |
+| 1024 | 12.8 → 13.3 ms (1.04×) | 2.61 → 4.06 ms (1.55×) | 123 → 348 µs (2.83×) | 77.7 → 74.5 µs (0.96×) | 10.8 → 10.8 ms (1.00×) | 26.2 → 28.3 ms (1.08×) |
+| 2048 | 104 → 103 ms (0.99×) | 10.5 → 14.4 ms (1.37×) | 410 → 1284 µs (3.13×) | 251 → 243 µs (0.97×) | 67.6 → 67.7 ms (1.00×) | 183 → 186 ms (1.02×) |
+| 4096 | 885 → 839 ms (0.95×) | 43.1 → 56.1 ms (1.30×) | 1.47 → 4.83 ms (3.28×) | 903 → 880 µs (0.97×) | 310 → 310 ms (1.00×) | 1239 → 1209 ms (0.98×) |
+
+The extra time with ulmBLAS per routine, in % of DGETRF with OpenBLAS's
+BLAS (the parts add up to the slowdown):
+
+![time per routine, random, n ≤ 512](results/profile-dense-small.svg)
+
+![time per routine, random, n ≥ 512](results/profile-dense-large.svg)
+
+Column-dominant matrices (no row interchanges; the BLAS calls are the
+same, only DLASWP is faster):
+
+![time per routine, column-dominant, n ≤ 512](results/profile-coldom-small.svg)
+
+![time per routine, column-dominant, n ≥ 512](results/profile-coldom-large.svg)
+
+- **Small matrices (n ≤ 128): DTRSM**, then DGEMM.  DTRSM causes 62–82%
+  (Ice Lake) and 82–90% (Zen 4) of the time lost, DGEMM most of the rest.
+  Per call, a tiny DTRSM of DGETRF2 costs about 0.9 µs more in ulmBLAS
+  (n = 8: 7 calls, 0.78 → 7.1 µs on Ice Lake, 0.49 → 6.6 µs on Zen 4),
+  a tiny DGEMM about 0.1–0.2 µs more.
+- **Large matrices, Ice Lake: DGEMM** (73–78% of the time lost for
+  n ≥ 1024; ulmBLAS's DGEMM 7–21% slower), then DTRSM (9–14% slower) and
+  IDAMAX.
+- **Large matrices, Zen 4: DTRSM and IDAMAX.** ulmBLAS's DGEMM is as fast
+  or faster (0.95× at n = 4096), DTRSM 1.3–1.6× slower, so Netlib +
+  ulmBLAS is about as fast as Netlib + OpenBLAS's BLAS for n ≥ 2048.
+- **IDAMAX** is 2.4–3.3× slower in ulmBLAS for n ≥ 512 on both machines
+  (a small part of the time: up to 1.3% of DGETRF).  **DSCAL** is as
+  fast or slightly faster.
+- **The rest of DGETRF is the same** in both configurations (the same
+  DLASWP and DGETRF/DGETRF2 code of liblapack): 0.99–1.05×.  For random
+  matrices it is mostly DLASWP: 208 ms (Ice Lake) and 310 ms (Zen 4) of
+  DGETRF at n = 4096, against about 1 ms for column-dominant matrices.
+
 ## Reproduce
 
 ```sh
@@ -224,6 +298,8 @@ julia --project=lapack -e 'using Pkg; Pkg.instantiate()'
 julia --project=lapack lapack/verify.jl
 julia --project=lapack lapack/test.jl
 julia --project=lapack lapack/coldom.jl                 # column-dominant matrices
+julia -t1 --project=lapack lapack/profile.jl p.tsv      # time per BLAS routine
+MATRIX=dense julia lapack/plot_profile.jl OUTDIR "Ice Lake=p.tsv" ...
 julia -t1 --project=lapack lapack/bench.jl results.tsv   # [n ...]
 julia lapack/plot.jl OUTDIR "Ice Lake=a.tsv" "Zen 4=b.tsv"
 MATRIX=dense,coldom julia -t1 --project=lapack lapack/bench.jl c.tsv
@@ -234,7 +310,8 @@ On bwUniCluster: `cluster/prepare.sh R JULIA` on a login node (depot and
 LAPACK tarball, R/src = these sources), then
 `sbatch -p dev_cpu_il cluster/job.sh R JULIA` (build, verify, bindings,
 tests, benchmark on one exclusive node); `cluster/job-coldom.sh` for the
-column-dominant matrices.
+column-dominant matrices, `cluster/job-profile.sh` for the time per BLAS
+routine.
 
 ## Limitations
 

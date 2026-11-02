@@ -345,4 +345,23 @@ were measured in the same job, taking turns.
 - With the same LAPACK, ulmBLAS against OpenBLAS's BLAS stays about the
   same (Ice Lake 0.84–0.93×, Zen 4 0.87–1.03× for n ≥ 1024).
 
+### Time per BLAS routine: ulmBLAS against OpenBLAS's BLAS
+
+Netlib LAPACK + ulmBLAS against Netlib LAPACK + OpenBLAS's BLAS (the same
+LAPACK code, block sizes and DLASWP): every BLAS call of DGETRF timed,
+random matrices.  The extra time with ulmBLAS per routine, in % of
+DGETRF with OpenBLAS's BLAS:
+
+![time per routine, random, n ≤ 512](lapack/results/profile-dense-small.svg)
+
+![time per routine, random, n ≥ 512](lapack/results/profile-dense-large.svg)
+
+- Small matrices: DTRSM (62–90% of the time lost; about 0.9 µs more per
+  tiny call), then DGEMM.
+- Large matrices: on Ice Lake DGEMM (ulmBLAS 7–21% slower for n ≥ 1024),
+  then DTRSM; on Zen 4 DTRSM (1.3–1.6× slower) and IDAMAX, while
+  ulmBLAS's DGEMM is as fast or faster.  IDAMAX is 2.4–3.3× slower on both
+  (a small part of the time).  The rest of DGETRF (DLASWP, LAPACK code) is
+  the same in both.
+
 Details, tables and raw data: [`lapack/README.md`](lapack/README.md).
