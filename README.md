@@ -280,31 +280,3 @@ of `LinearAlgebra` are run as well (several minutes).
 BSD 3-Clause, like ulmBLAS.  The libraries contain micro kernels of BLIS,
 AOCL-BLAS and OpenBLAS; their licenses are part of every artifact
 (`share/licenses/ulmBLAS/LICENSE`).
-
-## LAPACK Experiments
-
-Netlib LAPACK 3.12.1 on top of ulmBLAS is being integrated and
-benchmarked on the branch
-[`experiment/lapack`](https://github.com/michael-lehn/UlmBLAS.jl/tree/experiment/lapack)
-(build, symbol check, tests, benchmarks and raw data in
-[`lapack/`](https://github.com/michael-lehn/UlmBLAS.jl/tree/experiment/lapack/lapack));
-it is not part of the package.  Netlib LAPACK is built against
-libblastrampoline (ILP64, `_64` names), so with `UlmBLAS.forward()` all
-its BLAS calls run in ulmBLAS; this was checked by counting the calls that
-reach ulmBLAS during `DGETRF`.  `UlmBLAS.forward()` alone does not affect
-`lu`: OpenBLAS's LU calls OpenBLAS's kernels directly.
-
-First results for the LU factorization (`DGETRF`, complete calls, one
-thread, Julia 1.13.3, bwUniCluster: Intel Xeon Platinum 8358 and AMD EPYC
-9454; the tests of `DGETRF` pass, pivots equal to OpenBLAS):
-
-![DGETRF time](docs/lapack/getrf-time.svg)
-
-![DGETRF speedup](docs/lapack/getrf-speedup.svg)
-
-Netlib LAPACK on top of ulmBLAS is slower than Julia's default (OpenBLAS's
-own LU) at every size: 0.6–0.9× for n ≥ 768, and 0.04–0.3× for n ≤ 128.
-For large matrices the gap comes mostly from the LAPACK algorithm (Netlib
-LAPACK with OpenBLAS's BLAS is about as slow); for small matrices it is
-the cost of the many tiny BLAS calls of Netlib's recursive panel
-factorization, which are much more expensive in ulmBLAS than in OpenBLAS.
