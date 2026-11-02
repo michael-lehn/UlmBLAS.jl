@@ -323,6 +323,13 @@ BLAS / time), random matrices:
 
 ![DGETRF with OpenBLAS's DTRSM, column-dominant](results/trsm-coldom.svg)
 
+Time of DGETRF (top, log scale) and time / time with OpenBLAS's BLAS
+(bottom; above 1 = slower than with OpenBLAS's BLAS):
+
+![DGETRF ulmBLAS / OpenBLAS, with OpenBLAS's DTRSM, random](results/trsm-ratio-dense.svg)
+
+![DGETRF ulmBLAS / OpenBLAS, with OpenBLAS's DTRSM, column-dominant](results/trsm-ratio-coldom.svg)
+
 - **Small matrices:** OpenBLAS's DTRSM removes more than half of the gap
   (n = 8: 0.14× → 0.50× on Ice Lake, 0.10× → 0.50× on Zen 4; n = 128:
   0.36× → 0.60× and 0.33× → 0.73×).  The rest, a factor of about 2 for

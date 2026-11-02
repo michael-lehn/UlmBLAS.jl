@@ -378,6 +378,10 @@ changed).  Speedup over Netlib LAPACK + OpenBLAS's BLAS:
 
 ![DGETRF with OpenBLAS's DTRSM, random](lapack/results/trsm-dense.svg)
 
+Time of DGETRF (top) and time / time with OpenBLAS's BLAS (bottom):
+
+![DGETRF ulmBLAS / OpenBLAS, with OpenBLAS's DTRSM, random](lapack/results/trsm-ratio-dense.svg)
+
 - **Small matrices:** OpenBLAS's DTRSM removes more than half of the gap
   (n = 8: 0.14× → 0.50× on Ice Lake, 0.10× → 0.50× on Zen 4; n = 128:
   0.36× → 0.60× and 0.33× → 0.73×).  The rest, a factor of about 2 for
