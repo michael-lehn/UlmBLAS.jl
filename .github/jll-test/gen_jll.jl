@@ -1,6 +1,6 @@
 #  gen_jll.jl META_JSON TARBALL_DIR URL_PREFIX: the package ulmBLAS_jll for
 #  the tarballs in TARBALL_DIR, as Yggdrasil's .ci/bb1_project/register_package.jl
-#  generates it, without GitHub: the package goes to JULIA_PKG_DEVDIR, the
+#  generates it, without GitHub: the package goes to ~/.julia/dev, the
 #  download URLs are URL_PREFIX/<tarball>.
 using BinaryBuilder, BinaryBuilderBase, Pkg
 

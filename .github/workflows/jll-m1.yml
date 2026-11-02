@@ -50,11 +50,12 @@ jobs:
           julia --project=$P build_tarballs.jl --verbose aarch64-apple-darwin
       - name: ulmBLAS_jll
         run: |
-          mkdir -p stage jll
+          mkdir -p stage
           cp ygg/U/ulmBLAS/products/ulmBLAS.v*.aarch64-apple-darwin.tar.gz meta.json stage/
-          JULIA_PKG_DEVDIR=$GITHUB_WORKSPACE/jll julia --project=ygg/.ci/bb1_project \
+          julia --project=ygg/.ci/bb1_project \
               pkg/.github/jll-test/gen_jll.jl meta.json stage file:///Users/runner/ulmblas-jll
-          cp -R jll/ulmBLAS_jll stage/
+          #  BinaryBuilder writes the package to ~/.julia/dev
+          cp -R ~/.julia/dev/ulmBLAS_jll stage/
           sha256sum stage/*.tar.gz
           cat stage/ulmBLAS_jll/Artifacts.toml
       - uses: actions/upload-artifact@v7
