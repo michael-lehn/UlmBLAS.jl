@@ -1,0 +1,105 @@
+#  The complete test suite with the libraries of ulmBLAS_jll on Apple M1
+#  (GitHub's arm64 macOS runners): the recipe .github/jll-test/ulmBLAS (the
+#  one to be submitted to Yggdrasil) is built with Yggdrasil's
+#  BinaryBuilder environment, ulmBLAS_jll is generated from the tarball as
+#  Yggdrasil does, and the package (loading the libraries from
+#  ulmBLAS_jll) is tested with it.  Development branch only.
+name: jll-m1
+
+on:
+  push:
+    branches: [jll-m1-ci]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+      - name: allow user namespaces
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      #  the commit of Yggdrasil the recipe is based on
+      - uses: actions/checkout@v7
+        with:
+          repository: JuliaPackaging/Yggdrasil
+          ref: f54922238f5f5cbcb5fd937af7527f513cedeb28
+          path: ygg
+          sparse-checkout: .ci/bb1_project
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1.13'
+      - name: recipe
+        run: |
+          #  the recipe of the Yggdrasil branch ulmBLAS-new (36849a6e4)
+          echo "c99d67e0e8b6e6fa7201b3657825a44543701520768b6bc75141fd35ce407aed  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
+          mkdir -p ygg/U/ulmBLAS
+          cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
+      - name: build
+        env:
+          BINARYBUILDER_AUTOMATIC_APPLE: 'true'
+          BINARYBUILDER_RUNNER: userns
+        run: |
+          julia --project=ygg/.ci/bb1_project -e 'using Pkg; Pkg.instantiate()'
+          cd ygg/U/ulmBLAS
+          P=$GITHUB_WORKSPACE/ygg/.ci/bb1_project
+          julia --project=$P build_tarballs.jl --meta-json=$GITHUB_WORKSPACE/meta.json aarch64-apple-darwin
+          julia --project=$P build_tarballs.jl --verbose aarch64-apple-darwin
+      - name: ulmBLAS_jll
+        run: |
+          mkdir -p stage jll
+          cp ygg/U/ulmBLAS/products/ulmBLAS.v*.aarch64-apple-darwin.tar.gz meta.json stage/
+          JULIA_PKG_DEVDIR=$GITHUB_WORKSPACE/jll julia --project=ygg/.ci/bb1_project \
+              pkg/.github/jll-test/gen_jll.jl meta.json stage file:///Users/runner/ulmblas-jll
+          cp -R jll/ulmBLAS_jll stage/
+          sha256sum stage/*.tar.gz
+          cat stage/ulmBLAS_jll/Artifacts.toml
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ulmBLAS_jll
+          path: stage
+
+  test:
+    needs: build
+    name: Julia ${{ matrix.version }}, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        #  arm64 runners with Apple M1 (the step "CPU" shows the model)
+        os: [macos-14, macos-latest]
+        version: ['1.9', 'lts', '1']
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      #  at the path of the download URLs in Artifacts.toml
+      - uses: actions/download-artifact@v7
+        with:
+          name: ulmBLAS_jll
+          path: /Users/runner/ulmblas-jll
+      - name: CPU
+        run: |
+          sysctl -n machdep.cpu.brand_string hw.model
+          sysctl hw.optional.arm.FEAT_SME2 hw.optional.arm.FEAT_SME_F64F64 hw.optional.arm.sme_max_svl_b || true
+          sw_vers
+          shasum -a 256 /Users/runner/ulmblas-jll/*.tar.gz
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.version }}
+      - name: develop
+        run: |
+          julia --project=env -e 'using Pkg
+              Pkg.develop([PackageSpec(path="/Users/runner/ulmblas-jll/ulmBLAS_jll"),
+                           PackageSpec(path="pkg")])'
+      - name: identity
+        run: julia --project=env pkg/.github/jll-test/identity.jl
+      #  the complete suite, with the LAPACK, triangular, dense and symmetric
+      #  tests of LinearAlgebra
+      - name: test
+        env:
+          ULMBLAS_TEST_LINALG: '1'
+        run: julia --project=env -e 'using Pkg; Pkg.test("UlmBLAS")'
