@@ -1,0 +1,63 @@
+Julia:        1.13.3, Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz (128 threads)
+UlmBLAS:      $W/lapack-exp/dca3be0/depot/artifacts/99384b6c0a6eb6834c392288fe6ec65649201424/lib/skylakex/libulmblas_lbt.so (variant skylakex)
+OpenBLAS:     $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+Netlib:       $W/lapack-exp/dca3be0/liblapack-dev_cpu_il/lib/liblapack.so.3.12.0
+              Netlib LAPACK 3.12.1 (https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.1.tar.gz, sha256 2ca6407a001a474d4d4d35f3a61550156050c48016d949f0da0529c0aa052422)
+BLAS threads: 1, Julia threads: 1
+n =     8  openblas          2000 samples  median          443 ns     0.77 GFLOPS
+n =     8  netlib_ulmblas    2000 samples  median         8736 ns     0.04 GFLOPS
+n =     8  netlib_openblas   2000 samples  median         1247 ns     0.27 GFLOPS
+n =    12  netlib_openblas   2000 samples  median         2268 ns     0.51 GFLOPS
+n =    12  openblas          2000 samples  median         1034 ns     1.11 GFLOPS
+n =    12  netlib_ulmblas    2000 samples  median        13686 ns     0.08 GFLOPS
+n =    16  netlib_ulmblas    2000 samples  median        19165 ns     0.14 GFLOPS
+n =    16  netlib_openblas   2000 samples  median         3179 ns     0.86 GFLOPS
+n =    16  openblas          2000 samples  median         1539 ns     1.77 GFLOPS
+n =    24  openblas          2000 samples  median         3311 ns     2.78 GFLOPS
+n =    24  netlib_ulmblas    2000 samples  median        30388 ns     0.30 GFLOPS
+n =    24  netlib_openblas   2000 samples  median         5923 ns     1.56 GFLOPS
+n =    32  netlib_openblas   2000 samples  median         8824 ns     2.48 GFLOPS
+n =    32  openblas          2000 samples  median         5409 ns     4.04 GFLOPS
+n =    32  netlib_ulmblas    2000 samples  median        43330 ns     0.50 GFLOPS
+n =    48  netlib_ulmblas    2000 samples  median        70888 ns     1.04 GFLOPS
+n =    48  netlib_openblas   2000 samples  median        17101 ns     4.31 GFLOPS
+n =    48  openblas          2000 samples  median        11534 ns     6.39 GFLOPS
+n =    64  openblas          2000 samples  median        20510 ns     8.52 GFLOPS
+n =    64  netlib_ulmblas    2000 samples  median       104786 ns     1.67 GFLOPS
+n =    64  netlib_openblas   2000 samples  median        27367 ns     6.39 GFLOPS
+n =    96  netlib_openblas   2000 samples  median        57934 ns    10.18 GFLOPS
+n =    96  openblas          2000 samples  median        47039 ns    12.54 GFLOPS
+n =    96  netlib_ulmblas    2000 samples  median       184890 ns     3.19 GFLOPS
+n =   128  netlib_ulmblas    2000 samples  median       286244 ns     4.88 GFLOPS
+n =   128  netlib_openblas   2000 samples  median       103441 ns    13.52 GFLOPS
+n =   128  openblas          2000 samples  median        87582 ns    15.96 GFLOPS
+n =   192  openblas          2000 samples  median       224692 ns    21.00 GFLOPS
+n =   192  netlib_ulmblas    1825 samples  median       541140 ns     8.72 GFLOPS
+n =   192  netlib_openblas   2000 samples  median       245977 ns    19.18 GFLOPS
+n =   256  netlib_openblas   1347 samples  median       727229 ns    15.38 GFLOPS
+n =   256  openblas          2000 samples  median       472526 ns    23.67 GFLOPS
+n =   256  netlib_ulmblas     881 samples  median      1118998 ns    10.00 GFLOPS
+n =   384  netlib_ulmblas     491 samples  median      1976346 ns    19.10 GFLOPS
+n =   384  netlib_openblas    761 samples  median      1253204 ns    30.12 GFLOPS
+n =   384  openblas           709 samples  median      1346790 ns    28.03 GFLOPS
+n =   512  openblas           318 samples  median      3032918 ns    29.50 GFLOPS
+n =   512  netlib_ulmblas     210 samples  median      4665659 ns    19.18 GFLOPS
+n =   512  netlib_openblas    265 samples  median      3661069 ns    24.44 GFLOPS
+n =   768  netlib_openblas    104 samples  median      9376610 ns    32.21 GFLOPS
+n =   768  openblas           112 samples  median      8734940 ns    34.57 GFLOPS
+n =   768  netlib_ulmblas      88 samples  median     11221150 ns    26.91 GFLOPS
+n =  1024  netlib_ulmblas      45 samples  median     22108934 ns    32.38 GFLOPS
+n =  1024  netlib_openblas     51 samples  median     19410424 ns    36.88 GFLOPS
+n =  1024  openblas            52 samples  median     18842257 ns    37.99 GFLOPS
+n =  1536  openblas            19 samples  median     52118651 ns    46.35 GFLOPS
+n =  1536  netlib_ulmblas      17 samples  median     59361050 ns    40.70 GFLOPS
+n =  1536  netlib_openblas     19 samples  median     53102210 ns    45.50 GFLOPS
+n =  2048  netlib_openblas      8 samples  median    122967634 ns    46.57 GFLOPS
+n =  2048  openblas             9 samples  median    113692276 ns    50.37 GFLOPS
+n =  2048  netlib_ulmblas       8 samples  median    133343716 ns    42.95 GFLOPS
+n =  3072  netlib_ulmblas       5 samples  median    388211773 ns    49.79 GFLOPS
+n =  3072  netlib_openblas      5 samples  median    365154537 ns    52.93 GFLOPS
+n =  3072  openblas             5 samples  median    326910235 ns    59.12 GFLOPS
+n =  4096  openblas             5 samples  median    715077858 ns    64.07 GFLOPS
+n =  4096  netlib_ulmblas       5 samples  median    990645228 ns    46.25 GFLOPS
+n =  4096  netlib_openblas      5 samples  median    939361954 ns    48.77 GFLOPS
