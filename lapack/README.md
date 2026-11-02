@@ -227,7 +227,7 @@ For each n, DGETRF is called repeatedly (0.5 s, at least 5 calls); per
 call the time in each routine and the rest ("rest of DGETRF": DLASWP and
 the code of DGETRF and DGETRF2 in liblapack, plus the wrappers' own cost)
 are recorded, medians reported.  "DGETRF" is the time without wrappers.
-The wrappers cost about 35 ns per BLAS call, which matters only for the
+The wrappers cost 40–65 ns per BLAS call, which matters only for the
 smallest n (n = 8: about 30 calls; "rest" there is mostly this cost).
 Jobs 8244291 (Ice Lake, uc2n602) and 8244292 (Zen 4, uc3n070),
 `cluster/job-profile.sh`, `results/*-profile.*`.
@@ -283,7 +283,7 @@ same, only DLASWP is faster):
   or faster (0.95× at n = 4096), DTRSM 1.3–1.6× slower, so Netlib +
   ulmBLAS is about as fast as Netlib + OpenBLAS's BLAS for n ≥ 2048.
 - **IDAMAX** is 2.4–3.3× slower in ulmBLAS for n ≥ 512 on both machines
-  (a small part of the time: up to 1.3% of DGETRF).  **DSCAL** is as
+  (a small part of the time: up to 3% of DGETRF).  **DSCAL** is as
   fast or slightly faster.
 - **The rest of DGETRF is the same** in both configurations (the same
   DLASWP and DGETRF/DGETRF2 code of liblapack): 0.99–1.05×.  For random
