@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  sbatch -p PARTITION job-trsm.sh R JULIA (after prepare.sh R JULIA):
+#  sbatch -p PARTITION job-trsm.sh R JULIA [CONFIGS] (after prepare.sh R JULIA):
 #  Netlib LAPACK + ulmBLAS with OpenBLAS's DTRSM (netlib_ulmblas_obtrsm)
 #  against Netlib LAPACK + ulmBLAS and Netlib LAPACK + OpenBLAS's BLAS:
 #  test.jl and coldom.jl (correctness), then bench.jl (DGETRF) with random
@@ -40,7 +40,7 @@ fi
 cat $L/build.txt >> $O.txt
 
 cd $R/src
-export CONFIGS=${CONFIGS:-netlib_ulmblas,netlib_ulmblas_obtrsm,netlib_openblas}
+export CONFIGS=${3:-netlib_ulmblas,netlib_ulmblas_obtrsm,netlib_openblas}
 run lapack/test.jl > $O.test.txt 2>&1
 run lapack/coldom.jl > $O.coldom.txt 2>&1
 MATRIX=dense,coldom run lapack/bench.jl $O.tsv > $O.bench.txt 2>&1
