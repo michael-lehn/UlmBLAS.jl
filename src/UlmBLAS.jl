@@ -31,13 +31,32 @@ const LIBNAME = Sys.isapple() ? "libulmblas_lbt.dylib" : "libulmblas_lbt.so"
 const library = Ref{String}("")
 const chosen  = Ref{String}("")
 
-#  Apple: SME2 (M4 and later) is reported by sysctl
-function has_sme2()
-    try
-        return strip(read(`sysctl -n hw.optional.arm.FEAT_SME2`, String)) == "1"
-    catch
-        return false
-    end
+#  macOS: the value of an integer sysctl (sysctlbyname of libSystem, no
+#  process), nothing if there is none
+function sysctl_int(name)
+    Sys.isapple() || return nothing
+    value = Ref{Int64}(0)
+    len = Ref{Csize_t}(sizeof(Int64))
+    r = ccall(:sysctlbyname, Cint,
+              (Cstring, Ptr{Int64}, Ptr{Csize_t}, Ptr{Cvoid}, Csize_t),
+              name, value, len, C_NULL, 0)
+    r == 0 || return nothing
+    len[] == 8 && return Int(value[])
+    len[] == 4 && return Int(value[] % Int32)    # little endian
+    return nothing
+end
+
+#  AArch64 (macOS): the variants for the values sysctl(name) reports.  The
+#  SME kernels need SME2, FEAT_SME_F64F64 and a streaming vector length of
+#  512 bits (64 bytes).  macOS sets the largest vector length the CPU
+#  supports and reports the length it reads back (RDSVL) as
+#  hw.optional.arm.sme_max_svl_b; processes cannot change it.  neon if any
+#  value is missing or different.
+function arm_variants(sysctl)
+    sme = sysctl("hw.optional.arm.FEAT_SME2") == 1 &&
+          sysctl("hw.optional.arm.FEAT_SME_F64F64") == 1 &&
+          sysctl("hw.optional.arm.sme_max_svl_b") == 64
+    return sme ? ["sme", "neon"] : ["neon"]
 end
 
 is_amd() = occursin("AMD", Sys.cpu_info()[1].model)
@@ -48,14 +67,15 @@ has(feature) = CPUID.test_cpu_feature(feature)
 
 The builds of ulmBLAS this CPU can run, the preferred one first:
 
-- AArch64: `"sme"` (Apple M4 and later, SME2 kernels), `"neon"`;
+- AArch64: `"sme"` (Apple M4 and later: SME2 with FEAT_SME_F64F64 and a
+  streaming vector length of 512 bits), `"neon"`;
 - x86-64: `"zen4"` (AMD with AVX-512 F and DQ: Zen 4, Zen 5) or
   `"skylakex"` (Intel with AVX-512 F and DQ), `"haswell"` (AVX2 and FMA),
   `"x86_64"` (SSE3).  With AVX-512 both `"zen4"` and `"skylakex"` run.
 """
 function variants()
     if Sys.ARCH === :aarch64
-        return Sys.isapple() && has_sme2() ? ["sme", "neon"] : ["neon"]
+        return Sys.isapple() ? arm_variants(sysctl_int) : ["neon"]
     elseif Sys.ARCH === :x86_64
         v = String[]
         if has(CPUID.JL_X86_avx512f) && has(CPUID.JL_X86_avx512dq)
