@@ -151,8 +151,15 @@ included) and checks the results.
 `UlmBLAS.variants()` lists the builds the CPU can run, the preferred one
 first; `UlmBLAS.variant()` is the first:
 
-- AArch64: `sme` on macOS if `sysctl hw.optional.arm.FEAT_SME2` is 1;
-  `neon`;
+- AArch64: `sme` on macOS if the sysctls `hw.optional.arm.FEAT_SME2` and
+  `hw.optional.arm.FEAT_SME_F64F64` are 1 and
+  `hw.optional.arm.sme_max_svl_b` is 64 (the SME kernels assume a
+  streaming vector length of 512 bits); `neon`.  The values are read with
+  `sysctlbyname`; if one is missing, `neon` is used.  macOS requests the
+  largest streaming vector length at boot and reports the length read back
+  with `RDSVL` as `sme_max_svl_b` (`osfmk/arm64/sme.c` of XNU); user
+  processes cannot change it, so the kernels need not configure or check
+  it.
 - x86-64: with AVX-512 F and DQ `zen4` and `skylakex` (`zen4` first on
   AMD, recognized by the model name of the CPU); `haswell` with AVX2 and
   FMA; `x86_64` with SSE3.

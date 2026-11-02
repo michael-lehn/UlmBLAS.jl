@@ -29,6 +29,41 @@ end
           "variants of this CPU: $(join(UlmBLAS.variants(), ", "))"
 end
 
+@testset "AArch64 variants" begin
+    sysctls(kv...) = name -> get(Dict(kv...), name, nothing)
+    m4 = ("hw.optional.arm.FEAT_SME2" => 1, "hw.optional.arm.FEAT_SME_F64F64" => 1,
+          "hw.optional.arm.sme_max_svl_b" => 64)
+    @test UlmBLAS.arm_variants(sysctls(m4...)) == ["sme", "neon"]
+    #  M1 to M3 (without the SME sysctls on older macOS)
+    @test UlmBLAS.arm_variants(sysctls()) == ["neon"]
+    @test UlmBLAS.arm_variants(sysctls("hw.optional.arm.FEAT_SME2" => 0,
+                                       "hw.optional.arm.FEAT_SME_F64F64" => 0,
+                                       "hw.optional.arm.sme_max_svl_b" => 0)) == ["neon"]
+    #  every requirement is needed
+    for i in 1:3
+        @test UlmBLAS.arm_variants(sysctls(m4[1:i-1]..., m4[i+1:end]...)) == ["neon"]
+    end
+    @test UlmBLAS.arm_variants(sysctls(m4[1:2]..., m4[3][1] => 32)) == ["neon"]
+    @test UlmBLAS.arm_variants(sysctls(m4[1:2]..., m4[3][1] => 128)) == ["neon"]
+    if Sys.isapple()
+        #  sysctlbyname agrees with sysctl(8)
+        for (name, _) in m4
+            v = UlmBLAS.sysctl_int(name)
+            out = readchomp(pipeline(ignorestatus(`sysctl -n $name`); stderr=devnull))
+            @test (v === nothing ? "" : string(v)) == out
+        end
+        @test UlmBLAS.sysctl_int("hw.optional.arm.FEAT_DOES_NOT_EXIST") === nothing
+        @test UlmBLAS.sysctl_int("hw.memsize") == parse(Int, readchomp(`sysctl -n hw.memsize`))
+    else
+        @test UlmBLAS.sysctl_int("hw.optional.arm.FEAT_SME2") === nothing
+    end
+    if Sys.isapple() && Sys.ARCH === :aarch64
+        @test UlmBLAS.variants() == UlmBLAS.arm_variants(UlmBLAS.sysctl_int)
+        @info "UlmBLAS: CPU $(Sys.cpu_info()[1].model), " *
+              join(("$n = $(UlmBLAS.sysctl_int(n))" for (n, _) in m4), ", ")
+    end
+end
+
 #  UlmBLAS.mul! before forward()
 include("strided.jl")
 
