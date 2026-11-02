@@ -18,6 +18,7 @@ end
 for (i, obj) in enumerate(objs_unmerged)
     BinaryBuilder.rebuild_jll_package(obj; download_dir=tarballs,
                                       build_meta_dir=mktempdir(),
-                                      upload_prefix=prefix, build_version=v"0.1.0",
+                                      upload_prefix=prefix,
+                                      build_version=VersionNumber(string(merged["version"])),
                                       verbose=true, from_scratch=(i == 1))
 end
