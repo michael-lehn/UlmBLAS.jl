@@ -1,0 +1,79 @@
+Julia:        1.13.3, Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz (128 threads)
+UlmBLAS:      $W/lapack-exp/daef2d2/depot/artifacts/99384b6c0a6eb6834c392288fe6ec65649201424/lib/skylakex/libulmblas_lbt.so (variant skylakex)
+OpenBLAS:     $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+Netlib:       $W/lapack-exp/daef2d2/liblapack-dev_cpu_il/lib/liblapack.so.3.12.0
+              Netlib LAPACK 3.12.1 (https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.1.tar.gz, sha256 2ca6407a001a474d4d4d35f3a61550156050c48016d949f0da0529c0aa052422)
+
+========================================================================
+openblas: LBTConfig([ILP64] libopenblas64_.so)
+
+[openblas] forward targets of LBT
+  BLAS routines imported by Netlib LAPACK (132):
+    libopenblas64_.so           132
+  dgetrf_    -> $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+  dgetrf2_   -> $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+  dlaswp_    -> $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+  ilaenv_    -> $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+  dgemm_     -> $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+  dtrsm_     -> $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+  one DGETRF, n = 1000: calls through LBT (and where they end)
+    dgemm_         0   
+    dtrsm_         0   
+    idamax_        0   
+    dscal_         0   
+    dswap_         0   
+    dgetrf_        1   libopenblas64_.so
+    dgetrf2_       0   
+    dlaswp_        0   
+    ilaenv_        0   
+  flops in DGEMM 0.0%, in DTRSM 0.0% of DGETRF's 6.66e+08
+
+========================================================================
+netlib_ulmblas: LBTConfig([ILP64] libopenblas64_.so, [ILP64] libulmblas_lbt.so, [ILP64] liblapack.so)
+
+[netlib_ulmblas] forward targets of LBT
+  BLAS routines imported by Netlib LAPACK (132):
+    libulmblas_lbt.so           132
+  dgetrf_    -> $W/lapack-exp/daef2d2/liblapack-dev_cpu_il/lib/liblapack.so
+  dgetrf2_   -> $W/lapack-exp/daef2d2/liblapack-dev_cpu_il/lib/liblapack.so
+  dlaswp_    -> $W/lapack-exp/daef2d2/liblapack-dev_cpu_il/lib/liblapack.so
+  ilaenv_    -> $W/lapack-exp/daef2d2/liblapack-dev_cpu_il/lib/liblapack.so
+  dgemm_     -> $W/lapack-exp/daef2d2/depot/artifacts/99384b6c0a6eb6834c392288fe6ec65649201424/lib/skylakex/libulmblas_lbt.so
+  dtrsm_     -> $W/lapack-exp/daef2d2/depot/artifacts/99384b6c0a6eb6834c392288fe6ec65649201424/lib/skylakex/libulmblas_lbt.so
+  one DGETRF, n = 1000: calls through LBT (and where they end)
+    dgemm_       999   libulmblas_lbt.so
+    dtrsm_       999   libulmblas_lbt.so
+    idamax_      999   libulmblas_lbt.so
+    dscal_       999   libulmblas_lbt.so
+    dswap_         0   
+    dgetrf_        1   liblapack.so
+    dgetrf2_       0   
+    dlaswp_        0   
+    ilaenv_        0   
+  flops in DGEMM 95.4%, in DTRSM 4.6% of DGETRF's 6.66e+08
+
+========================================================================
+netlib_openblas: LBTConfig([ILP64] libopenblas64_.so, [ILP64] liblapack.so)
+
+[netlib_openblas] forward targets of LBT
+  BLAS routines imported by Netlib LAPACK (132):
+    libopenblas64_.so           132
+  dgetrf_    -> $W/lapack-exp/daef2d2/liblapack-dev_cpu_il/lib/liblapack.so
+  dgetrf2_   -> $W/lapack-exp/daef2d2/liblapack-dev_cpu_il/lib/liblapack.so
+  dlaswp_    -> $W/lapack-exp/daef2d2/liblapack-dev_cpu_il/lib/liblapack.so
+  ilaenv_    -> $W/lapack-exp/daef2d2/liblapack-dev_cpu_il/lib/liblapack.so
+  dgemm_     -> $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+  dtrsm_     -> $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+  one DGETRF, n = 1000: calls through LBT (and where they end)
+    dgemm_       999   libopenblas64_.so
+    dtrsm_       999   libopenblas64_.so
+    idamax_      999   libopenblas64_.so
+    dscal_       999   libopenblas64_.so
+    dswap_         0   
+    dgetrf_        1   liblapack.so
+    dgetrf2_       0   
+    dlaswp_        0   
+    ilaenv_        0   
+  flops in DGEMM 95.4%, in DTRSM 4.6% of DGETRF's 6.66e+08
+
+Netlib LAPACK + ulmBLAS: DGEMM and DTRSM of DGETRF run in libulmblas_lbt.so: true

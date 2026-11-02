@@ -314,8 +314,35 @@ many tiny BLAS calls of Netlib's recursive panel factorization (about
 250 ns more per call in ulmBLAS).  The tests of `DGETRF` (632 checks: INFO,
 pivots equal to OpenBLAS, residuals) pass on both machines.
 
-### Matrices diagonally dominant by columns
+### Matrices diagonally dominant by columns (no row interchanges)
 
-In progress: the same benchmark for matrices strictly diagonally dominant
-by columns, for which partial pivoting makes no row interchanges
-(`IPIV[i] == i`, checked).
+The same benchmark for matrices strictly diagonally dominant by columns
+(the same random off-diagonal entries, diagonal ±1.25 × column sum), for
+which partial pivoting makes no row interchanges: `IPIV[i] == i` and the
+residuals are checked in all three configurations.  `DGETRF` still
+searches for the pivots (IDAMAX) and runs DLASWP over the pivot vector, so
+this is not an LU without pivoting.  Random and column-dominant matrices
+were measured in the same job, taking turns.
+
+![DGETRF time, column-dominant matrices](lapack/results/coldom-time.svg)
+
+![DGETRF speedup, column-dominant matrices](lapack/results/coldom-speedup.svg)
+
+![DGETRF, gain without row interchanges](lapack/results/coldom-pivoting.svg)
+
+- Without row interchanges, Netlib LAPACK becomes 1.2–1.9× faster for
+  n ≥ 512 (1.1–1.7× at 256 and 384; both BLAS); OpenBLAS's own LU only
+  3–7%.  The row interchanges
+  are done by Netlib's DLASWP (inside liblapack, not OpenBLAS's `dlaswp`,
+  in both Netlib configurations).
+- For large n this removes most of the gap to OpenBLAS: Netlib LAPACK +
+  ulmBLAS reaches 1.07–1.15× of OpenBLAS for n = 768–2048 on Ice Lake
+  (0.88× at 4096) and 0.89–0.98× for n ≥ 768 on Zen 4 (random matrices:
+  0.72–0.88× and 0.60–0.81×).  Small matrices are unchanged (0.04–0.3×):
+  the cost of the tiny BLAS calls remains.
+- The drops at n = 256, 512 (and 1024 on Zen 4) disappear: they come from
+  Netlib's row interchanges (leading dimension a power of two).
+- With the same LAPACK, ulmBLAS against OpenBLAS's BLAS stays about the
+  same (Ice Lake 0.84–0.93×, Zen 4 0.87–1.03× for n ≥ 1024).
+
+Details, tables and raw data: [`lapack/README.md`](lapack/README.md).
