@@ -3,15 +3,20 @@
 #  DGETRF (n×n, called through libblastrampoline as LinearAlgebra.LAPACK
 #  does) in each configuration of common.jl, single-threaded.
 #
-#  For every n the same matrix (randn, seed n) is factored in all
-#  configurations; the configurations take turns (the order rotates with
+#  MATRIX (default "dense"): comma-separated kinds of test_matrix in
+#  common.jl, e.g. MATRIX=dense,coldom.  For every n the same matrices
+#  (seed n) are factored in all configurations; the kinds and the
+#  configurations take turns (the order of the configurations rotates with
 #  n).  A sample is one call, after copying the matrix into the work array
-#  (not timed); samples are taken for BUDGET seconds (default 1) per n and
-#  configuration, at least 5 and at most 2000, after 2 calls for warm-up.
-#  The pivots are compared with those of OpenBLAS.
+#  (not timed); samples are taken for BUDGET seconds (default 1) per n,
+#  kind and configuration, at least 5 and at most 2000, after 2 calls for
+#  warm-up.  The pivots are compared with those of OpenBLAS; for coldom
+#  they must be ipiv[i] == i (no row interchanges), otherwise bench.jl
+#  stops.
 #
-#  Columns: n, config, samples, median_ns, min_ns, q25_ns, q75_ns,
-#  gflops (2n^3/3 / median), ipiv_equal (pivots equal to OpenBLAS).
+#  Columns: n, matrix, config, samples, median_ns, min_ns, q25_ns, q75_ns,
+#  gflops (2n^3/3 / median), ipiv_equal (pivots equal to OpenBLAS),
+#  interchanges (number of i with ipiv[i] != i).
 #
 include("common.jl")
 using Random, Statistics, Printf
@@ -40,11 +45,12 @@ end
 describe()
 configure(:openblas)
 println("BLAS threads: ", BLAS.get_num_threads(), ", Julia threads: ", Threads.nthreads())
+const MATRICES = Symbol.(split(get(ENV, "MATRIX", "dense"), ','))
 open(out, "w") do io
-    println(io, join(["n", "config", "samples", "median_ns", "min_ns", "q25_ns",
-                      "q75_ns", "gflops", "ipiv_equal"], '\t'))
-    for (k, n) in enumerate(SIZES)
-        A = randn(Xoshiro(n), n, n); B = similar(A)
+    println(io, join(["n", "matrix", "config", "samples", "median_ns", "min_ns",
+                      "q25_ns", "q75_ns", "gflops", "ipiv_equal", "interchanges"], '\t'))
+    for (k, n) in enumerate(SIZES), kind in MATRICES
+        A = test_matrix(kind, n); B = similar(A)
         configure(:openblas)
         ipiv_ref = zeros(BlasInt, n); copyto!(B, A); dgetrf!(B, ipiv_ref)
         order = circshift(collect(CONFIGS), k - 1)
@@ -52,14 +58,16 @@ open(out, "w") do io
             configure(c)
             ipiv = zeros(BlasInt, n)
             t = samples(A, B, ipiv)
+            swaps = count(i -> ipiv[i] != i, 1:n)
+            kind === :coldom && swaps > 0 && error("coldom, n = $n, $c: $swaps row interchanges")
             med = median(t)
             gf = (2n^3/3)/med
             q25, q75 = quantile(t, (0.25, 0.75))
-            println(io, join([n, c, length(t), med, minimum(t), q25, q75,
-                              round(gf, digits=3), ipiv == ipiv_ref], '\t'))
+            println(io, join([n, kind, c, length(t), med, minimum(t), q25, q75,
+                              round(gf, digits=3), ipiv == ipiv_ref, swaps], '\t'))
             flush(io)
-            @printf("n = %5d  %-16s %5d samples  median %12.0f ns  %7.2f GFLOPS%s\n",
-                    n, c, length(t), med, gf, ipiv == ipiv_ref ? "" : "  (pivots differ)")
+            @printf("n = %5d  %-8s %-16s %5d samples  median %12.0f ns  %7.2f GFLOPS  %5d interchanges%s\n",
+                    n, kind, c, length(t), med, gf, swaps, ipiv == ipiv_ref ? "" : "  (pivots differ)")
         end
     end
 end
