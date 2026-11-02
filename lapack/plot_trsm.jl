@@ -15,11 +15,21 @@
 #    configurations (log scale); bottom, time / time with OpenBLAS's BLAS
 #    (above 1 = slower than with OpenBLAS's BLAS).
 #
+#  - OUTDIR/trsm-vs-openblas-MATRIX.svg (if the results contain
+#    CONFIGS=openblas): speedup of the three Netlib configurations over
+#    Julia's default (OpenBLAS's LAPACK and BLAS).
+#
 #  Only Julia's standard library is used.
 #
 const SERIES = ["netlib_ulmblas", "netlib_ulmblas_obtrsm"]
-const LABELS = Dict("netlib_ulmblas" => "ulmBLAS",
-                    "netlib_ulmblas_obtrsm" => "ulmBLAS with OpenBLAS's DTRSM")
+const LABELS = Dict("netlib_ulmblas" => "Netlib LAPACK + ulmBLAS",
+                    "netlib_ulmblas_obtrsm" => "Netlib LAPACK + ulmBLAS with OpenBLAS's DTRSM",
+                    "netlib_openblas" => "Netlib LAPACK + OpenBLAS's BLAS")
+const BASE_NAMES = Dict("netlib_openblas" => "Netlib + OpenBLAS's BLAS",
+                        "openblas" => "Julia's default (OpenBLAS)")
+const SERIES_COLORS = Dict("netlib_ulmblas" => ("#eb6834", "#d95926"),
+                           "netlib_ulmblas_obtrsm" => ("#2a78d6", "#3987e5"),
+                           "netlib_openblas" => ("#1baf7a", "#199e70"))
 const BASE = "netlib_openblas"
 # categorical slots 2 and 1 (ulmBLAS keeps the color of the other plots)
 const COLORS      = ["#eb6834", "#2a78d6"]
@@ -45,7 +55,7 @@ fmt_time(ns) = ns < 1e3 ? string(round(Int, ns), " ns") :
                ns < 1e9 ? string(round(ns/1e6, digits=1), " ms") :
                string(round(ns/1e9, digits=2), " s")
 
-function figure(kind)
+function figure(kind; base=BASE, series=SERIES, file="trsm-$kind.svg")
     pw, ph, left, gapx, top = 380, 300, 84, 100, 92
     np = length(machines)
     W = left + np*pw + (np - 1)*gapx + 24
@@ -54,33 +64,35 @@ function figure(kind)
     p(x...) = print(io, x..., '\n')
     r(v) = round(v, digits=1)
     what = kind == "dense" ? "random matrices" : "column-dominant matrices (no row interchanges)"
-    sp(m, c, n) = m.t[(kind, BASE, n)]/m.t[(kind, c, n)]
+    sp(m, c, n) = m.t[(kind, base, n)]/m.t[(kind, c, n)]
     p("""<svg xmlns="http://www.w3.org/2000/svg" width="$W" height="$H" viewBox="0 0 $W $H" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">""")
     p("<title>Netlib DGETRF with OpenBLAS's DTRSM in ulmBLAS</title>")
     p("<style>")
     p("  .surface { fill: #fcfcfb; } .t1 { fill: #0b0b0b; } .t2 { fill: #52514e; }")
     p("  .grid { stroke: #e3e2de; stroke-width: 1; } .axis { stroke: #8f8e88; stroke-width: 1; }")
     p("  .ref { stroke: #8f8e88; stroke-width: 1.5; stroke-dasharray: 5 4; }")
-    for i in 1:2
-        p("  .s$i { stroke: $(COLORS[i]); fill: none; stroke-width: 2; } .m$i { fill: $(COLORS[i]); stroke: #fcfcfb; stroke-width: 2; } .k$i { fill: $(COLORS[i]); }")
+    for (i, c) in enumerate(series)
+        col = SERIES_COLORS[c][1]
+        p("  .s$i { stroke: $col; fill: none; stroke-width: 2; } .m$i { fill: $col; stroke: #fcfcfb; stroke-width: 2; } .k$i { fill: $col; }")
     end
     p("  @media (prefers-color-scheme: dark) {")
     p("    .surface { fill: #1a1a19; } .t1 { fill: #f0efec; } .t2 { fill: #c3c2b7; }")
     p("    .grid { stroke: #34332f; } .axis, .ref { stroke: #6b6a65; }")
-    for i in 1:2
-        p("    .s$i { stroke: $(COLORS_DARK[i]); } .m$i { fill: $(COLORS_DARK[i]); stroke: #1a1a19; } .k$i { fill: $(COLORS_DARK[i]); }")
+    for (i, c) in enumerate(series)
+        col = SERIES_COLORS[c][2]
+        p("    .s$i { stroke: $col; } .m$i { fill: $col; stroke: #1a1a19; } .k$i { fill: $col; }")
     end
     p("  }")
     p("</style>")
     p("""<rect class="surface" x="0" y="0" width="$W" height="$H" rx="8"/>""")
-    p("""<text class="t1" x="24" y="28" font-size="15" font-weight="600">Netlib DGETRF, $what: speedup over Netlib + OpenBLAS's BLAS</text>""")
+    p("""<text class="t1" x="24" y="28" font-size="15" font-weight="600">Netlib DGETRF, $what: speedup over $(BASE_NAMES[base]), higher is better</text>""")
     lx0 = 24
-    for (i, c) in enumerate(SERIES)
+    for (i, c) in enumerate(series)
         p("""<rect class="k$i" x="$lx0" y="44" width="12" height="12" rx="2"/>""")
-        p("""<text class="t2" x="$(lx0 + 17)" y="54" font-size="12">Netlib LAPACK + $(LABELS[c])</text>""")
-        lx0 += 17 + 6.4*length("Netlib LAPACK + " * LABELS[c]) + 24
+        p("""<text class="t2" x="$(lx0 + 17)" y="54" font-size="12">$(LABELS[c])</text>""")
+        lx0 += 17 + 6.3*length(LABELS[c]) + 22
     end
-    v = [sp(m, c, n) for m in machines for c in SERIES for n in m.sizes]
+    v = [sp(m, c, n) for m in machines for c in series for n in m.sizes]
     hi = max(maximum(v), 1.0)
     step = hi > 1.2 ? 0.25 : 0.1
     yticks = collect(0.0:step:step*ceil(hi/step))
@@ -100,18 +112,18 @@ function figure(kind)
         end
         p("""<line class="axis" x1="$x0" x2="$(x0 + pw)" y1="$(top + ph)" y2="$(top + ph)"/>""")
         p("""<text class="t2" x="$(x0 + pw/2)" y="$(top + ph + 34)" font-size="12" text-anchor="middle">n (n × n matrix)</text>""")
-        p("""<text class="t2" font-size="12" text-anchor="middle" transform="translate($(x0 - 58) $(top + ph/2)) rotate(-90)">time with OpenBLAS's BLAS / time</text>""")
-        for (i, c) in enumerate(SERIES)
+        p("""<text class="t2" font-size="12" text-anchor="middle" transform="translate($(x0 - 58) $(top + ph/2)) rotate(-90)">time of $(base == "openblas" ? "OpenBLAS" : "Netlib + OpenBLAS") / time</text>""")
+        for (i, c) in enumerate(series)
             pts = [(n, sp(m, c, n)) for n in m.sizes]
             p("""<path class="s$i" d="$(join(["$(q == 1 ? 'M' : 'L')$(r(lx(n))) $(r(ly(y)))" for (q, (n, y)) in enumerate(pts)], " "))"/>""")
             for (n, y) in pts
-                p("""<circle class="m$i" cx="$(r(lx(n)))" cy="$(r(ly(y)))" r="3.5"><title>Netlib + $(LABELS[c]), n = $n: $(round(y, digits=2))× ($(fmt_time(m.t[(kind, c, n)])) vs. $(fmt_time(m.t[(kind, BASE, n)])))</title></circle>""")
+                p("""<circle class="m$i" cx="$(r(lx(n)))" cy="$(r(ly(y)))" r="3.5"><title>$(LABELS[c]), n = $n: $(round(y, digits=2))× ($(fmt_time(m.t[(kind, c, n)])) vs. $(fmt_time(m.t[(kind, base, n)])))</title></circle>""")
             end
         end
     end
-    p("""<text class="t2" x="24" y="$(H - 14)" font-size="11">Complete DGETRF calls, median, one thread; the same Netlib LAPACK 3.12.1 in all configurations; 1 = Netlib LAPACK + OpenBLAS's BLAS.</text>""")
+    p("""<text class="t2" x="24" y="$(H - 14)" font-size="11">Complete DGETRF calls, median, one thread; the same Netlib LAPACK 3.12.1 in all configurations; 1 = $(BASE_NAMES[base]).</text>""")
     p("</svg>")
-    file = joinpath(outdir, "trsm-$kind.svg")
+    file = joinpath(outdir, file)
     write(file, String(take!(io)))
     println("wrote ", file)
 end
@@ -211,4 +223,10 @@ function ratio_figure(kind)
 end
 
 foreach(figure, ("dense", "coldom"))
+#  against Julia's default, if measured
+for kind in ("dense", "coldom")
+    all(m -> haskey(m.t, (kind, "openblas", first(m.sizes))), machines) || continue
+    figure(kind; base="openblas", series=["netlib_ulmblas_obtrsm", "netlib_ulmblas", "netlib_openblas"],
+           file="trsm-vs-openblas-$kind.svg")
+end
 foreach(ratio_figure, ("dense", "coldom"))
