@@ -40,7 +40,7 @@ fi
 cat $L/build.txt >> $O.txt
 
 cd $R/src
-export CONFIGS=netlib_ulmblas,netlib_ulmblas_obtrsm,netlib_openblas
+export CONFIGS=${CONFIGS:-netlib_ulmblas,netlib_ulmblas_obtrsm,netlib_openblas}
 run lapack/test.jl > $O.test.txt 2>&1
 run lapack/coldom.jl > $O.coldom.txt 2>&1
 MATRIX=dense,coldom run lapack/bench.jl $O.tsv > $O.bench.txt 2>&1
