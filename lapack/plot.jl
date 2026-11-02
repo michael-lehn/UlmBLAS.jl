@@ -3,8 +3,8 @@
 #
 #      julia plot.jl OUTDIR "Ice Lake=results/il.tsv" "Zen 4=results/zen4.tsv" ...
 #
-#  writes OUTDIR/PREFIX-time.svg (median time of a complete DGETRF, log-log)
-#  and OUTDIR/PREFIX-speedup.svg (time of OpenBLAS / time, log n axis,
+#  writes OUTDIR/PREFIX-time.svg (median time of a complete DGETRF, log time axis)
+#  and OUTDIR/PREFIX-speedup.svg (time of OpenBLAS / time,
 #  above 1 = faster than Julia's default) for the matrices MATRIX (default
 #  dense; files without a column matrix are dense), PREFIX default getrf.
 #  With MATRIX=coldom also OUTDIR/PREFIX-pivoting.svg: time for the dense
@@ -86,11 +86,12 @@ function legend(io, x, y, configs)
     end
 end
 
-#  one panel: x = n (log), y = value (log or linear) for each configuration
+#  one panel: x = n (linear), y = value (log or linear) for each configuration
 function panel(io, m, x0, y0, pw, ph, configs, value, ylog, yticks, ytick_label, tip; ref=nothing)
     p(s...) = print(io, s..., '\n')
     xs = m.sizes
-    lx(n) = x0 + pw*(log(n) - log(first(xs)))/(log(last(xs)) - log(first(xs)))
+    xmax = 512*ceil(Int, last(xs)/512)
+    lx(n) = x0 + pw*n/xmax
     ylo, yhi = first(yticks), last(yticks)
     f = ylog ? log : identity
     ly(v) = y0 + ph*(1 - (f(v) - f(ylo))/(f(yhi) - f(ylo)))
@@ -100,8 +101,7 @@ function panel(io, m, x0, y0, pw, ph, configs, value, ylog, yticks, ytick_label,
         p("""<line class="grid" x1="$x0" x2="$(x0 + pw)" y1="$(r(ly(v)))" y2="$(r(ly(v)))"/>""")
         p("""<text class="t2" x="$(x0 - 7)" y="$(r(ly(v)) + 4)" font-size="11" text-anchor="end">$(ytick_label(v))</text>""")
     end
-    for n in xs
-        (n in (8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096)) || continue
+    for n in 0:(xmax > 2048 ? 1024 : 512):xmax
         p("""<text class="t2" x="$(r(lx(n)))" y="$(y0 + ph + 16)" font-size="11" text-anchor="middle">$n</text>""")
     end
     p("""<line class="axis" x1="$x0" x2="$(x0 + pw)" y1="$(y0 + ph)" y2="$(y0 + ph)"/>""")
@@ -113,7 +113,7 @@ function panel(io, m, x0, y0, pw, ph, configs, value, ylog, yticks, ytick_label,
         d = join(["$(k == 1 ? 'M' : 'L')$(r(lx(n))) $(r(ly(v)))" for (k, (n, v)) in enumerate(pts)], " ")
         p("""<path class="s$i" d="$d"/>""")
         for (n, v) in pts
-            p("""<circle class="m$i" cx="$(r(lx(n)))" cy="$(r(ly(v)))" r="4"><title>$(SHORT[c]), n = $n: $(tip(m, c, n))</title></circle>""")
+            p("""<circle class="m$i" cx="$(r(lx(n)))" cy="$(r(ly(v)))" r="3.5"><title>$(SHORT[c]), n = $n: $(tip(m, c, n))</title></circle>""")
         end
     end
 end

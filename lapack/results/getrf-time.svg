@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="968" height="472" viewBox="0 0 968 472" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
-<title>DGETRF (LU with partial pivoting): median time, lower is better</title>
+<title>DGETRF (LU with partial pivoting), random matrices: median time, lower is better</title>
 <style>
   .surface { fill: #fcfcfb; } .t1 { fill: #0b0b0b; } .t2 { fill: #52514e; }
   .grid { stroke: #e3e2de; stroke-width: 1; } .axis { stroke: #8f8e88; stroke-width: 1; }
@@ -16,7 +16,7 @@
   }
 </style>
 <rect class="surface" x="0" y="0" width="968" height="472" rx="8"/>
-<text class="t1" x="24" y="28" font-size="15" font-weight="600">DGETRF (LU with partial pivoting): median time, lower is better</text>
+<text class="t1" x="24" y="28" font-size="15" font-weight="600">DGETRF (LU with partial pivoting), random matrices: median time, lower is better</text>
 <rect class="k1" x="24" y="44" width="12" height="12" rx="2"/>
 <text class="t2" x="41" y="54" font-size="12">OpenBLAS (Julia's default LAPACK and BLAS)</text>
 <rect class="k2" x="333.8" y="44" width="12" height="12" rx="2"/>
@@ -42,78 +42,73 @@
 <text class="t2" x="77" y="133.5" font-size="11" text-anchor="end">1 s</text>
 <line class="grid" x1="84" x2="464" y1="92.0" y2="92.0"/>
 <text class="t2" x="77" y="96.0" font-size="11" text-anchor="end">10 s</text>
-<text class="t2" x="84.0" y="408" font-size="11" text-anchor="middle">8</text>
-<text class="t2" x="126.2" y="408" font-size="11" text-anchor="middle">16</text>
-<text class="t2" x="168.4" y="408" font-size="11" text-anchor="middle">32</text>
-<text class="t2" x="210.7" y="408" font-size="11" text-anchor="middle">64</text>
-<text class="t2" x="252.9" y="408" font-size="11" text-anchor="middle">128</text>
-<text class="t2" x="295.1" y="408" font-size="11" text-anchor="middle">256</text>
-<text class="t2" x="337.3" y="408" font-size="11" text-anchor="middle">512</text>
-<text class="t2" x="379.6" y="408" font-size="11" text-anchor="middle">1024</text>
-<text class="t2" x="421.8" y="408" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="84.0" y="408" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="179.0" y="408" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="274.0" y="408" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="369.0" y="408" font-size="11" text-anchor="middle">3072</text>
 <text class="t2" x="464.0" y="408" font-size="11" text-anchor="middle">4096</text>
 <line class="axis" x1="84" x2="464" y1="392" y2="392"/>
 <text class="t2" x="274.0" y="426" font-size="12" text-anchor="middle">n (n × n matrix)</text>
-<path class="s1" d="M84.0 367.8 L108.7 354.0 L126.2 347.5 L150.9 335.0 L168.4 327.0 L193.1 314.7 L210.7 305.3 L235.4 291.8 L252.9 281.7 L277.6 266.3 L295.1 254.2 L319.8 237.2 L337.3 223.9 L362.0 206.7 L379.6 194.2 L404.3 177.6 L421.8 164.9 L446.5 147.7 L464.0 135.0"/>
-<circle class="m1" cx="84.0" cy="367.8" r="4"><title>OpenBLAS, n = 8: 443 ns</title></circle>
-<circle class="m1" cx="108.7" cy="354.0" r="4"><title>OpenBLAS, n = 12: 1.03 µs</title></circle>
-<circle class="m1" cx="126.2" cy="347.5" r="4"><title>OpenBLAS, n = 16: 1.54 µs</title></circle>
-<circle class="m1" cx="150.9" cy="335.0" r="4"><title>OpenBLAS, n = 24: 3.31 µs</title></circle>
-<circle class="m1" cx="168.4" cy="327.0" r="4"><title>OpenBLAS, n = 32: 5.41 µs</title></circle>
-<circle class="m1" cx="193.1" cy="314.7" r="4"><title>OpenBLAS, n = 48: 11.5 µs</title></circle>
-<circle class="m1" cx="210.7" cy="305.3" r="4"><title>OpenBLAS, n = 64: 20.5 µs</title></circle>
-<circle class="m1" cx="235.4" cy="291.8" r="4"><title>OpenBLAS, n = 96: 47.0 µs</title></circle>
-<circle class="m1" cx="252.9" cy="281.7" r="4"><title>OpenBLAS, n = 128: 87.6 µs</title></circle>
-<circle class="m1" cx="277.6" cy="266.3" r="4"><title>OpenBLAS, n = 192: 225 µs</title></circle>
-<circle class="m1" cx="295.1" cy="254.2" r="4"><title>OpenBLAS, n = 256: 473 µs</title></circle>
-<circle class="m1" cx="319.8" cy="237.2" r="4"><title>OpenBLAS, n = 384: 1.35 ms</title></circle>
-<circle class="m1" cx="337.3" cy="223.9" r="4"><title>OpenBLAS, n = 512: 3.03 ms</title></circle>
-<circle class="m1" cx="362.0" cy="206.7" r="4"><title>OpenBLAS, n = 768: 8.73 ms</title></circle>
-<circle class="m1" cx="379.6" cy="194.2" r="4"><title>OpenBLAS, n = 1024: 18.8 ms</title></circle>
-<circle class="m1" cx="404.3" cy="177.6" r="4"><title>OpenBLAS, n = 1536: 52.1 ms</title></circle>
-<circle class="m1" cx="421.8" cy="164.9" r="4"><title>OpenBLAS, n = 2048: 114 ms</title></circle>
-<circle class="m1" cx="446.5" cy="147.7" r="4"><title>OpenBLAS, n = 3072: 327 ms</title></circle>
-<circle class="m1" cx="464.0" cy="135.0" r="4"><title>OpenBLAS, n = 4096: 715 ms</title></circle>
-<path class="s2" d="M84.0 319.2 L108.7 311.9 L126.2 306.4 L150.9 298.9 L168.4 293.1 L193.1 285.1 L210.7 278.7 L235.4 269.5 L252.9 262.4 L277.6 252.0 L295.1 240.2 L319.8 230.9 L337.3 216.9 L362.0 202.6 L379.6 191.6 L404.3 175.5 L421.8 162.3 L446.5 144.9 L464.0 129.7"/>
-<circle class="m2" cx="84.0" cy="319.2" r="4"><title>Netlib + ulmBLAS, n = 8: 8.74 µs</title></circle>
-<circle class="m2" cx="108.7" cy="311.9" r="4"><title>Netlib + ulmBLAS, n = 12: 13.7 µs</title></circle>
-<circle class="m2" cx="126.2" cy="306.4" r="4"><title>Netlib + ulmBLAS, n = 16: 19.2 µs</title></circle>
-<circle class="m2" cx="150.9" cy="298.9" r="4"><title>Netlib + ulmBLAS, n = 24: 30.4 µs</title></circle>
-<circle class="m2" cx="168.4" cy="293.1" r="4"><title>Netlib + ulmBLAS, n = 32: 43.3 µs</title></circle>
-<circle class="m2" cx="193.1" cy="285.1" r="4"><title>Netlib + ulmBLAS, n = 48: 70.9 µs</title></circle>
-<circle class="m2" cx="210.7" cy="278.7" r="4"><title>Netlib + ulmBLAS, n = 64: 105 µs</title></circle>
-<circle class="m2" cx="235.4" cy="269.5" r="4"><title>Netlib + ulmBLAS, n = 96: 185 µs</title></circle>
-<circle class="m2" cx="252.9" cy="262.4" r="4"><title>Netlib + ulmBLAS, n = 128: 286 µs</title></circle>
-<circle class="m2" cx="277.6" cy="252.0" r="4"><title>Netlib + ulmBLAS, n = 192: 541 µs</title></circle>
-<circle class="m2" cx="295.1" cy="240.2" r="4"><title>Netlib + ulmBLAS, n = 256: 1.12 ms</title></circle>
-<circle class="m2" cx="319.8" cy="230.9" r="4"><title>Netlib + ulmBLAS, n = 384: 1.98 ms</title></circle>
-<circle class="m2" cx="337.3" cy="216.9" r="4"><title>Netlib + ulmBLAS, n = 512: 4.67 ms</title></circle>
-<circle class="m2" cx="362.0" cy="202.6" r="4"><title>Netlib + ulmBLAS, n = 768: 11.2 ms</title></circle>
-<circle class="m2" cx="379.6" cy="191.6" r="4"><title>Netlib + ulmBLAS, n = 1024: 22.1 ms</title></circle>
-<circle class="m2" cx="404.3" cy="175.5" r="4"><title>Netlib + ulmBLAS, n = 1536: 59.4 ms</title></circle>
-<circle class="m2" cx="421.8" cy="162.3" r="4"><title>Netlib + ulmBLAS, n = 2048: 133 ms</title></circle>
-<circle class="m2" cx="446.5" cy="144.9" r="4"><title>Netlib + ulmBLAS, n = 3072: 388 ms</title></circle>
-<circle class="m2" cx="464.0" cy="129.7" r="4"><title>Netlib + ulmBLAS, n = 4096: 991 ms</title></circle>
-<path class="s3" d="M84.0 350.9 L108.7 341.2 L126.2 335.7 L150.9 325.5 L168.4 319.0 L193.1 308.3 L210.7 300.6 L235.4 288.4 L252.9 278.9 L277.6 264.8 L295.1 247.2 L319.8 238.3 L337.3 220.9 L362.0 205.5 L379.6 193.7 L404.3 177.3 L421.8 163.6 L446.5 145.9 L464.0 130.5"/>
-<circle class="m3" cx="84.0" cy="350.9" r="4"><title>Netlib + OpenBLAS BLAS, n = 8: 1.25 µs</title></circle>
-<circle class="m3" cx="108.7" cy="341.2" r="4"><title>Netlib + OpenBLAS BLAS, n = 12: 2.27 µs</title></circle>
-<circle class="m3" cx="126.2" cy="335.7" r="4"><title>Netlib + OpenBLAS BLAS, n = 16: 3.18 µs</title></circle>
-<circle class="m3" cx="150.9" cy="325.5" r="4"><title>Netlib + OpenBLAS BLAS, n = 24: 5.92 µs</title></circle>
-<circle class="m3" cx="168.4" cy="319.0" r="4"><title>Netlib + OpenBLAS BLAS, n = 32: 8.82 µs</title></circle>
-<circle class="m3" cx="193.1" cy="308.3" r="4"><title>Netlib + OpenBLAS BLAS, n = 48: 17.1 µs</title></circle>
-<circle class="m3" cx="210.7" cy="300.6" r="4"><title>Netlib + OpenBLAS BLAS, n = 64: 27.4 µs</title></circle>
-<circle class="m3" cx="235.4" cy="288.4" r="4"><title>Netlib + OpenBLAS BLAS, n = 96: 57.9 µs</title></circle>
-<circle class="m3" cx="252.9" cy="278.9" r="4"><title>Netlib + OpenBLAS BLAS, n = 128: 103 µs</title></circle>
-<circle class="m3" cx="277.6" cy="264.8" r="4"><title>Netlib + OpenBLAS BLAS, n = 192: 246 µs</title></circle>
-<circle class="m3" cx="295.1" cy="247.2" r="4"><title>Netlib + OpenBLAS BLAS, n = 256: 727 µs</title></circle>
-<circle class="m3" cx="319.8" cy="238.3" r="4"><title>Netlib + OpenBLAS BLAS, n = 384: 1.25 ms</title></circle>
-<circle class="m3" cx="337.3" cy="220.9" r="4"><title>Netlib + OpenBLAS BLAS, n = 512: 3.66 ms</title></circle>
-<circle class="m3" cx="362.0" cy="205.5" r="4"><title>Netlib + OpenBLAS BLAS, n = 768: 9.38 ms</title></circle>
-<circle class="m3" cx="379.6" cy="193.7" r="4"><title>Netlib + OpenBLAS BLAS, n = 1024: 19.4 ms</title></circle>
-<circle class="m3" cx="404.3" cy="177.3" r="4"><title>Netlib + OpenBLAS BLAS, n = 1536: 53.1 ms</title></circle>
-<circle class="m3" cx="421.8" cy="163.6" r="4"><title>Netlib + OpenBLAS BLAS, n = 2048: 123 ms</title></circle>
-<circle class="m3" cx="446.5" cy="145.9" r="4"><title>Netlib + OpenBLAS BLAS, n = 3072: 365 ms</title></circle>
-<circle class="m3" cx="464.0" cy="130.5" r="4"><title>Netlib + OpenBLAS BLAS, n = 4096: 939 ms</title></circle>
+<path class="s1" d="M84.7 367.8 L85.1 354.0 L85.5 347.5 L86.2 335.0 L87.0 327.0 L88.5 314.7 L89.9 305.3 L92.9 291.8 L95.9 281.7 L101.8 266.3 L107.8 254.2 L119.6 237.2 L131.5 223.9 L155.2 206.7 L179.0 194.2 L226.5 177.6 L274.0 164.9 L369.0 147.7 L464.0 135.0"/>
+<circle class="m1" cx="84.7" cy="367.8" r="3.5"><title>OpenBLAS, n = 8: 443 ns</title></circle>
+<circle class="m1" cx="85.1" cy="354.0" r="3.5"><title>OpenBLAS, n = 12: 1.03 µs</title></circle>
+<circle class="m1" cx="85.5" cy="347.5" r="3.5"><title>OpenBLAS, n = 16: 1.54 µs</title></circle>
+<circle class="m1" cx="86.2" cy="335.0" r="3.5"><title>OpenBLAS, n = 24: 3.31 µs</title></circle>
+<circle class="m1" cx="87.0" cy="327.0" r="3.5"><title>OpenBLAS, n = 32: 5.41 µs</title></circle>
+<circle class="m1" cx="88.5" cy="314.7" r="3.5"><title>OpenBLAS, n = 48: 11.5 µs</title></circle>
+<circle class="m1" cx="89.9" cy="305.3" r="3.5"><title>OpenBLAS, n = 64: 20.5 µs</title></circle>
+<circle class="m1" cx="92.9" cy="291.8" r="3.5"><title>OpenBLAS, n = 96: 47.0 µs</title></circle>
+<circle class="m1" cx="95.9" cy="281.7" r="3.5"><title>OpenBLAS, n = 128: 87.6 µs</title></circle>
+<circle class="m1" cx="101.8" cy="266.3" r="3.5"><title>OpenBLAS, n = 192: 225 µs</title></circle>
+<circle class="m1" cx="107.8" cy="254.2" r="3.5"><title>OpenBLAS, n = 256: 473 µs</title></circle>
+<circle class="m1" cx="119.6" cy="237.2" r="3.5"><title>OpenBLAS, n = 384: 1.35 ms</title></circle>
+<circle class="m1" cx="131.5" cy="223.9" r="3.5"><title>OpenBLAS, n = 512: 3.03 ms</title></circle>
+<circle class="m1" cx="155.2" cy="206.7" r="3.5"><title>OpenBLAS, n = 768: 8.73 ms</title></circle>
+<circle class="m1" cx="179.0" cy="194.2" r="3.5"><title>OpenBLAS, n = 1024: 18.8 ms</title></circle>
+<circle class="m1" cx="226.5" cy="177.6" r="3.5"><title>OpenBLAS, n = 1536: 52.1 ms</title></circle>
+<circle class="m1" cx="274.0" cy="164.9" r="3.5"><title>OpenBLAS, n = 2048: 114 ms</title></circle>
+<circle class="m1" cx="369.0" cy="147.7" r="3.5"><title>OpenBLAS, n = 3072: 327 ms</title></circle>
+<circle class="m1" cx="464.0" cy="135.0" r="3.5"><title>OpenBLAS, n = 4096: 715 ms</title></circle>
+<path class="s2" d="M84.7 319.2 L85.1 311.9 L85.5 306.4 L86.2 298.9 L87.0 293.1 L88.5 285.1 L89.9 278.7 L92.9 269.5 L95.9 262.4 L101.8 252.0 L107.8 240.2 L119.6 230.9 L131.5 216.9 L155.2 202.6 L179.0 191.6 L226.5 175.5 L274.0 162.3 L369.0 144.9 L464.0 129.7"/>
+<circle class="m2" cx="84.7" cy="319.2" r="3.5"><title>Netlib + ulmBLAS, n = 8: 8.74 µs</title></circle>
+<circle class="m2" cx="85.1" cy="311.9" r="3.5"><title>Netlib + ulmBLAS, n = 12: 13.7 µs</title></circle>
+<circle class="m2" cx="85.5" cy="306.4" r="3.5"><title>Netlib + ulmBLAS, n = 16: 19.2 µs</title></circle>
+<circle class="m2" cx="86.2" cy="298.9" r="3.5"><title>Netlib + ulmBLAS, n = 24: 30.4 µs</title></circle>
+<circle class="m2" cx="87.0" cy="293.1" r="3.5"><title>Netlib + ulmBLAS, n = 32: 43.3 µs</title></circle>
+<circle class="m2" cx="88.5" cy="285.1" r="3.5"><title>Netlib + ulmBLAS, n = 48: 70.9 µs</title></circle>
+<circle class="m2" cx="89.9" cy="278.7" r="3.5"><title>Netlib + ulmBLAS, n = 64: 105 µs</title></circle>
+<circle class="m2" cx="92.9" cy="269.5" r="3.5"><title>Netlib + ulmBLAS, n = 96: 185 µs</title></circle>
+<circle class="m2" cx="95.9" cy="262.4" r="3.5"><title>Netlib + ulmBLAS, n = 128: 286 µs</title></circle>
+<circle class="m2" cx="101.8" cy="252.0" r="3.5"><title>Netlib + ulmBLAS, n = 192: 541 µs</title></circle>
+<circle class="m2" cx="107.8" cy="240.2" r="3.5"><title>Netlib + ulmBLAS, n = 256: 1.12 ms</title></circle>
+<circle class="m2" cx="119.6" cy="230.9" r="3.5"><title>Netlib + ulmBLAS, n = 384: 1.98 ms</title></circle>
+<circle class="m2" cx="131.5" cy="216.9" r="3.5"><title>Netlib + ulmBLAS, n = 512: 4.67 ms</title></circle>
+<circle class="m2" cx="155.2" cy="202.6" r="3.5"><title>Netlib + ulmBLAS, n = 768: 11.2 ms</title></circle>
+<circle class="m2" cx="179.0" cy="191.6" r="3.5"><title>Netlib + ulmBLAS, n = 1024: 22.1 ms</title></circle>
+<circle class="m2" cx="226.5" cy="175.5" r="3.5"><title>Netlib + ulmBLAS, n = 1536: 59.4 ms</title></circle>
+<circle class="m2" cx="274.0" cy="162.3" r="3.5"><title>Netlib + ulmBLAS, n = 2048: 133 ms</title></circle>
+<circle class="m2" cx="369.0" cy="144.9" r="3.5"><title>Netlib + ulmBLAS, n = 3072: 388 ms</title></circle>
+<circle class="m2" cx="464.0" cy="129.7" r="3.5"><title>Netlib + ulmBLAS, n = 4096: 991 ms</title></circle>
+<path class="s3" d="M84.7 350.9 L85.1 341.2 L85.5 335.7 L86.2 325.5 L87.0 319.0 L88.5 308.3 L89.9 300.6 L92.9 288.4 L95.9 278.9 L101.8 264.8 L107.8 247.2 L119.6 238.3 L131.5 220.9 L155.2 205.5 L179.0 193.7 L226.5 177.3 L274.0 163.6 L369.0 145.9 L464.0 130.5"/>
+<circle class="m3" cx="84.7" cy="350.9" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 8: 1.25 µs</title></circle>
+<circle class="m3" cx="85.1" cy="341.2" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 12: 2.27 µs</title></circle>
+<circle class="m3" cx="85.5" cy="335.7" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 16: 3.18 µs</title></circle>
+<circle class="m3" cx="86.2" cy="325.5" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 24: 5.92 µs</title></circle>
+<circle class="m3" cx="87.0" cy="319.0" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 32: 8.82 µs</title></circle>
+<circle class="m3" cx="88.5" cy="308.3" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 48: 17.1 µs</title></circle>
+<circle class="m3" cx="89.9" cy="300.6" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 64: 27.4 µs</title></circle>
+<circle class="m3" cx="92.9" cy="288.4" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 96: 57.9 µs</title></circle>
+<circle class="m3" cx="95.9" cy="278.9" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 128: 103 µs</title></circle>
+<circle class="m3" cx="101.8" cy="264.8" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 192: 246 µs</title></circle>
+<circle class="m3" cx="107.8" cy="247.2" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 256: 727 µs</title></circle>
+<circle class="m3" cx="119.6" cy="238.3" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 384: 1.25 ms</title></circle>
+<circle class="m3" cx="131.5" cy="220.9" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 512: 3.66 ms</title></circle>
+<circle class="m3" cx="155.2" cy="205.5" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 768: 9.38 ms</title></circle>
+<circle class="m3" cx="179.0" cy="193.7" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 1024: 19.4 ms</title></circle>
+<circle class="m3" cx="226.5" cy="177.3" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 1536: 53.1 ms</title></circle>
+<circle class="m3" cx="274.0" cy="163.6" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 2048: 123 ms</title></circle>
+<circle class="m3" cx="369.0" cy="145.9" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 3072: 365 ms</title></circle>
+<circle class="m3" cx="464.0" cy="130.5" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 4096: 939 ms</title></circle>
 <text class="t2" font-size="12" text-anchor="middle" transform="translate(18 242.0) rotate(-90)">time per call</text>
 <text class="t1" x="564" y="78" font-size="13" font-weight="600">AMD EPYC 9454 (Zen 4)</text>
 <line class="grid" x1="564" x2="944" y1="392.0" y2="392.0"/>
@@ -134,78 +129,73 @@
 <text class="t2" x="557" y="133.5" font-size="11" text-anchor="end">1 s</text>
 <line class="grid" x1="564" x2="944" y1="92.0" y2="92.0"/>
 <text class="t2" x="557" y="96.0" font-size="11" text-anchor="end">10 s</text>
-<text class="t2" x="564.0" y="408" font-size="11" text-anchor="middle">8</text>
-<text class="t2" x="606.2" y="408" font-size="11" text-anchor="middle">16</text>
-<text class="t2" x="648.4" y="408" font-size="11" text-anchor="middle">32</text>
-<text class="t2" x="690.7" y="408" font-size="11" text-anchor="middle">64</text>
-<text class="t2" x="732.9" y="408" font-size="11" text-anchor="middle">128</text>
-<text class="t2" x="775.1" y="408" font-size="11" text-anchor="middle">256</text>
-<text class="t2" x="817.3" y="408" font-size="11" text-anchor="middle">512</text>
-<text class="t2" x="859.6" y="408" font-size="11" text-anchor="middle">1024</text>
-<text class="t2" x="901.8" y="408" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="564.0" y="408" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="659.0" y="408" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="754.0" y="408" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="849.0" y="408" font-size="11" text-anchor="middle">3072</text>
 <text class="t2" x="944.0" y="408" font-size="11" text-anchor="middle">4096</text>
 <line class="axis" x1="564" x2="944" y1="392" y2="392"/>
 <text class="t2" x="754.0" y="426" font-size="12" text-anchor="middle">n (n × n matrix)</text>
-<path class="s1" d="M564.0 372.6 L588.7 360.5 L606.2 353.1 L630.9 340.7 L648.4 332.3 L673.1 319.2 L690.7 309.5 L715.4 295.0 L732.9 284.5 L757.6 268.7 L775.1 256.9 L799.8 239.6 L817.3 226.7 L842.0 208.8 L859.6 195.8 L884.3 177.4 L901.8 163.7 L926.5 144.8 L944.0 131.0"/>
-<circle class="m1" cx="564.0" cy="372.6" r="4"><title>OpenBLAS, n = 8: 330 ns</title></circle>
-<circle class="m1" cx="588.7" cy="360.5" r="4"><title>OpenBLAS, n = 12: 690 ns</title></circle>
-<circle class="m1" cx="606.2" cy="353.1" r="4"><title>OpenBLAS, n = 16: 1.09 µs</title></circle>
-<circle class="m1" cx="630.9" cy="340.7" r="4"><title>OpenBLAS, n = 24: 2.33 µs</title></circle>
-<circle class="m1" cx="648.4" cy="332.3" r="4"><title>OpenBLAS, n = 32: 3.91 µs</title></circle>
-<circle class="m1" cx="673.1" cy="319.2" r="4"><title>OpenBLAS, n = 48: 8.74 µs</title></circle>
-<circle class="m1" cx="690.7" cy="309.5" r="4"><title>OpenBLAS, n = 64: 15.9 µs</title></circle>
-<circle class="m1" cx="715.4" cy="295.0" r="4"><title>OpenBLAS, n = 96: 38.5 µs</title></circle>
-<circle class="m1" cx="732.9" cy="284.5" r="4"><title>OpenBLAS, n = 128: 73.7 µs</title></circle>
-<circle class="m1" cx="757.6" cy="268.7" r="4"><title>OpenBLAS, n = 192: 194 µs</title></circle>
-<circle class="m1" cx="775.1" cy="256.9" r="4"><title>OpenBLAS, n = 256: 402 µs</title></circle>
-<circle class="m1" cx="799.8" cy="239.6" r="4"><title>OpenBLAS, n = 384: 1.16 ms</title></circle>
-<circle class="m1" cx="817.3" cy="226.7" r="4"><title>OpenBLAS, n = 512: 2.56 ms</title></circle>
-<circle class="m1" cx="842.0" cy="208.8" r="4"><title>OpenBLAS, n = 768: 7.68 ms</title></circle>
-<circle class="m1" cx="859.6" cy="195.8" r="4"><title>OpenBLAS, n = 1024: 17.1 ms</title></circle>
-<circle class="m1" cx="884.3" cy="177.4" r="4"><title>OpenBLAS, n = 1536: 52.9 ms</title></circle>
-<circle class="m1" cx="901.8" cy="163.7" r="4"><title>OpenBLAS, n = 2048: 123 ms</title></circle>
-<circle class="m1" cx="926.5" cy="144.8" r="4"><title>OpenBLAS, n = 3072: 392 ms</title></circle>
-<circle class="m1" cx="944.0" cy="131.0" r="4"><title>OpenBLAS, n = 4096: 913 ms</title></circle>
-<path class="s2" d="M564.0 321.0 L588.7 313.4 L606.2 307.0 L630.9 300.3 L648.4 294.0 L673.1 286.9 L690.7 280.6 L715.4 271.7 L732.9 264.8 L757.6 254.4 L775.1 243.1 L799.8 232.4 L817.3 214.5 L842.0 204.1 L859.6 187.4 L884.3 170.9 L901.8 156.9 L926.5 141.3 L944.0 126.4"/>
-<circle class="m2" cx="564.0" cy="321.0" r="4"><title>Netlib + ulmBLAS, n = 8: 7.82 µs</title></circle>
-<circle class="m2" cx="588.7" cy="313.4" r="4"><title>Netlib + ulmBLAS, n = 12: 12.5 µs</title></circle>
-<circle class="m2" cx="606.2" cy="307.0" r="4"><title>Netlib + ulmBLAS, n = 16: 18.5 µs</title></circle>
-<circle class="m2" cx="630.9" cy="300.3" r="4"><title>Netlib + ulmBLAS, n = 24: 27.8 µs</title></circle>
-<circle class="m2" cx="648.4" cy="294.0" r="4"><title>Netlib + ulmBLAS, n = 32: 41.1 µs</title></circle>
-<circle class="m2" cx="673.1" cy="286.9" r="4"><title>Netlib + ulmBLAS, n = 48: 63.6 µs</title></circle>
-<circle class="m2" cx="690.7" cy="280.6" r="4"><title>Netlib + ulmBLAS, n = 64: 93.7 µs</title></circle>
-<circle class="m2" cx="715.4" cy="271.7" r="4"><title>Netlib + ulmBLAS, n = 96: 162 µs</title></circle>
-<circle class="m2" cx="732.9" cy="264.8" r="4"><title>Netlib + ulmBLAS, n = 128: 246 µs</title></circle>
-<circle class="m2" cx="757.6" cy="254.4" r="4"><title>Netlib + ulmBLAS, n = 192: 467 µs</title></circle>
-<circle class="m2" cx="775.1" cy="243.1" r="4"><title>Netlib + ulmBLAS, n = 256: 932 µs</title></circle>
-<circle class="m2" cx="799.8" cy="232.4" r="4"><title>Netlib + ulmBLAS, n = 384: 1.81 ms</title></circle>
-<circle class="m2" cx="817.3" cy="214.5" r="4"><title>Netlib + ulmBLAS, n = 512: 5.4 ms</title></circle>
-<circle class="m2" cx="842.0" cy="204.1" r="4"><title>Netlib + ulmBLAS, n = 768: 10.2 ms</title></circle>
-<circle class="m2" cx="859.6" cy="187.4" r="4"><title>Netlib + ulmBLAS, n = 1024: 28.5 ms</title></circle>
-<circle class="m2" cx="884.3" cy="170.9" r="4"><title>Netlib + ulmBLAS, n = 1536: 78.8 ms</title></circle>
-<circle class="m2" cx="901.8" cy="156.9" r="4"><title>Netlib + ulmBLAS, n = 2048: 186 ms</title></circle>
-<circle class="m2" cx="926.5" cy="141.3" r="4"><title>Netlib + ulmBLAS, n = 3072: 485 ms</title></circle>
-<circle class="m2" cx="944.0" cy="126.4" r="4"><title>Netlib + ulmBLAS, n = 4096: 1.21 s</title></circle>
-<path class="s3" d="M564.0 357.9 L588.7 348.2 L606.2 342.8 L630.9 332.5 L648.4 325.7 L673.1 314.2 L690.7 306.0 L715.4 292.8 L732.9 282.6 L757.6 267.9 L775.1 251.2 L799.8 239.2 L817.3 217.2 L842.0 206.9 L859.6 188.8 L884.3 171.8 L901.8 157.2 L926.5 141.7 L944.0 126.0"/>
-<circle class="m3" cx="564.0" cy="357.9" r="4"><title>Netlib + OpenBLAS BLAS, n = 8: 810 ns</title></circle>
-<circle class="m3" cx="588.7" cy="348.2" r="4"><title>Netlib + OpenBLAS BLAS, n = 12: 1.47 µs</title></circle>
-<circle class="m3" cx="606.2" cy="342.8" r="4"><title>Netlib + OpenBLAS BLAS, n = 16: 2.05 µs</title></circle>
-<circle class="m3" cx="630.9" cy="332.5" r="4"><title>Netlib + OpenBLAS BLAS, n = 24: 3.85 µs</title></circle>
-<circle class="m3" cx="648.4" cy="325.7" r="4"><title>Netlib + OpenBLAS BLAS, n = 32: 5.85 µs</title></circle>
-<circle class="m3" cx="673.1" cy="314.2" r="4"><title>Netlib + OpenBLAS BLAS, n = 48: 11.9 µs</title></circle>
-<circle class="m3" cx="690.7" cy="306.0" r="4"><title>Netlib + OpenBLAS BLAS, n = 64: 19.7 µs</title></circle>
-<circle class="m3" cx="715.4" cy="292.8" r="4"><title>Netlib + OpenBLAS BLAS, n = 96: 44.3 µs</title></circle>
-<circle class="m3" cx="732.9" cy="282.6" r="4"><title>Netlib + OpenBLAS BLAS, n = 128: 82.5 µs</title></circle>
-<circle class="m3" cx="757.6" cy="267.9" r="4"><title>Netlib + OpenBLAS BLAS, n = 192: 204 µs</title></circle>
-<circle class="m3" cx="775.1" cy="251.2" r="4"><title>Netlib + OpenBLAS BLAS, n = 256: 567 µs</title></circle>
-<circle class="m3" cx="799.8" cy="239.2" r="4"><title>Netlib + OpenBLAS BLAS, n = 384: 1.19 ms</title></circle>
-<circle class="m3" cx="817.3" cy="217.2" r="4"><title>Netlib + OpenBLAS BLAS, n = 512: 4.57 ms</title></circle>
-<circle class="m3" cx="842.0" cy="206.9" r="4"><title>Netlib + OpenBLAS BLAS, n = 768: 8.62 ms</title></circle>
-<circle class="m3" cx="859.6" cy="188.8" r="4"><title>Netlib + OpenBLAS BLAS, n = 1024: 26.3 ms</title></circle>
-<circle class="m3" cx="884.3" cy="171.8" r="4"><title>Netlib + OpenBLAS BLAS, n = 1536: 74.6 ms</title></circle>
-<circle class="m3" cx="901.8" cy="157.2" r="4"><title>Netlib + OpenBLAS BLAS, n = 2048: 183 ms</title></circle>
-<circle class="m3" cx="926.5" cy="141.7" r="4"><title>Netlib + OpenBLAS BLAS, n = 3072: 474 ms</title></circle>
-<circle class="m3" cx="944.0" cy="126.0" r="4"><title>Netlib + OpenBLAS BLAS, n = 4096: 1.24 s</title></circle>
+<path class="s1" d="M564.7 372.6 L565.1 360.5 L565.5 353.1 L566.2 340.7 L567.0 332.3 L568.5 319.2 L569.9 309.5 L572.9 295.0 L575.9 284.5 L581.8 268.7 L587.8 256.9 L599.6 239.6 L611.5 226.7 L635.2 208.8 L659.0 195.8 L706.5 177.4 L754.0 163.7 L849.0 144.8 L944.0 131.0"/>
+<circle class="m1" cx="564.7" cy="372.6" r="3.5"><title>OpenBLAS, n = 8: 330 ns</title></circle>
+<circle class="m1" cx="565.1" cy="360.5" r="3.5"><title>OpenBLAS, n = 12: 690 ns</title></circle>
+<circle class="m1" cx="565.5" cy="353.1" r="3.5"><title>OpenBLAS, n = 16: 1.09 µs</title></circle>
+<circle class="m1" cx="566.2" cy="340.7" r="3.5"><title>OpenBLAS, n = 24: 2.33 µs</title></circle>
+<circle class="m1" cx="567.0" cy="332.3" r="3.5"><title>OpenBLAS, n = 32: 3.91 µs</title></circle>
+<circle class="m1" cx="568.5" cy="319.2" r="3.5"><title>OpenBLAS, n = 48: 8.74 µs</title></circle>
+<circle class="m1" cx="569.9" cy="309.5" r="3.5"><title>OpenBLAS, n = 64: 15.9 µs</title></circle>
+<circle class="m1" cx="572.9" cy="295.0" r="3.5"><title>OpenBLAS, n = 96: 38.5 µs</title></circle>
+<circle class="m1" cx="575.9" cy="284.5" r="3.5"><title>OpenBLAS, n = 128: 73.7 µs</title></circle>
+<circle class="m1" cx="581.8" cy="268.7" r="3.5"><title>OpenBLAS, n = 192: 194 µs</title></circle>
+<circle class="m1" cx="587.8" cy="256.9" r="3.5"><title>OpenBLAS, n = 256: 402 µs</title></circle>
+<circle class="m1" cx="599.6" cy="239.6" r="3.5"><title>OpenBLAS, n = 384: 1.16 ms</title></circle>
+<circle class="m1" cx="611.5" cy="226.7" r="3.5"><title>OpenBLAS, n = 512: 2.56 ms</title></circle>
+<circle class="m1" cx="635.2" cy="208.8" r="3.5"><title>OpenBLAS, n = 768: 7.68 ms</title></circle>
+<circle class="m1" cx="659.0" cy="195.8" r="3.5"><title>OpenBLAS, n = 1024: 17.1 ms</title></circle>
+<circle class="m1" cx="706.5" cy="177.4" r="3.5"><title>OpenBLAS, n = 1536: 52.9 ms</title></circle>
+<circle class="m1" cx="754.0" cy="163.7" r="3.5"><title>OpenBLAS, n = 2048: 123 ms</title></circle>
+<circle class="m1" cx="849.0" cy="144.8" r="3.5"><title>OpenBLAS, n = 3072: 392 ms</title></circle>
+<circle class="m1" cx="944.0" cy="131.0" r="3.5"><title>OpenBLAS, n = 4096: 913 ms</title></circle>
+<path class="s2" d="M564.7 321.0 L565.1 313.4 L565.5 307.0 L566.2 300.3 L567.0 294.0 L568.5 286.9 L569.9 280.6 L572.9 271.7 L575.9 264.8 L581.8 254.4 L587.8 243.1 L599.6 232.4 L611.5 214.5 L635.2 204.1 L659.0 187.4 L706.5 170.9 L754.0 156.9 L849.0 141.3 L944.0 126.4"/>
+<circle class="m2" cx="564.7" cy="321.0" r="3.5"><title>Netlib + ulmBLAS, n = 8: 7.82 µs</title></circle>
+<circle class="m2" cx="565.1" cy="313.4" r="3.5"><title>Netlib + ulmBLAS, n = 12: 12.5 µs</title></circle>
+<circle class="m2" cx="565.5" cy="307.0" r="3.5"><title>Netlib + ulmBLAS, n = 16: 18.5 µs</title></circle>
+<circle class="m2" cx="566.2" cy="300.3" r="3.5"><title>Netlib + ulmBLAS, n = 24: 27.8 µs</title></circle>
+<circle class="m2" cx="567.0" cy="294.0" r="3.5"><title>Netlib + ulmBLAS, n = 32: 41.1 µs</title></circle>
+<circle class="m2" cx="568.5" cy="286.9" r="3.5"><title>Netlib + ulmBLAS, n = 48: 63.6 µs</title></circle>
+<circle class="m2" cx="569.9" cy="280.6" r="3.5"><title>Netlib + ulmBLAS, n = 64: 93.7 µs</title></circle>
+<circle class="m2" cx="572.9" cy="271.7" r="3.5"><title>Netlib + ulmBLAS, n = 96: 162 µs</title></circle>
+<circle class="m2" cx="575.9" cy="264.8" r="3.5"><title>Netlib + ulmBLAS, n = 128: 246 µs</title></circle>
+<circle class="m2" cx="581.8" cy="254.4" r="3.5"><title>Netlib + ulmBLAS, n = 192: 467 µs</title></circle>
+<circle class="m2" cx="587.8" cy="243.1" r="3.5"><title>Netlib + ulmBLAS, n = 256: 932 µs</title></circle>
+<circle class="m2" cx="599.6" cy="232.4" r="3.5"><title>Netlib + ulmBLAS, n = 384: 1.81 ms</title></circle>
+<circle class="m2" cx="611.5" cy="214.5" r="3.5"><title>Netlib + ulmBLAS, n = 512: 5.4 ms</title></circle>
+<circle class="m2" cx="635.2" cy="204.1" r="3.5"><title>Netlib + ulmBLAS, n = 768: 10.2 ms</title></circle>
+<circle class="m2" cx="659.0" cy="187.4" r="3.5"><title>Netlib + ulmBLAS, n = 1024: 28.5 ms</title></circle>
+<circle class="m2" cx="706.5" cy="170.9" r="3.5"><title>Netlib + ulmBLAS, n = 1536: 78.8 ms</title></circle>
+<circle class="m2" cx="754.0" cy="156.9" r="3.5"><title>Netlib + ulmBLAS, n = 2048: 186 ms</title></circle>
+<circle class="m2" cx="849.0" cy="141.3" r="3.5"><title>Netlib + ulmBLAS, n = 3072: 485 ms</title></circle>
+<circle class="m2" cx="944.0" cy="126.4" r="3.5"><title>Netlib + ulmBLAS, n = 4096: 1.21 s</title></circle>
+<path class="s3" d="M564.7 357.9 L565.1 348.2 L565.5 342.8 L566.2 332.5 L567.0 325.7 L568.5 314.2 L569.9 306.0 L572.9 292.8 L575.9 282.6 L581.8 267.9 L587.8 251.2 L599.6 239.2 L611.5 217.2 L635.2 206.9 L659.0 188.8 L706.5 171.8 L754.0 157.2 L849.0 141.7 L944.0 126.0"/>
+<circle class="m3" cx="564.7" cy="357.9" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 8: 810 ns</title></circle>
+<circle class="m3" cx="565.1" cy="348.2" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 12: 1.47 µs</title></circle>
+<circle class="m3" cx="565.5" cy="342.8" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 16: 2.05 µs</title></circle>
+<circle class="m3" cx="566.2" cy="332.5" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 24: 3.85 µs</title></circle>
+<circle class="m3" cx="567.0" cy="325.7" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 32: 5.85 µs</title></circle>
+<circle class="m3" cx="568.5" cy="314.2" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 48: 11.9 µs</title></circle>
+<circle class="m3" cx="569.9" cy="306.0" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 64: 19.7 µs</title></circle>
+<circle class="m3" cx="572.9" cy="292.8" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 96: 44.3 µs</title></circle>
+<circle class="m3" cx="575.9" cy="282.6" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 128: 82.5 µs</title></circle>
+<circle class="m3" cx="581.8" cy="267.9" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 192: 204 µs</title></circle>
+<circle class="m3" cx="587.8" cy="251.2" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 256: 567 µs</title></circle>
+<circle class="m3" cx="599.6" cy="239.2" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 384: 1.19 ms</title></circle>
+<circle class="m3" cx="611.5" cy="217.2" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 512: 4.57 ms</title></circle>
+<circle class="m3" cx="635.2" cy="206.9" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 768: 8.62 ms</title></circle>
+<circle class="m3" cx="659.0" cy="188.8" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 1024: 26.3 ms</title></circle>
+<circle class="m3" cx="706.5" cy="171.8" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 1536: 74.6 ms</title></circle>
+<circle class="m3" cx="754.0" cy="157.2" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 2048: 183 ms</title></circle>
+<circle class="m3" cx="849.0" cy="141.7" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 3072: 474 ms</title></circle>
+<circle class="m3" cx="944.0" cy="126.0" r="3.5"><title>Netlib + OpenBLAS BLAS, n = 4096: 1.24 s</title></circle>
 <text class="t2" font-size="12" text-anchor="middle" transform="translate(498 242.0) rotate(-90)">time per call</text>
 <text class="t2" x="24" y="458" font-size="11">Median of repeated calls, one thread, same matrices (randn) and Julia version for all configurations.</text>
 </svg>
