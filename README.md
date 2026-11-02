@@ -302,9 +302,9 @@ EPYC 9454 (Zen 4):
 
 ### Random dense matrices (randn)
 
-![DGETRF time, random matrices](lapack/results/getrf-time.svg)
+![DGETRF time, random matrices](lapack/results/random-time.svg)
 
-![DGETRF speedup, random matrices](lapack/results/getrf-speedup.svg)
+![DGETRF speedup, random matrices](lapack/results/random-speedup.svg)
 
 Netlib LAPACK on top of ulmBLAS is slower than Julia's default at every
 size: 0.6–0.9× for n ≥ 768 and 0.04–0.3× for n ≤ 128.  For large matrices

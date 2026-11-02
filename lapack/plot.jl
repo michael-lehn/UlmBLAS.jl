@@ -6,7 +6,7 @@
 #  writes OUTDIR/PREFIX-time.svg (median time of a complete DGETRF, log time axis)
 #  and OUTDIR/PREFIX-speedup.svg (time of OpenBLAS / time,
 #  above 1 = faster than Julia's default) for the matrices MATRIX (default
-#  dense; files without a column matrix are dense), PREFIX default getrf.
+#  dense; files without a column matrix are dense), PREFIX (default random).
 #  With MATRIX=coldom also OUTDIR/PREFIX-pivoting.svg: time for the dense
 #  matrices / time for the column-dominant ones, per configuration (above
 #  1 = faster without row interchanges).  Only Julia's standard library
@@ -24,7 +24,7 @@ const COLORS_DARK = ["#3987e5", "#d95926", "#199e70"]
 
 outdir = ARGS[1]
 const MATRIX = get(ENV, "MATRIX", "dense")
-const PREFIX = get(ENV, "PREFIX", "getrf")
+const PREFIX = get(ENV, "PREFIX", "random")
 #  median times by (config, n) of the matrices kind
 function read_times(path, kind)
     lines = readlines(path)

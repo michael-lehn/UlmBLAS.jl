@@ -112,9 +112,9 @@ gfortran 14.2 (`-O3`), ulmBLAS of the package's artifact (6c554eec):
   (`results/2026-11-02-icelake-xeon8358.*`)
 - AMD EPYC 9454 (Zen 4), variant `zen4` (`results/2026-11-02-zen4-epyc9454.*`)
 
-![DGETRF time](results/getrf-time.svg)
+![DGETRF time](results/random-time.svg)
 
-![DGETRF speedup](results/getrf-speedup.svg)
+![DGETRF speedup](results/random-speedup.svg)
 
 Median time and speedup (time of OpenBLAS / time; below 1 = slower than
 Julia's default):
