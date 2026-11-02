@@ -291,6 +291,50 @@ curves; only the rest of DGETRF, DLASWP, differs):
   matrices it is mostly DLASWP: 208 ms (Ice Lake) and 310 ms (Zen 4) of
   DGETRF at n = 4096, against about 1 ms for column-dominant matrices.
 
+## ulmBLAS with OpenBLAS's DTRSM
+
+What if ulmBLAS had OpenBLAS's DTRSM?  `netlib_ulmblas_obtrsm` (`common.jl`)
+is Netlib LAPACK + ulmBLAS with one change: after `UlmBLAS.forward()` the
+LBT entry of `dtrsm_64_` is set to OpenBLAS's `dtrsm_64_`
+(`BLAS.lbt_set_forward`).  DGEMM, IDAMAX and DSCAL stay with ulmBLAS
+(`bench.jl` prints the target of each routine, `results/*-trsm.bench.txt`).
+Benchmark of the complete DGETRF as before (`bench.jl`, same sizes and
+matrices, random and column-dominant taking turns), with
+`CONFIGS=netlib_ulmblas,netlib_ulmblas_obtrsm,netlib_openblas`; `test.jl`
+(948 checks) and `coldom.jl` (231 checks) pass for all three
+configurations.  Jobs 8244656 (Ice Lake, uc2n601) and 8244657 (Zen 4,
+uc3n070), `cluster/job-trsm.sh`, `results/*-trsm.*`.
+
+Speedup over Netlib LAPACK + OpenBLAS's BLAS (time of Netlib + OpenBLAS's
+BLAS / time), random matrices:
+
+| n | Ice Lake: ulmBLAS | ulmBLAS + OpenBLAS's DTRSM | Zen 4: ulmBLAS | ulmBLAS + OpenBLAS's DTRSM |
+|---:|---:|---:|---:|---:|
+| 8 | 0.14× | 0.50× | 0.10× | 0.50× |
+| 32 | 0.20× | 0.55× | 0.15× | 0.60× |
+| 128 | 0.36× | 0.60× | 0.33× | 0.73× |
+| 256 | 0.63× | 0.78× | 0.60× | 0.86× |
+| 512 | 0.79× | 0.85× | 0.84× | 0.95× |
+| 1024 | 0.88× | 0.90× | 0.92× | 0.97× |
+| 2048 | 0.93× | 0.93× | 0.98× | 1.00× |
+| 4096 | 0.95× | 0.95× | 1.02× | 1.03× |
+
+![DGETRF with OpenBLAS's DTRSM, random](results/trsm-dense.svg)
+
+![DGETRF with OpenBLAS's DTRSM, column-dominant](results/trsm-coldom.svg)
+
+- **Small matrices:** OpenBLAS's DTRSM removes more than half of the gap
+  (n = 8: 0.14× → 0.50× on Ice Lake, 0.10× → 0.50× on Zen 4; n = 128:
+  0.36× → 0.60× and 0.33× → 0.73×).  The rest, a factor of about 2 for
+  n ≤ 64, is in the other tiny BLAS calls, mostly DGEMM (see the time per
+  routine).
+- **Large matrices:** on Zen 4, with OpenBLAS's DTRSM Netlib + ulmBLAS
+  reaches Netlib + OpenBLAS's BLAS for n ≥ 1024 (0.97–1.03×); on Ice Lake
+  it changes little for n ≥ 1024 (0.88 → 0.90× at 1024, 0.95× at 4096
+  either way): there the gap is ulmBLAS's DGEMM.
+- Column-dominant matrices: the same picture (DLASWP is the same code in
+  all three configurations).
+
 ## Reproduce
 
 ```sh
@@ -299,6 +343,9 @@ julia --project=lapack -e 'using Pkg; Pkg.instantiate()'
 julia --project=lapack lapack/verify.jl
 julia --project=lapack lapack/test.jl
 julia --project=lapack lapack/coldom.jl                 # column-dominant matrices
+CONFIGS=netlib_ulmblas,netlib_ulmblas_obtrsm,netlib_openblas MATRIX=dense,coldom \
+    julia -t1 --project=lapack lapack/bench.jl t.tsv     # with OpenBLAS's DTRSM
+julia lapack/plot_trsm.jl OUTDIR "Ice Lake=t.tsv" ...
 julia -t1 --project=lapack lapack/profile.jl p.tsv      # time per BLAS routine
 julia lapack/plot_profile.jl OUTDIR "Ice Lake=p.tsv" ...                # one figure per routine
 julia -t1 --project=lapack lapack/bench.jl results.tsv   # [n ...]
@@ -312,7 +359,7 @@ LAPACK tarball, R/src = these sources), then
 `sbatch -p dev_cpu_il cluster/job.sh R JULIA` (build, verify, bindings,
 tests, benchmark on one exclusive node); `cluster/job-coldom.sh` for the
 column-dominant matrices, `cluster/job-profile.sh` for the time per BLAS
-routine.
+routine, `cluster/job-trsm.sh` for ulmBLAS with OpenBLAS's DTRSM.
 
 ## Limitations
 

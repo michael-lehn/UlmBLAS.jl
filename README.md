@@ -370,4 +370,24 @@ BLAS and with ulmBLAS (top, log scale) and the ratio (bottom):
   (a small part of the time).  The rest of DGETRF (DLASWP, LAPACK code) is
   the same in both.
 
+### ulmBLAS with OpenBLAS's DTRSM
+
+The same DGETRF benchmark with a fourth configuration: Netlib LAPACK +
+ulmBLAS, but DTRSM from OpenBLAS (only the LBT entry of `dtrsm_64_`
+changed).  Speedup over Netlib LAPACK + OpenBLAS's BLAS:
+
+![DGETRF with OpenBLAS's DTRSM, random](lapack/results/trsm-dense.svg)
+
+- **Small matrices:** OpenBLAS's DTRSM removes more than half of the gap
+  (n = 8: 0.14× → 0.50× on Ice Lake, 0.10× → 0.50× on Zen 4; n = 128:
+  0.36× → 0.60× and 0.33× → 0.73×).  The rest, a factor of about 2 for
+  n ≤ 64, is in the other tiny BLAS calls, mostly DGEMM (see the time per
+  routine).
+- **Large matrices:** on Zen 4, with OpenBLAS's DTRSM Netlib + ulmBLAS
+  reaches Netlib + OpenBLAS's BLAS for n ≥ 1024 (0.97–1.03×); on Ice Lake
+  it changes little for n ≥ 1024 (0.88 → 0.90× at 1024, 0.95× at 4096
+  either way): there the gap is ulmBLAS's DGEMM.
+- Column-dominant matrices: the same picture (DLASWP is the same code in
+  all three configurations).
+
 Details, tables and raw data: [`lapack/README.md`](lapack/README.md).

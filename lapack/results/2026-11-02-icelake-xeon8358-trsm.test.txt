@@ -1,0 +1,142 @@
+Julia:        1.13.3, Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz (128 threads)
+UlmBLAS:      $W/lapack-exp/defaf44/depot/artifacts/99384b6c0a6eb6834c392288fe6ec65649201424/lib/skylakex/libulmblas_lbt.so (variant skylakex)
+OpenBLAS:     $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+Netlib:       $W/lapack-exp/defaf44/liblapack-dev_cpu_il/lib/liblapack.so.3.12.0
+              Netlib LAPACK 3.12.1 (https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.1.tar.gz, sha256 2ca6407a001a474d4d4d35f3a61550156050c48016d949f0da0529c0aa052422)
+
+netlib_ulmblas: LBTConfig([ILP64] libopenblas64_.so, [ILP64] libulmblas_lbt.so, [ILP64] liblapack.so)
+  case                             INFO   pivots   residual OpenBLAS
+  random 1×1                          0    = ref          0        0
+  random 2×2                          0    = ref          0        0
+  random 3×3                          0    = ref     0.0345    0.123
+  random 7×7                          0    = ref     0.0208   0.0302
+  random 31×31                        0    = ref     0.0473   0.0502
+  random 63×63                        0    = ref     0.0351   0.0287
+  random 64×64                        0    = ref      0.027   0.0303
+  random 65×65                        0    = ref     0.0362   0.0427
+  random 127×127                      0    = ref     0.0274   0.0293
+  random 128×128                      0    = ref     0.0326   0.0318
+  random 129×129                      0    = ref     0.0292   0.0268
+  random 200×200                      0    = ref     0.0322   0.0293
+  random 500×500                      0    = ref     0.0366   0.0287
+  random 1000×1000                    0    = ref     0.0388   0.0171
+  random 300×100                      0    = ref     0.0147    0.016
+  random 100×300                      0    = ref    0.00966   0.0111
+  random 1×50                         0    = ref          0        0
+  random 50×1                         0    = ref    0.00148  0.00148
+  random 129×64                       0    = ref      0.027   0.0261
+  random 64×129                       0    = ref     0.0143   0.0158
+  random 1000×257                     0    = ref     0.0155   0.0129
+  random 257×1000                     0    = ref     0.0108  0.00827
+  random 100×100, lda = 113           0    = ref     0.0256   0.0316
+  random 200×200, lda = 213           0    = ref     0.0322   0.0318
+  random 65×30, lda = 78              0    = ref     0.0307   0.0308
+  random 30×65, lda = 43              0    = ref     0.0214   0.0197
+  known pivots 10×10                  0    = ref     0.0327   0.0371
+  known pivots 200×200                0    = ref    0.00615  0.00467
+  known pivots 300×120                0    = ref    0.00342  0.00372
+  known pivots 120×300                0    = ref     0.0025  0.00245
+  anti-diagonal 150×150               0    = ref    0.00618  0.00616
+  zero 1×1                            1    = ref          0        0
+  zero 5×5                            1    = ref          0        0
+  zero 100×100                        1    = ref          0        0
+  ones 5×5                            2    = ref          0        0
+  ones 100×100                        2    = ref          0        0
+  zero column 3 of 8×8                3    = ref     0.0431   0.0509
+  zero column 37 of 100×100          37    = ref     0.0293   0.0303
+  zero column 64 of 300×300          64    = ref     0.0397   0.0306
+  zero column 65 of 300×300          65    = ref     0.0435   0.0248
+  zero column 300 of 300×300        300    = ref     0.0382   0.0259
+  zero column 50 of 120×80           50    = ref     0.0265   0.0266
+
+netlib_ulmblas_obtrsm: LBTConfig([ILP64] libopenblas64_.so, [ILP64] libulmblas_lbt.so, [ILP64] liblapack.so)
+  case                             INFO   pivots   residual OpenBLAS
+  random 1×1                          0    = ref          0        0
+  random 2×2                          0    = ref          0        0
+  random 3×3                          0    = ref     0.0345    0.123
+  random 7×7                          0    = ref     0.0208   0.0302
+  random 31×31                        0    = ref     0.0411   0.0502
+  random 63×63                        0    = ref     0.0301   0.0287
+  random 64×64                        0    = ref      0.027   0.0303
+  random 65×65                        0    = ref     0.0362   0.0427
+  random 127×127                      0    = ref     0.0274   0.0293
+  random 128×128                      0    = ref     0.0326   0.0318
+  random 129×129                      0    = ref     0.0292   0.0268
+  random 200×200                      0    = ref     0.0322   0.0293
+  random 500×500                      0    = ref     0.0366   0.0287
+  random 1000×1000                    0    = ref     0.0388   0.0171
+  random 300×100                      0    = ref     0.0159    0.016
+  random 100×300                      0    = ref     0.0104   0.0111
+  random 1×50                         0    = ref          0        0
+  random 50×1                         0    = ref    0.00148  0.00148
+  random 129×64                       0    = ref      0.027   0.0261
+  random 64×129                       0    = ref     0.0143   0.0158
+  random 1000×257                     0    = ref     0.0155   0.0129
+  random 257×1000                     0    = ref     0.0108  0.00827
+  random 100×100, lda = 113           0    = ref      0.025   0.0316
+  random 200×200, lda = 213           0    = ref     0.0322   0.0318
+  random 65×30, lda = 78              0    = ref     0.0284   0.0308
+  random 30×65, lda = 43              0    = ref     0.0178   0.0197
+  known pivots 10×10                  0    = ref     0.0327   0.0371
+  known pivots 200×200                0    = ref    0.00615  0.00467
+  known pivots 300×120                0    = ref    0.00333  0.00372
+  known pivots 120×300                0    = ref    0.00222  0.00245
+  anti-diagonal 150×150               0    = ref    0.00618  0.00616
+  zero 1×1                            1    = ref          0        0
+  zero 5×5                            1    = ref          0        0
+  zero 100×100                        1    = ref          0        0
+  ones 5×5                            2    = ref          0        0
+  ones 100×100                        2    = ref          0        0
+  zero column 3 of 8×8                3    = ref     0.0431   0.0509
+  zero column 37 of 100×100          37    = ref     0.0293   0.0303
+  zero column 64 of 300×300          64    = ref     0.0397   0.0306
+  zero column 65 of 300×300          65    = ref     0.0422   0.0248
+  zero column 300 of 300×300        300    = ref     0.0373   0.0259
+  zero column 50 of 120×80           50    = ref     0.0265   0.0266
+
+netlib_openblas: LBTConfig([ILP64] libopenblas64_.so, [ILP64] liblapack.so)
+  case                             INFO   pivots   residual OpenBLAS
+  random 1×1                          0    = ref          0        0
+  random 2×2                          0    = ref          0        0
+  random 3×3                          0    = ref     0.0345    0.123
+  random 7×7                          0    = ref     0.0208   0.0302
+  random 31×31                        0    = ref     0.0411   0.0502
+  random 63×63                        0    = ref     0.0301   0.0287
+  random 64×64                        0    = ref      0.027   0.0303
+  random 65×65                        0    = ref     0.0364   0.0427
+  random 127×127                      0    = ref     0.0274   0.0293
+  random 128×128                      0    = ref     0.0326   0.0318
+  random 129×129                      0    = ref     0.0287   0.0268
+  random 200×200                      0    = ref     0.0322   0.0293
+  random 500×500                      0    = ref     0.0379   0.0287
+  random 1000×1000                    0    = ref     0.0388   0.0171
+  random 300×100                      0    = ref     0.0131    0.016
+  random 100×300                      0    = ref     0.0103   0.0111
+  random 1×50                         0    = ref          0        0
+  random 50×1                         0    = ref    0.00148  0.00148
+  random 129×64                       0    = ref      0.027   0.0261
+  random 64×129                       0    = ref     0.0143   0.0158
+  random 1000×257                     0    = ref     0.0155   0.0129
+  random 257×1000                     0    = ref     0.0107  0.00827
+  random 100×100, lda = 113           0    = ref     0.0258   0.0316
+  random 200×200, lda = 213           0    = ref     0.0322   0.0318
+  random 65×30, lda = 78              0    = ref     0.0284   0.0308
+  random 30×65, lda = 43              0    = ref     0.0178   0.0197
+  known pivots 10×10                  0    = ref     0.0327   0.0371
+  known pivots 200×200                0    = ref    0.00615  0.00467
+  known pivots 300×120                0    = ref    0.00343  0.00372
+  known pivots 120×300                0    = ref    0.00253  0.00245
+  anti-diagonal 150×150               0    = ref    0.00618  0.00616
+  zero 1×1                            1    = ref          0        0
+  zero 5×5                            1    = ref          0        0
+  zero 100×100                        1    = ref          0        0
+  ones 5×5                            2    = ref          0        0
+  ones 100×100                        2    = ref          0        0
+  zero column 3 of 8×8                3    = ref     0.0431   0.0509
+  zero column 37 of 100×100          37    = ref     0.0283   0.0303
+  zero column 64 of 300×300          64    = ref     0.0392   0.0306
+  zero column 65 of 300×300          65    = ref     0.0366   0.0248
+  zero column 300 of 300×300        300    = ref     0.0382   0.0259
+  zero column 50 of 120×80           50    = ref     0.0265   0.0266
+Test Summary: | Pass  Total  Time
+DGETRF        |  948    948  4.0s

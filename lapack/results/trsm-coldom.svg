@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="968" height="472" viewBox="0 0 968 472" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+<title>Netlib DGETRF with OpenBLAS's DTRSM in ulmBLAS</title>
+<style>
+  .surface { fill: #fcfcfb; } .t1 { fill: #0b0b0b; } .t2 { fill: #52514e; }
+  .grid { stroke: #e3e2de; stroke-width: 1; } .axis { stroke: #8f8e88; stroke-width: 1; }
+  .ref { stroke: #8f8e88; stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .s1 { stroke: #eb6834; fill: none; stroke-width: 2; } .m1 { fill: #eb6834; stroke: #fcfcfb; stroke-width: 2; } .k1 { fill: #eb6834; }
+  .s2 { stroke: #2a78d6; fill: none; stroke-width: 2; } .m2 { fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2; } .k2 { fill: #2a78d6; }
+  @media (prefers-color-scheme: dark) {
+    .surface { fill: #1a1a19; } .t1 { fill: #f0efec; } .t2 { fill: #c3c2b7; }
+    .grid { stroke: #34332f; } .axis, .ref { stroke: #6b6a65; }
+    .s1 { stroke: #d95926; } .m1 { fill: #d95926; stroke: #1a1a19; } .k1 { fill: #d95926; }
+    .s2 { stroke: #3987e5; } .m2 { fill: #3987e5; stroke: #1a1a19; } .k2 { fill: #3987e5; }
+  }
+</style>
+<rect class="surface" x="0" y="0" width="968" height="472" rx="8"/>
+<text class="t1" x="24" y="28" font-size="15" font-weight="600">Netlib DGETRF, column-dominant matrices (no row interchanges): speedup over Netlib + OpenBLAS's BLAS</text>
+<rect class="k1" x="24" y="44" width="12" height="12" rx="2"/>
+<text class="t2" x="41" y="54" font-size="12">Netlib LAPACK + ulmBLAS</text>
+<rect class="k2" x="212.20000000000002" y="44" width="12" height="12" rx="2"/>
+<text class="t2" x="229.20000000000002" y="54" font-size="12">Netlib LAPACK + ulmBLAS with OpenBLAS's DTRSM</text>
+<text class="t1" x="84" y="78" font-size="13" font-weight="600">Intel Xeon Platinum 8358 (Ice Lake)</text>
+<line class="grid" x1="84" x2="464" y1="392.0" y2="392.0"/>
+<text class="t2" x="77" y="396.0" font-size="11" text-anchor="end">0.0×</text>
+<line class="grid" x1="84" x2="464" y1="364.7" y2="364.7"/>
+<text class="t2" x="77" y="368.7" font-size="11" text-anchor="end">0.1×</text>
+<line class="grid" x1="84" x2="464" y1="337.5" y2="337.5"/>
+<text class="t2" x="77" y="341.5" font-size="11" text-anchor="end">0.2×</text>
+<line class="grid" x1="84" x2="464" y1="310.2" y2="310.2"/>
+<text class="t2" x="77" y="314.2" font-size="11" text-anchor="end">0.3×</text>
+<line class="grid" x1="84" x2="464" y1="282.9" y2="282.9"/>
+<text class="t2" x="77" y="286.9" font-size="11" text-anchor="end">0.4×</text>
+<line class="grid" x1="84" x2="464" y1="255.6" y2="255.6"/>
+<text class="t2" x="77" y="259.6" font-size="11" text-anchor="end">0.5×</text>
+<line class="grid" x1="84" x2="464" y1="228.4" y2="228.4"/>
+<text class="t2" x="77" y="232.4" font-size="11" text-anchor="end">0.6×</text>
+<line class="grid" x1="84" x2="464" y1="201.1" y2="201.1"/>
+<text class="t2" x="77" y="205.1" font-size="11" text-anchor="end">0.7×</text>
+<line class="grid" x1="84" x2="464" y1="173.8" y2="173.8"/>
+<text class="t2" x="77" y="177.8" font-size="11" text-anchor="end">0.8×</text>
+<line class="grid" x1="84" x2="464" y1="146.5" y2="146.5"/>
+<text class="t2" x="77" y="150.5" font-size="11" text-anchor="end">0.9×</text>
+<line class="grid" x1="84" x2="464" y1="119.3" y2="119.3"/>
+<text class="t2" x="77" y="123.3" font-size="11" text-anchor="end">1.0×</text>
+<line class="grid" x1="84" x2="464" y1="92.0" y2="92.0"/>
+<text class="t2" x="77" y="96.0" font-size="11" text-anchor="end">1.1×</text>
+<line class="ref" x1="84" x2="464" y1="119.3" y2="119.3"/>
+<text class="t2" x="84.0" y="408" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="179.0" y="408" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="274.0" y="408" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="369.0" y="408" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="464.0" y="408" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="84" x2="464" y1="392" y2="392"/>
+<text class="t2" x="274.0" y="426" font-size="12" text-anchor="middle">n (n × n matrix)</text>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(26 242.0) rotate(-90)">time with OpenBLAS's BLAS / time</text>
+<path class="s1" d="M84.7 354.3 L85.1 351.2 L85.5 352.1 L86.2 345.0 L87.0 343.4 L88.5 331.3 L89.9 327.0 L92.9 314.2 L95.9 303.7 L101.8 278.0 L107.8 254.8 L119.6 227.6 L131.5 200.6 L155.2 182.3 L179.0 164.5 L226.5 151.0 L274.0 145.8 L369.0 139.1 L464.0 138.9"/>
+<circle class="m1" cx="84.7" cy="354.3" r="3.5"><title>Netlib + ulmBLAS, n = 8: 0.14× (8.6 µs vs. 1.2 µs)</title></circle>
+<circle class="m1" cx="85.1" cy="351.2" r="3.5"><title>Netlib + ulmBLAS, n = 12: 0.15× (14.4 µs vs. 2.2 µs)</title></circle>
+<circle class="m1" cx="85.5" cy="352.1" r="3.5"><title>Netlib + ulmBLAS, n = 16: 0.15× (20.1 µs vs. 2.9 µs)</title></circle>
+<circle class="m1" cx="86.2" cy="345.0" r="3.5"><title>Netlib + ulmBLAS, n = 24: 0.17× (31.7 µs vs. 5.5 µs)</title></circle>
+<circle class="m1" cx="87.0" cy="343.4" r="3.5"><title>Netlib + ulmBLAS, n = 32: 0.18× (45.0 µs vs. 8.0 µs)</title></circle>
+<circle class="m1" cx="88.5" cy="331.3" r="3.5"><title>Netlib + ulmBLAS, n = 48: 0.22× (69.4 µs vs. 15.4 µs)</title></circle>
+<circle class="m1" cx="89.9" cy="327.0" r="3.5"><title>Netlib + ulmBLAS, n = 64: 0.24× (101.4 µs vs. 24.2 µs)</title></circle>
+<circle class="m1" cx="92.9" cy="314.2" r="3.5"><title>Netlib + ulmBLAS, n = 96: 0.29× (178.1 µs vs. 50.8 µs)</title></circle>
+<circle class="m1" cx="95.9" cy="303.7" r="3.5"><title>Netlib + ulmBLAS, n = 128: 0.32× (269.4 µs vs. 87.3 µs)</title></circle>
+<circle class="m1" cx="101.8" cy="278.0" r="3.5"><title>Netlib + ulmBLAS, n = 192: 0.42× (508.0 µs vs. 212.3 µs)</title></circle>
+<circle class="m1" cx="107.8" cy="254.8" r="3.5"><title>Netlib + ulmBLAS, n = 256: 0.5× (824.0 µs vs. 414.5 µs)</title></circle>
+<circle class="m1" cx="119.6" cy="227.6" r="3.5"><title>Netlib + ulmBLAS, n = 384: 0.6× (1.8 ms vs. 1.1 ms)</title></circle>
+<circle class="m1" cx="131.5" cy="200.6" r="3.5"><title>Netlib + ulmBLAS, n = 512: 0.7× (3.3 ms vs. 2.3 ms)</title></circle>
+<circle class="m1" cx="155.2" cy="182.3" r="3.5"><title>Netlib + ulmBLAS, n = 768: 0.77× (7.9 ms vs. 6.1 ms)</title></circle>
+<circle class="m1" cx="179.0" cy="164.5" r="3.5"><title>Netlib + ulmBLAS, n = 1024: 0.83× (16.0 ms vs. 13.3 ms)</title></circle>
+<circle class="m1" cx="226.5" cy="151.0" r="3.5"><title>Netlib + ulmBLAS, n = 1536: 0.88× (44.5 ms vs. 39.3 ms)</title></circle>
+<circle class="m1" cx="274.0" cy="145.8" r="3.5"><title>Netlib + ulmBLAS, n = 2048: 0.9× (98.3 ms vs. 88.7 ms)</title></circle>
+<circle class="m1" cx="369.0" cy="139.1" r="3.5"><title>Netlib + ulmBLAS, n = 3072: 0.93× (307.9 ms vs. 285.5 ms)</title></circle>
+<circle class="m1" cx="464.0" cy="138.9" r="3.5"><title>Netlib + ulmBLAS, n = 4096: 0.93× (768.0 ms vs. 712.6 ms)</title></circle>
+<path class="s2" d="M84.7 258.2 L85.1 249.0 L85.5 252.7 L86.2 249.2 L87.0 248.7 L88.5 243.0 L89.9 246.6 L92.9 242.4 L95.9 238.9 L101.8 220.5 L107.8 206.2 L119.6 192.4 L131.5 183.8 L155.2 166.8 L179.0 157.9 L226.5 149.1 L274.0 144.6 L369.0 137.6 L464.0 136.4"/>
+<circle class="m2" cx="84.7" cy="258.2" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 8: 0.49× (2.4 µs vs. 1.2 µs)</title></circle>
+<circle class="m2" cx="85.1" cy="249.0" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 12: 0.52× (4.1 µs vs. 2.2 µs)</title></circle>
+<circle class="m2" cx="85.5" cy="252.7" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 16: 0.51× (5.8 µs vs. 2.9 µs)</title></circle>
+<circle class="m2" cx="86.2" cy="249.2" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 24: 0.52× (10.4 µs vs. 5.5 µs)</title></circle>
+<circle class="m2" cx="87.0" cy="248.7" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 32: 0.53× (15.3 µs vs. 8.0 µs)</title></circle>
+<circle class="m2" cx="88.5" cy="243.0" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 48: 0.55× (28.3 µs vs. 15.4 µs)</title></circle>
+<circle class="m2" cx="89.9" cy="246.6" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 64: 0.53× (45.4 µs vs. 24.2 µs)</title></circle>
+<circle class="m2" cx="92.9" cy="242.4" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 96: 0.55× (92.5 µs vs. 50.8 µs)</title></circle>
+<circle class="m2" cx="95.9" cy="238.9" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 128: 0.56× (155.5 µs vs. 87.3 µs)</title></circle>
+<circle class="m2" cx="101.8" cy="220.5" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 192: 0.63× (337.7 µs vs. 212.3 µs)</title></circle>
+<circle class="m2" cx="107.8" cy="206.2" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 256: 0.68× (608.4 µs vs. 414.5 µs)</title></circle>
+<circle class="m2" cx="119.6" cy="192.4" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 384: 0.73× (1.5 ms vs. 1.1 ms)</title></circle>
+<circle class="m2" cx="131.5" cy="183.8" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 512: 0.76× (3.0 ms vs. 2.3 ms)</title></circle>
+<circle class="m2" cx="155.2" cy="166.8" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 768: 0.83× (7.3 ms vs. 6.1 ms)</title></circle>
+<circle class="m2" cx="179.0" cy="157.9" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 1024: 0.86× (15.5 ms vs. 13.3 ms)</title></circle>
+<circle class="m2" cx="226.5" cy="149.1" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 1536: 0.89× (44.1 ms vs. 39.3 ms)</title></circle>
+<circle class="m2" cx="274.0" cy="144.6" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 2048: 0.91× (97.8 ms vs. 88.7 ms)</title></circle>
+<circle class="m2" cx="369.0" cy="137.6" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 3072: 0.93× (306.0 ms vs. 285.5 ms)</title></circle>
+<circle class="m2" cx="464.0" cy="136.4" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 4096: 0.94× (760.4 ms vs. 712.6 ms)</title></circle>
+<text class="t1" x="564" y="78" font-size="13" font-weight="600">AMD EPYC 9454 (Zen 4)</text>
+<line class="grid" x1="564" x2="944" y1="392.0" y2="392.0"/>
+<text class="t2" x="557" y="396.0" font-size="11" text-anchor="end">0.0×</text>
+<line class="grid" x1="564" x2="944" y1="364.7" y2="364.7"/>
+<text class="t2" x="557" y="368.7" font-size="11" text-anchor="end">0.1×</text>
+<line class="grid" x1="564" x2="944" y1="337.5" y2="337.5"/>
+<text class="t2" x="557" y="341.5" font-size="11" text-anchor="end">0.2×</text>
+<line class="grid" x1="564" x2="944" y1="310.2" y2="310.2"/>
+<text class="t2" x="557" y="314.2" font-size="11" text-anchor="end">0.3×</text>
+<line class="grid" x1="564" x2="944" y1="282.9" y2="282.9"/>
+<text class="t2" x="557" y="286.9" font-size="11" text-anchor="end">0.4×</text>
+<line class="grid" x1="564" x2="944" y1="255.6" y2="255.6"/>
+<text class="t2" x="557" y="259.6" font-size="11" text-anchor="end">0.5×</text>
+<line class="grid" x1="564" x2="944" y1="228.4" y2="228.4"/>
+<text class="t2" x="557" y="232.4" font-size="11" text-anchor="end">0.6×</text>
+<line class="grid" x1="564" x2="944" y1="201.1" y2="201.1"/>
+<text class="t2" x="557" y="205.1" font-size="11" text-anchor="end">0.7×</text>
+<line class="grid" x1="564" x2="944" y1="173.8" y2="173.8"/>
+<text class="t2" x="557" y="177.8" font-size="11" text-anchor="end">0.8×</text>
+<line class="grid" x1="564" x2="944" y1="146.5" y2="146.5"/>
+<text class="t2" x="557" y="150.5" font-size="11" text-anchor="end">0.9×</text>
+<line class="grid" x1="564" x2="944" y1="119.3" y2="119.3"/>
+<text class="t2" x="557" y="123.3" font-size="11" text-anchor="end">1.0×</text>
+<line class="grid" x1="564" x2="944" y1="92.0" y2="92.0"/>
+<text class="t2" x="557" y="96.0" font-size="11" text-anchor="end">1.1×</text>
+<line class="ref" x1="564" x2="944" y1="119.3" y2="119.3"/>
+<text class="t2" x="564.0" y="408" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="659.0" y="408" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="754.0" y="408" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="849.0" y="408" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="944.0" y="408" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="564" x2="944" y1="392" y2="392"/>
+<text class="t2" x="754.0" y="426" font-size="12" text-anchor="middle">n (n × n matrix)</text>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(506 242.0) rotate(-90)">time with OpenBLAS's BLAS / time</text>
+<path class="s1" d="M564.7 365.8 L565.1 360.8 L565.5 363.6 L566.2 356.4 L567.0 355.9 L568.5 345.3 L569.9 340.9 L572.9 324.8 L575.9 311.0 L581.8 281.4 L587.8 256.9 L599.6 221.9 L611.5 191.5 L635.2 171.6 L659.0 154.1 L706.5 139.4 L754.0 127.4 L849.0 127.0 L944.0 110.5"/>
+<circle class="m1" cx="564.7" cy="365.8" r="3.5"><title>Netlib + ulmBLAS, n = 8: 0.1× (7.7 µs vs. 740 ns)</title></circle>
+<circle class="m1" cx="565.1" cy="360.8" r="3.5"><title>Netlib + ulmBLAS, n = 12: 0.11× (12.2 µs vs. 1.4 µs)</title></circle>
+<circle class="m1" cx="565.5" cy="363.6" r="3.5"><title>Netlib + ulmBLAS, n = 16: 0.1× (18.1 µs vs. 1.9 µs)</title></circle>
+<circle class="m1" cx="566.2" cy="356.4" r="3.5"><title>Netlib + ulmBLAS, n = 24: 0.13× (27.2 µs vs. 3.6 µs)</title></circle>
+<circle class="m1" cx="567.0" cy="355.9" r="3.5"><title>Netlib + ulmBLAS, n = 32: 0.13× (40.1 µs vs. 5.3 µs)</title></circle>
+<circle class="m1" cx="568.5" cy="345.3" r="3.5"><title>Netlib + ulmBLAS, n = 48: 0.17× (62.1 µs vs. 10.6 µs)</title></circle>
+<circle class="m1" cx="569.9" cy="340.9" r="3.5"><title>Netlib + ulmBLAS, n = 64: 0.19× (91.6 µs vs. 17.2 µs)</title></circle>
+<circle class="m1" cx="572.9" cy="324.8" r="3.5"><title>Netlib + ulmBLAS, n = 96: 0.25× (158.1 µs vs. 39.0 µs)</title></circle>
+<circle class="m1" cx="575.9" cy="311.0" r="3.5"><title>Netlib + ulmBLAS, n = 128: 0.3× (236.9 µs vs. 70.4 µs)</title></circle>
+<circle class="m1" cx="581.8" cy="281.4" r="3.5"><title>Netlib + ulmBLAS, n = 192: 0.41× (451.5 µs vs. 183.0 µs)</title></circle>
+<circle class="m1" cx="587.8" cy="256.9" r="3.5"><title>Netlib + ulmBLAS, n = 256: 0.5× (752.1 µs vs. 372.5 µs)</title></circle>
+<circle class="m1" cx="599.6" cy="221.9" r="3.5"><title>Netlib + ulmBLAS, n = 384: 0.62× (1.7 ms vs. 1.0 ms)</title></circle>
+<circle class="m1" cx="611.5" cy="191.5" r="3.5"><title>Netlib + ulmBLAS, n = 512: 0.74× (3.2 ms vs. 2.3 ms)</title></circle>
+<circle class="m1" cx="635.2" cy="171.6" r="3.5"><title>Netlib + ulmBLAS, n = 768: 0.81× (8.5 ms vs. 6.8 ms)</title></circle>
+<circle class="m1" cx="659.0" cy="154.1" r="3.5"><title>Netlib + ulmBLAS, n = 1024: 0.87× (17.8 ms vs. 15.5 ms)</title></circle>
+<circle class="m1" cx="706.5" cy="139.4" r="3.5"><title>Netlib + ulmBLAS, n = 1536: 0.93× (53.1 ms vs. 49.2 ms)</title></circle>
+<circle class="m1" cx="754.0" cy="127.4" r="3.5"><title>Netlib + ulmBLAS, n = 2048: 0.97× (118.9 ms vs. 115.4 ms)</title></circle>
+<circle class="m1" cx="849.0" cy="127.0" r="3.5"><title>Netlib + ulmBLAS, n = 3072: 0.97× (380.8 ms vs. 370.1 ms)</title></circle>
+<circle class="m1" cx="944.0" cy="110.5" r="3.5"><title>Netlib + ulmBLAS, n = 4096: 1.03× (902.7 ms vs. 931.8 ms)</title></circle>
+<path class="s2" d="M564.7 260.1 L565.1 245.1 L565.5 254.2 L566.2 237.6 L567.0 236.4 L568.5 227.9 L569.9 224.9 L572.9 211.6 L575.9 205.1 L581.8 186.0 L587.8 173.4 L599.6 160.1 L611.5 143.7 L635.2 141.5 L659.0 132.8 L706.5 127.2 L754.0 119.1 L849.0 122.5 L944.0 107.6"/>
+<circle class="m2" cx="564.7" cy="260.1" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 8: 0.48× (1.5 µs vs. 740 ns)</title></circle>
+<circle class="m2" cx="565.1" cy="245.1" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 12: 0.54× (2.6 µs vs. 1.4 µs)</title></circle>
+<circle class="m2" cx="565.5" cy="254.2" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 16: 0.51× (3.7 µs vs. 1.9 µs)</title></circle>
+<circle class="m2" cx="566.2" cy="237.6" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 24: 0.57× (6.3 µs vs. 3.6 µs)</title></circle>
+<circle class="m2" cx="567.0" cy="236.4" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 32: 0.57× (9.3 µs vs. 5.3 µs)</title></circle>
+<circle class="m2" cx="568.5" cy="227.9" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 48: 0.6× (17.6 µs vs. 10.6 µs)</title></circle>
+<circle class="m2" cx="569.9" cy="224.9" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 64: 0.61× (28.0 µs vs. 17.2 µs)</title></circle>
+<circle class="m2" cx="572.9" cy="211.6" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 96: 0.66× (58.9 µs vs. 39.0 µs)</title></circle>
+<circle class="m2" cx="575.9" cy="205.1" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 128: 0.69× (102.7 µs vs. 70.4 µs)</title></circle>
+<circle class="m2" cx="581.8" cy="186.0" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 192: 0.76× (242.3 µs vs. 183.0 µs)</title></circle>
+<circle class="m2" cx="587.8" cy="173.4" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 256: 0.8× (464.9 µs vs. 372.5 µs)</title></circle>
+<circle class="m2" cx="599.6" cy="160.1" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 384: 0.85× (1.2 ms vs. 1.0 ms)</title></circle>
+<circle class="m2" cx="611.5" cy="143.7" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 512: 0.91× (2.6 ms vs. 2.3 ms)</title></circle>
+<circle class="m2" cx="635.2" cy="141.5" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 768: 0.92× (7.4 ms vs. 6.8 ms)</title></circle>
+<circle class="m2" cx="659.0" cy="132.8" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 1024: 0.95× (16.3 ms vs. 15.5 ms)</title></circle>
+<circle class="m2" cx="706.5" cy="127.2" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 1536: 0.97× (50.7 ms vs. 49.2 ms)</title></circle>
+<circle class="m2" cx="754.0" cy="119.1" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 2048: 1.0× (115.4 ms vs. 115.4 ms)</title></circle>
+<circle class="m2" cx="849.0" cy="122.5" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 3072: 0.99× (374.5 ms vs. 370.1 ms)</title></circle>
+<circle class="m2" cx="944.0" cy="107.6" r="3.5"><title>Netlib + ulmBLAS with OpenBLAS's DTRSM, n = 4096: 1.04× (893.6 ms vs. 931.8 ms)</title></circle>
+<text class="t2" x="24" y="458" font-size="11">Complete DGETRF calls, median, one thread; the same Netlib LAPACK 3.12.1 in all configurations; 1 = Netlib LAPACK + OpenBLAS's BLAS.</text>
+</svg>

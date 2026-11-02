@@ -1,0 +1,32 @@
+job 8244656 on uc2n601.localdomain, partition dev_cpu_il, 2026-11-02T22:40:31+01:00
+CPU(s):                                  128
+Model name:                              Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+Thread(s) per core:                      2
+Socket(s):                               2
+CPU(s) scaling MHz:                      41%
+CPU max MHz:                             3400.0000
+CPU min MHz:                             800.0000
+L1d cache:                               3 MiB (64 instances)
+L2 cache:                                80 MiB (64 instances)
+L3 cache:                                96 MiB (2 instances)
+pinned to core 2 (taskset)
+0.07 1.12 8.84 27/1759 740664
+Netlib LAPACK 3.12.1 (https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v3.12.1.tar.gz, sha256 2ca6407a001a474d4d4d35f3a61550156050c48016d949f0da0529c0aa052422)
+patch:     STOP removed from SRC/xerbla.f
+julia:     1.13.3 ($W/jlart/julia/julia-1.13.3/bin/julia)
+BLAS:      $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libblastrampoline.so.5
+gfortran:  GNU Fortran (GCC) 14.2.0
+cmake:     cmake version 3.26.5
+flags:     CMAKE_Fortran_FLAGS:STRING= CMAKE_Fortran_FLAGS_RELEASE:STRING=-O3 -DNDEBUG -O3 
+host:      Linux x86_64
+library:   $W/lapack-exp/defaf44/liblapack-dev_cpu_il/lib/liblapack.so
+	linux-vdso.so.1 (0x00007fffb3783000)
+	libblastrampoline.so.5 => $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libblastrampoline.so.5 (0x0000149a34bc0000)
+	libgfortran.so.5 => $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libgfortran.so.5 (0x0000149a34869000)
+	libm.so.6 => /lib64/libm.so.6 (0x0000149a3477a000)
+	libgcc_s.so.1 => $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libgcc_s.so.1 (0x0000149a3474d000)
+	libquadmath.so.0 => $W/jlart/julia/julia-1.13.3/bin/../lib/julia/libquadmath.so.0 (0x0000149a34703000)
+	libc.so.6 => /lib64/libc.so.6 (0x0000149a34400000)
+	libdl.so.2 => /lib64/libdl.so.2 (0x0000149a346fe000)
+	/lib64/ld-linux-x86-64.so.2 (0x0000149a35d71000)
+done 2026-11-02T22:47:18+01:00
