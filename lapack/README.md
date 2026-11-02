@@ -257,19 +257,20 @@ AMD EPYC 9454 (Zen 4):
 | 2048 | 104 → 103 ms (0.99×) | 10.5 → 14.4 ms (1.37×) | 410 → 1284 µs (3.13×) | 251 → 243 µs (0.97×) | 67.6 → 67.7 ms (1.00×) | 183 → 186 ms (1.02×) |
 | 4096 | 885 → 839 ms (0.95×) | 43.1 → 56.1 ms (1.30×) | 1.47 → 4.83 ms (3.28×) | 903 → 880 µs (0.97×) | 310 → 310 ms (1.00×) | 1239 → 1209 ms (0.98×) |
 
-The extra time with ulmBLAS per routine, in % of DGETRF with OpenBLAS's
-BLAS (the parts add up to the slowdown):
+For each routine, the time per DGETRF with OpenBLAS's BLAS and with
+ulmBLAS (top, log scale) and the ratio (bottom), random matrices (the
+column-dominant matrices make the same BLAS calls and give the same
+curves; only the rest of DGETRF, DLASWP, differs):
 
-![time per routine, random, n ≤ 512](results/profile-dense-small.svg)
+![DGEMM within DGETRF](results/profile-dgemm.svg)
 
-![time per routine, random, n ≥ 512](results/profile-dense-large.svg)
+![DTRSM within DGETRF](results/profile-dtrsm.svg)
 
-Column-dominant matrices (no row interchanges; the BLAS calls are the
-same, only DLASWP is faster):
+![IDAMAX within DGETRF](results/profile-idamax.svg)
 
-![time per routine, column-dominant, n ≤ 512](results/profile-coldom-small.svg)
+![DSCAL within DGETRF](results/profile-dscal.svg)
 
-![time per routine, column-dominant, n ≥ 512](results/profile-coldom-large.svg)
+![Rest of DGETRF within DGETRF](results/profile-lapack.svg)
 
 - **Small matrices (n ≤ 128): DTRSM**, then DGEMM.  DTRSM causes 62–82%
   (Ice Lake) and 82–90% (Zen 4) of the time lost, DGEMM most of the rest.
@@ -299,7 +300,7 @@ julia --project=lapack lapack/verify.jl
 julia --project=lapack lapack/test.jl
 julia --project=lapack lapack/coldom.jl                 # column-dominant matrices
 julia -t1 --project=lapack lapack/profile.jl p.tsv      # time per BLAS routine
-MATRIX=dense julia lapack/plot_profile.jl OUTDIR "Ice Lake=p.tsv" ...
+julia lapack/plot_profile.jl OUTDIR "Ice Lake=p.tsv" ...                # one figure per routine
 julia -t1 --project=lapack lapack/bench.jl results.tsv   # [n ...]
 julia lapack/plot.jl OUTDIR "Ice Lake=a.tsv" "Zen 4=b.tsv"
 MATRIX=dense,coldom julia -t1 --project=lapack lapack/bench.jl c.tsv

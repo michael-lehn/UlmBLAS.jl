@@ -1,0 +1,240 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="974" height="702" viewBox="0 0 974 702" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+<title>DTRSM within Netlib's DGETRF: ulmBLAS against OpenBLAS's BLAS</title>
+<style>
+  .surface { fill: #fcfcfb; } .t1 { fill: #0b0b0b; } .t2 { fill: #52514e; }
+  .grid { stroke: #e3e2de; stroke-width: 1; } .axis { stroke: #8f8e88; stroke-width: 1; }
+  .ref { stroke: #8f8e88; stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .s1 { stroke: #2a78d6; fill: none; stroke-width: 2; } .m1 { fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2; } .k1 { fill: #2a78d6; }
+  .s2 { stroke: #eb6834; fill: none; stroke-width: 2; } .m2 { fill: #eb6834; stroke: #fcfcfb; stroke-width: 2; } .k2 { fill: #eb6834; }
+  .s3 { stroke: #52514e; fill: none; stroke-width: 2; } .m3 { fill: #52514e; stroke: #fcfcfb; stroke-width: 2; }
+  @media (prefers-color-scheme: dark) {
+    .surface { fill: #1a1a19; } .t1 { fill: #f0efec; } .t2 { fill: #c3c2b7; }
+    .grid { stroke: #34332f; } .axis, .ref { stroke: #6b6a65; }
+    .s1 { stroke: #3987e5; } .m1 { fill: #3987e5; stroke: #1a1a19; } .k1 { fill: #3987e5; }
+    .s2 { stroke: #d95926; } .m2 { fill: #d95926; stroke: #1a1a19; } .k2 { fill: #d95926; }
+    .s3 { stroke: #c3c2b7; } .m3 { fill: #c3c2b7; stroke: #1a1a19; }
+  }
+</style>
+<rect class="surface" x="0" y="0" width="974" height="702" rx="8"/>
+<text class="t1" x="24" y="28" font-size="15" font-weight="600">DTRSM within Netlib's DGETRF (random matrices): ulmBLAS against OpenBLAS's BLAS</text>
+<rect class="k1" x="24" y="44" width="12" height="12" rx="2"/>
+<text class="t2" x="41" y="54" font-size="12">OpenBLAS's BLAS</text>
+<rect class="k2" x="161.0" y="44" width="12" height="12" rx="2"/>
+<text class="t2" x="178.0" y="54" font-size="12">ulmBLAS</text>
+<text class="t2" x="246.8" y="54" font-size="12">(bottom: time ulmBLAS / time OpenBLAS)</text>
+<text class="t1" x="90" y="78" font-size="13" font-weight="600">Intel Xeon Platinum 8358 (Ice Lake)</text>
+<line class="grid" x1="90" x2="470" y1="322.0" y2="322.0"/>
+<text class="t2" x="83" y="326.0" font-size="11" text-anchor="end">100 ns</text>
+<line class="grid" x1="90" x2="470" y1="283.7" y2="283.7"/>
+<text class="t2" x="83" y="287.7" font-size="11" text-anchor="end">1 µs</text>
+<line class="grid" x1="90" x2="470" y1="245.3" y2="245.3"/>
+<text class="t2" x="83" y="249.3" font-size="11" text-anchor="end">10 µs</text>
+<line class="grid" x1="90" x2="470" y1="207.0" y2="207.0"/>
+<text class="t2" x="83" y="211.0" font-size="11" text-anchor="end">100 µs</text>
+<line class="grid" x1="90" x2="470" y1="168.7" y2="168.7"/>
+<text class="t2" x="83" y="172.7" font-size="11" text-anchor="end">1 ms</text>
+<line class="grid" x1="90" x2="470" y1="130.3" y2="130.3"/>
+<text class="t2" x="83" y="134.3" font-size="11" text-anchor="end">10 ms</text>
+<line class="grid" x1="90" x2="470" y1="92.0" y2="92.0"/>
+<text class="t2" x="83" y="96.0" font-size="11" text-anchor="end">100 ms</text>
+<text class="t2" x="90.0" y="338" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="185.0" y="338" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="280.0" y="338" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="375.0" y="338" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="470.0" y="338" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="90" x2="470" y1="322" y2="322"/>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(28 207.0) rotate(-90)">time per DGETRF</text>
+<path class="s1" d="M90.7 287.8 L91.1 277.9 L91.5 272.8 L92.2 262.0 L93.0 255.8 L94.5 244.8 L95.9 236.8 L98.9 223.1 L101.9 215.4 L107.8 202.7 L113.8 193.6 L125.6 180.5 L137.5 169.7 L161.2 157.6 L185.0 146.8 L232.5 133.4 L280.0 121.6 L375.0 108.1 L470.0 97.9"/>
+<circle class="m1" cx="90.7" cy="287.8" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 8: 779 ns per DGETRF, 7 calls</title></circle>
+<circle class="m1" cx="91.1" cy="277.9" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 12: 1.4 µs per DGETRF, 11 calls</title></circle>
+<circle class="m1" cx="91.5" cy="272.8" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 16: 1.9 µs per DGETRF, 15 calls</title></circle>
+<circle class="m1" cx="92.2" cy="262.0" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 24: 3.7 µs per DGETRF, 23 calls</title></circle>
+<circle class="m1" cx="93.0" cy="255.8" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 32: 5.3 µs per DGETRF, 31 calls</title></circle>
+<circle class="m1" cx="94.5" cy="244.8" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 48: 10.3 µs per DGETRF, 47 calls</title></circle>
+<circle class="m1" cx="95.9" cy="236.8" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 64: 16.7 µs per DGETRF, 63 calls</title></circle>
+<circle class="m1" cx="98.9" cy="223.1" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 96: 38.0 µs per DGETRF, 95 calls</title></circle>
+<circle class="m1" cx="101.9" cy="215.4" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 128: 60.4 µs per DGETRF, 127 calls</title></circle>
+<circle class="m1" cx="107.8" cy="202.7" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 192: 129.4 µs per DGETRF, 191 calls</title></circle>
+<circle class="m1" cx="113.8" cy="193.6" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 256: 224.3 µs per DGETRF, 255 calls</title></circle>
+<circle class="m1" cx="125.6" cy="180.5" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 384: 492.5 µs per DGETRF, 383 calls</title></circle>
+<circle class="m1" cx="137.5" cy="169.7" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 512: 941.4 µs per DGETRF, 511 calls</title></circle>
+<circle class="m1" cx="161.2" cy="157.6" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 768: 1.9 ms per DGETRF, 767 calls</title></circle>
+<circle class="m1" cx="185.0" cy="146.8" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 1024: 3.7 ms per DGETRF, 1023 calls</title></circle>
+<circle class="m1" cx="232.5" cy="133.4" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 1536: 8.3 ms per DGETRF, 1535 calls</title></circle>
+<circle class="m1" cx="280.0" cy="121.6" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 2048: 16.9 ms per DGETRF, 2047 calls</title></circle>
+<circle class="m1" cx="375.0" cy="108.1" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 3072: 38.1 ms per DGETRF, 3071 calls</title></circle>
+<circle class="m1" cx="470.0" cy="97.9" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 4096: 70.1 ms per DGETRF, 4095 calls</title></circle>
+<path class="s2" d="M90.7 251.0 L91.1 243.4 L91.5 237.9 L92.2 230.6 L93.0 225.0 L94.5 217.4 L95.9 211.8 L98.9 203.3 L101.9 197.3 L107.8 188.6 L113.8 182.0 L125.6 172.1 L137.5 164.3 L161.2 153.3 L185.0 144.6 L232.5 130.6 L280.0 120.1 L375.0 106.7 L470.0 96.0"/>
+<circle class="m2" cx="90.7" cy="251.0" r="3.5"><title>DTRSM, ulmBLAS, n = 8: 7.1 µs per DGETRF, 7 calls</title></circle>
+<circle class="m2" cx="91.1" cy="243.4" r="3.5"><title>DTRSM, ulmBLAS, n = 12: 11.3 µs per DGETRF, 11 calls</title></circle>
+<circle class="m2" cx="91.5" cy="237.9" r="3.5"><title>DTRSM, ulmBLAS, n = 16: 15.6 µs per DGETRF, 15 calls</title></circle>
+<circle class="m2" cx="92.2" cy="230.6" r="3.5"><title>DTRSM, ulmBLAS, n = 24: 24.2 µs per DGETRF, 23 calls</title></circle>
+<circle class="m2" cx="93.0" cy="225.0" r="3.5"><title>DTRSM, ulmBLAS, n = 32: 33.9 µs per DGETRF, 31 calls</title></circle>
+<circle class="m2" cx="94.5" cy="217.4" r="3.5"><title>DTRSM, ulmBLAS, n = 48: 53.4 µs per DGETRF, 47 calls</title></circle>
+<circle class="m2" cx="95.9" cy="211.8" r="3.5"><title>DTRSM, ulmBLAS, n = 64: 74.8 µs per DGETRF, 63 calls</title></circle>
+<circle class="m2" cx="98.9" cy="203.3" r="3.5"><title>DTRSM, ulmBLAS, n = 96: 124.7 µs per DGETRF, 95 calls</title></circle>
+<circle class="m2" cx="101.9" cy="197.3" r="3.5"><title>DTRSM, ulmBLAS, n = 128: 179.0 µs per DGETRF, 127 calls</title></circle>
+<circle class="m2" cx="107.8" cy="188.6" r="3.5"><title>DTRSM, ulmBLAS, n = 192: 301.6 µs per DGETRF, 191 calls</title></circle>
+<circle class="m2" cx="113.8" cy="182.0" r="3.5"><title>DTRSM, ulmBLAS, n = 256: 449.9 µs per DGETRF, 255 calls</title></circle>
+<circle class="m2" cx="125.6" cy="172.1" r="3.5"><title>DTRSM, ulmBLAS, n = 384: 814.7 µs per DGETRF, 383 calls</title></circle>
+<circle class="m2" cx="137.5" cy="164.3" r="3.5"><title>DTRSM, ulmBLAS, n = 512: 1.3 ms per DGETRF, 511 calls</title></circle>
+<circle class="m2" cx="161.2" cy="153.3" r="3.5"><title>DTRSM, ulmBLAS, n = 768: 2.5 ms per DGETRF, 767 calls</title></circle>
+<circle class="m2" cx="185.0" cy="144.6" r="3.5"><title>DTRSM, ulmBLAS, n = 1024: 4.2 ms per DGETRF, 1023 calls</title></circle>
+<circle class="m2" cx="232.5" cy="130.6" r="3.5"><title>DTRSM, ulmBLAS, n = 1536: 9.8 ms per DGETRF, 1535 calls</title></circle>
+<circle class="m2" cx="280.0" cy="120.1" r="3.5"><title>DTRSM, ulmBLAS, n = 2048: 18.5 ms per DGETRF, 2047 calls</title></circle>
+<circle class="m2" cx="375.0" cy="106.7" r="3.5"><title>DTRSM, ulmBLAS, n = 3072: 41.4 ms per DGETRF, 3071 calls</title></circle>
+<circle class="m2" cx="470.0" cy="96.0" r="3.5"><title>DTRSM, ulmBLAS, n = 4096: 78.7 ms per DGETRF, 4095 calls</title></circle>
+<line class="grid" x1="90" x2="470" y1="632.0" y2="632.0"/>
+<text class="t2" x="83" y="636.0" font-size="11" text-anchor="end">0.0×</text>
+<line class="grid" x1="90" x2="470" y1="599.1" y2="599.1"/>
+<text class="t2" x="83" y="603.1" font-size="11" text-anchor="end">2.0×</text>
+<line class="grid" x1="90" x2="470" y1="566.3" y2="566.3"/>
+<text class="t2" x="83" y="570.3" font-size="11" text-anchor="end">4.0×</text>
+<line class="grid" x1="90" x2="470" y1="533.4" y2="533.4"/>
+<text class="t2" x="83" y="537.4" font-size="11" text-anchor="end">6.0×</text>
+<line class="grid" x1="90" x2="470" y1="500.6" y2="500.6"/>
+<text class="t2" x="83" y="504.6" font-size="11" text-anchor="end">8.0×</text>
+<line class="grid" x1="90" x2="470" y1="467.7" y2="467.7"/>
+<text class="t2" x="83" y="471.7" font-size="11" text-anchor="end">10.0×</text>
+<line class="grid" x1="90" x2="470" y1="434.9" y2="434.9"/>
+<text class="t2" x="83" y="438.9" font-size="11" text-anchor="end">12.0×</text>
+<line class="grid" x1="90" x2="470" y1="402.0" y2="402.0"/>
+<text class="t2" x="83" y="406.0" font-size="11" text-anchor="end">14.0×</text>
+<line class="ref" x1="90" x2="470" y1="615.6" y2="615.6"/>
+<text class="t2" x="90.0" y="648" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="185.0" y="648" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="280.0" y="648" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="375.0" y="648" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="470.0" y="648" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="90" x2="470" y1="632" y2="632"/>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(28 517.0) rotate(-90)">ulmBLAS / OpenBLAS</text>
+<path class="s3" d="M90.7 481.9 L91.1 501.0 L91.5 498.3 L92.2 523.9 L93.0 527.7 L94.5 547.0 L95.9 558.6 L98.9 578.1 L101.9 583.3 L107.8 593.7 L113.8 599.0 L125.6 604.8 L137.5 609.3 L161.2 610.8 L185.0 613.3 L232.5 612.7 L280.0 614.0 L375.0 614.2 L470.0 613.5"/>
+<circle class="m3" cx="90.7" cy="481.9" r="3.5"><title>DTRSM, n = 8: 9.13× (779 ns → 7.1 µs)</title></circle>
+<circle class="m3" cx="91.1" cy="501.0" r="3.5"><title>DTRSM, n = 12: 7.98× (1.4 µs → 11.3 µs)</title></circle>
+<circle class="m3" cx="91.5" cy="498.3" r="3.5"><title>DTRSM, n = 16: 8.14× (1.9 µs → 15.6 µs)</title></circle>
+<circle class="m3" cx="92.2" cy="523.9" r="3.5"><title>DTRSM, n = 24: 6.58× (3.7 µs → 24.2 µs)</title></circle>
+<circle class="m3" cx="93.0" cy="527.7" r="3.5"><title>DTRSM, n = 32: 6.35× (5.3 µs → 33.9 µs)</title></circle>
+<circle class="m3" cx="94.5" cy="547.0" r="3.5"><title>DTRSM, n = 48: 5.17× (10.3 µs → 53.4 µs)</title></circle>
+<circle class="m3" cx="95.9" cy="558.6" r="3.5"><title>DTRSM, n = 64: 4.47× (16.7 µs → 74.8 µs)</title></circle>
+<circle class="m3" cx="98.9" cy="578.1" r="3.5"><title>DTRSM, n = 96: 3.28× (38.0 µs → 124.7 µs)</title></circle>
+<circle class="m3" cx="101.9" cy="583.3" r="3.5"><title>DTRSM, n = 128: 2.96× (60.4 µs → 179.0 µs)</title></circle>
+<circle class="m3" cx="107.8" cy="593.7" r="3.5"><title>DTRSM, n = 192: 2.33× (129.4 µs → 301.6 µs)</title></circle>
+<circle class="m3" cx="113.8" cy="599.0" r="3.5"><title>DTRSM, n = 256: 2.01× (224.3 µs → 449.9 µs)</title></circle>
+<circle class="m3" cx="125.6" cy="604.8" r="3.5"><title>DTRSM, n = 384: 1.65× (492.5 µs → 814.7 µs)</title></circle>
+<circle class="m3" cx="137.5" cy="609.3" r="3.5"><title>DTRSM, n = 512: 1.38× (941.4 µs → 1.3 ms)</title></circle>
+<circle class="m3" cx="161.2" cy="610.8" r="3.5"><title>DTRSM, n = 768: 1.29× (1.9 ms → 2.5 ms)</title></circle>
+<circle class="m3" cx="185.0" cy="613.3" r="3.5"><title>DTRSM, n = 1024: 1.14× (3.7 ms → 4.2 ms)</title></circle>
+<circle class="m3" cx="232.5" cy="612.7" r="3.5"><title>DTRSM, n = 1536: 1.18× (8.3 ms → 9.8 ms)</title></circle>
+<circle class="m3" cx="280.0" cy="614.0" r="3.5"><title>DTRSM, n = 2048: 1.09× (16.9 ms → 18.5 ms)</title></circle>
+<circle class="m3" cx="375.0" cy="614.2" r="3.5"><title>DTRSM, n = 3072: 1.09× (38.1 ms → 41.4 ms)</title></circle>
+<circle class="m3" cx="470.0" cy="613.5" r="3.5"><title>DTRSM, n = 4096: 1.12× (70.1 ms → 78.7 ms)</title></circle>
+<text class="t2" x="280.0" y="666" font-size="12" text-anchor="middle">n (n × n matrix)</text>
+<text class="t1" x="570" y="78" font-size="13" font-weight="600">AMD EPYC 9454 (Zen 4)</text>
+<line class="grid" x1="570" x2="950" y1="322.0" y2="322.0"/>
+<text class="t2" x="563" y="326.0" font-size="11" text-anchor="end">100 ns</text>
+<line class="grid" x1="570" x2="950" y1="283.7" y2="283.7"/>
+<text class="t2" x="563" y="287.7" font-size="11" text-anchor="end">1 µs</text>
+<line class="grid" x1="570" x2="950" y1="245.3" y2="245.3"/>
+<text class="t2" x="563" y="249.3" font-size="11" text-anchor="end">10 µs</text>
+<line class="grid" x1="570" x2="950" y1="207.0" y2="207.0"/>
+<text class="t2" x="563" y="211.0" font-size="11" text-anchor="end">100 µs</text>
+<line class="grid" x1="570" x2="950" y1="168.7" y2="168.7"/>
+<text class="t2" x="563" y="172.7" font-size="11" text-anchor="end">1 ms</text>
+<line class="grid" x1="570" x2="950" y1="130.3" y2="130.3"/>
+<text class="t2" x="563" y="134.3" font-size="11" text-anchor="end">10 ms</text>
+<line class="grid" x1="570" x2="950" y1="92.0" y2="92.0"/>
+<text class="t2" x="563" y="96.0" font-size="11" text-anchor="end">100 ms</text>
+<text class="t2" x="570.0" y="338" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="665.0" y="338" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="760.0" y="338" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="855.0" y="338" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="950.0" y="338" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="570" x2="950" y1="322" y2="322"/>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(508 207.0) rotate(-90)">time per DGETRF</text>
+<path class="s1" d="M570.7 295.5 L571.1 285.1 L571.5 280.1 L572.2 269.3 L573.0 262.7 L574.5 251.1 L575.9 243.2 L578.9 229.7 L581.9 221.0 L587.8 208.0 L593.8 198.6 L605.6 185.3 L617.5 175.5 L641.2 162.3 L665.0 152.7 L712.5 139.3 L760.0 129.5 L855.0 114.9 L950.0 106.0"/>
+<circle class="m1" cx="570.7" cy="295.5" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 8: 490 ns per DGETRF, 7 calls</title></circle>
+<circle class="m1" cx="571.1" cy="285.1" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 12: 920 ns per DGETRF, 11 calls</title></circle>
+<circle class="m1" cx="571.5" cy="280.1" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 16: 1.2 µs per DGETRF, 15 calls</title></circle>
+<circle class="m1" cx="572.2" cy="269.3" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 24: 2.4 µs per DGETRF, 23 calls</title></circle>
+<circle class="m1" cx="573.0" cy="262.7" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 32: 3.5 µs per DGETRF, 31 calls</title></circle>
+<circle class="m1" cx="574.5" cy="251.1" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 48: 7.1 µs per DGETRF, 47 calls</title></circle>
+<circle class="m1" cx="575.9" cy="243.2" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 64: 11.3 µs per DGETRF, 63 calls</title></circle>
+<circle class="m1" cx="578.9" cy="229.7" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 96: 25.5 µs per DGETRF, 95 calls</title></circle>
+<circle class="m1" cx="581.9" cy="221.0" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 128: 43.0 µs per DGETRF, 127 calls</title></circle>
+<circle class="m1" cx="587.8" cy="208.0" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 192: 94.4 µs per DGETRF, 191 calls</title></circle>
+<circle class="m1" cx="593.8" cy="198.6" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 256: 165.9 µs per DGETRF, 255 calls</title></circle>
+<circle class="m1" cx="605.6" cy="185.3" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 384: 368.1 µs per DGETRF, 383 calls</title></circle>
+<circle class="m1" cx="617.5" cy="175.5" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 512: 663.2 µs per DGETRF, 511 calls</title></circle>
+<circle class="m1" cx="641.2" cy="162.3" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 768: 1.5 ms per DGETRF, 767 calls</title></circle>
+<circle class="m1" cx="665.0" cy="152.7" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 1024: 2.6 ms per DGETRF, 1023 calls</title></circle>
+<circle class="m1" cx="712.5" cy="139.3" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 1536: 5.9 ms per DGETRF, 1535 calls</title></circle>
+<circle class="m1" cx="760.0" cy="129.5" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 2048: 10.5 ms per DGETRF, 2047 calls</title></circle>
+<circle class="m1" cx="855.0" cy="114.9" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 3072: 25.3 ms per DGETRF, 3071 calls</title></circle>
+<circle class="m1" cx="950.0" cy="106.0" r="3.5"><title>DTRSM, OpenBLAS's BLAS, n = 4096: 43.1 ms per DGETRF, 4095 calls</title></circle>
+<path class="s2" d="M570.7 252.3 L571.1 244.6 L571.5 238.2 L572.2 231.4 L573.0 225.0 L574.5 218.1 L575.9 211.9 L578.9 203.6 L581.9 197.7 L587.8 188.8 L593.8 182.1 L605.6 172.1 L617.5 164.7 L641.2 153.6 L665.0 145.3 L712.5 133.3 L760.0 124.3 L855.0 110.7 L950.0 101.6"/>
+<circle class="m2" cx="570.7" cy="252.3" r="3.5"><title>DTRSM, ulmBLAS, n = 8: 6.6 µs per DGETRF, 7 calls</title></circle>
+<circle class="m2" cx="571.1" cy="244.6" r="3.5"><title>DTRSM, ulmBLAS, n = 12: 10.5 µs per DGETRF, 11 calls</title></circle>
+<circle class="m2" cx="571.5" cy="238.2" r="3.5"><title>DTRSM, ulmBLAS, n = 16: 15.4 µs per DGETRF, 15 calls</title></circle>
+<circle class="m2" cx="572.2" cy="231.4" r="3.5"><title>DTRSM, ulmBLAS, n = 24: 23.2 µs per DGETRF, 23 calls</title></circle>
+<circle class="m2" cx="573.0" cy="225.0" r="3.5"><title>DTRSM, ulmBLAS, n = 32: 33.9 µs per DGETRF, 31 calls</title></circle>
+<circle class="m2" cx="574.5" cy="218.1" r="3.5"><title>DTRSM, ulmBLAS, n = 48: 51.3 µs per DGETRF, 47 calls</title></circle>
+<circle class="m2" cx="575.9" cy="211.9" r="3.5"><title>DTRSM, ulmBLAS, n = 64: 74.6 µs per DGETRF, 63 calls</title></circle>
+<circle class="m2" cx="578.9" cy="203.6" r="3.5"><title>DTRSM, ulmBLAS, n = 96: 123.0 µs per DGETRF, 95 calls</title></circle>
+<circle class="m2" cx="581.9" cy="197.7" r="3.5"><title>DTRSM, ulmBLAS, n = 128: 174.6 µs per DGETRF, 127 calls</title></circle>
+<circle class="m2" cx="587.8" cy="188.8" r="3.5"><title>DTRSM, ulmBLAS, n = 192: 298.6 µs per DGETRF, 191 calls</title></circle>
+<circle class="m2" cx="593.8" cy="182.1" r="3.5"><title>DTRSM, ulmBLAS, n = 256: 445.9 µs per DGETRF, 255 calls</title></circle>
+<circle class="m2" cx="605.6" cy="172.1" r="3.5"><title>DTRSM, ulmBLAS, n = 384: 812.4 µs per DGETRF, 383 calls</title></circle>
+<circle class="m2" cx="617.5" cy="164.7" r="3.5"><title>DTRSM, ulmBLAS, n = 512: 1.3 ms per DGETRF, 511 calls</title></circle>
+<circle class="m2" cx="641.2" cy="153.6" r="3.5"><title>DTRSM, ulmBLAS, n = 768: 2.5 ms per DGETRF, 767 calls</title></circle>
+<circle class="m2" cx="665.0" cy="145.3" r="3.5"><title>DTRSM, ulmBLAS, n = 1024: 4.1 ms per DGETRF, 1023 calls</title></circle>
+<circle class="m2" cx="712.5" cy="133.3" r="3.5"><title>DTRSM, ulmBLAS, n = 1536: 8.4 ms per DGETRF, 1535 calls</title></circle>
+<circle class="m2" cx="760.0" cy="124.3" r="3.5"><title>DTRSM, ulmBLAS, n = 2048: 14.4 ms per DGETRF, 2047 calls</title></circle>
+<circle class="m2" cx="855.0" cy="110.7" r="3.5"><title>DTRSM, ulmBLAS, n = 3072: 32.6 ms per DGETRF, 3071 calls</title></circle>
+<circle class="m2" cx="950.0" cy="101.6" r="3.5"><title>DTRSM, ulmBLAS, n = 4096: 56.1 ms per DGETRF, 4095 calls</title></circle>
+<line class="grid" x1="570" x2="950" y1="632.0" y2="632.0"/>
+<text class="t2" x="563" y="636.0" font-size="11" text-anchor="end">0.0×</text>
+<line class="grid" x1="570" x2="950" y1="599.1" y2="599.1"/>
+<text class="t2" x="563" y="603.1" font-size="11" text-anchor="end">2.0×</text>
+<line class="grid" x1="570" x2="950" y1="566.3" y2="566.3"/>
+<text class="t2" x="563" y="570.3" font-size="11" text-anchor="end">4.0×</text>
+<line class="grid" x1="570" x2="950" y1="533.4" y2="533.4"/>
+<text class="t2" x="563" y="537.4" font-size="11" text-anchor="end">6.0×</text>
+<line class="grid" x1="570" x2="950" y1="500.6" y2="500.6"/>
+<text class="t2" x="563" y="504.6" font-size="11" text-anchor="end">8.0×</text>
+<line class="grid" x1="570" x2="950" y1="467.7" y2="467.7"/>
+<text class="t2" x="563" y="471.7" font-size="11" text-anchor="end">10.0×</text>
+<line class="grid" x1="570" x2="950" y1="434.9" y2="434.9"/>
+<text class="t2" x="563" y="438.9" font-size="11" text-anchor="end">12.0×</text>
+<line class="grid" x1="570" x2="950" y1="402.0" y2="402.0"/>
+<text class="t2" x="563" y="406.0" font-size="11" text-anchor="end">14.0×</text>
+<line class="ref" x1="570" x2="950" y1="615.6" y2="615.6"/>
+<text class="t2" x="570.0" y="648" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="665.0" y="648" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="760.0" y="648" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="855.0" y="648" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="950.0" y="648" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="570" x2="950" y1="632" y2="632"/>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(508 517.0) rotate(-90)">ulmBLAS / OpenBLAS</text>
+<path class="s3" d="M570.7 410.7 L571.1 445.2 L571.5 428.2 L572.2 471.5 L573.0 474.2 L574.5 512.7 L575.9 524.0 L578.9 552.8 L581.9 565.4 L587.8 580.0 L593.8 587.8 L605.6 595.7 L617.5 600.5 L641.2 604.3 L665.0 606.5 L712.5 608.5 L760.0 609.5 L855.0 610.8 L950.0 610.6"/>
+<circle class="m3" cx="570.7" cy="410.7" r="3.5"><title>DTRSM, n = 8: 13.47× (490 ns → 6.6 µs)</title></circle>
+<circle class="m3" cx="571.1" cy="445.2" r="3.5"><title>DTRSM, n = 12: 11.37× (920 ns → 10.5 µs)</title></circle>
+<circle class="m3" cx="571.5" cy="428.2" r="3.5"><title>DTRSM, n = 16: 12.4× (1.2 µs → 15.4 µs)</title></circle>
+<circle class="m3" cx="572.2" cy="471.5" r="3.5"><title>DTRSM, n = 24: 9.77× (2.4 µs → 23.2 µs)</title></circle>
+<circle class="m3" cx="573.0" cy="474.2" r="3.5"><title>DTRSM, n = 32: 9.6× (3.5 µs → 33.9 µs)</title></circle>
+<circle class="m3" cx="574.5" cy="512.7" r="3.5"><title>DTRSM, n = 48: 7.26× (7.1 µs → 51.3 µs)</title></circle>
+<circle class="m3" cx="575.9" cy="524.0" r="3.5"><title>DTRSM, n = 64: 6.57× (11.3 µs → 74.6 µs)</title></circle>
+<circle class="m3" cx="578.9" cy="552.8" r="3.5"><title>DTRSM, n = 96: 4.82× (25.5 µs → 123.0 µs)</title></circle>
+<circle class="m3" cx="581.9" cy="565.4" r="3.5"><title>DTRSM, n = 128: 4.06× (43.0 µs → 174.6 µs)</title></circle>
+<circle class="m3" cx="587.8" cy="580.0" r="3.5"><title>DTRSM, n = 192: 3.16× (94.4 µs → 298.6 µs)</title></circle>
+<circle class="m3" cx="593.8" cy="587.8" r="3.5"><title>DTRSM, n = 256: 2.69× (165.9 µs → 445.9 µs)</title></circle>
+<circle class="m3" cx="605.6" cy="595.7" r="3.5"><title>DTRSM, n = 384: 2.21× (368.1 µs → 812.4 µs)</title></circle>
+<circle class="m3" cx="617.5" cy="600.5" r="3.5"><title>DTRSM, n = 512: 1.92× (663.2 µs → 1.3 ms)</title></circle>
+<circle class="m3" cx="641.2" cy="604.3" r="3.5"><title>DTRSM, n = 768: 1.69× (1.5 ms → 2.5 ms)</title></circle>
+<circle class="m3" cx="665.0" cy="606.5" r="3.5"><title>DTRSM, n = 1024: 1.55× (2.6 ms → 4.1 ms)</title></circle>
+<circle class="m3" cx="712.5" cy="608.5" r="3.5"><title>DTRSM, n = 1536: 1.43× (5.9 ms → 8.4 ms)</title></circle>
+<circle class="m3" cx="760.0" cy="609.5" r="3.5"><title>DTRSM, n = 2048: 1.37× (10.5 ms → 14.4 ms)</title></circle>
+<circle class="m3" cx="855.0" cy="610.8" r="3.5"><title>DTRSM, n = 3072: 1.29× (25.3 ms → 32.6 ms)</title></circle>
+<circle class="m3" cx="950.0" cy="610.6" r="3.5"><title>DTRSM, n = 4096: 1.3× (43.1 ms → 56.1 ms)</title></circle>
+<text class="t2" x="760.0" y="666" font-size="12" text-anchor="middle">n (n × n matrix)</text>
+<text class="t2" x="24" y="690" font-size="11">Netlib LAPACK 3.12.1, the same code in both configurations; every BLAS call timed (median per DGETRF); one thread.</text>
+</svg>

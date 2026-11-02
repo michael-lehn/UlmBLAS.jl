@@ -349,12 +349,18 @@ were measured in the same job, taking turns.
 
 Netlib LAPACK + ulmBLAS against Netlib LAPACK + OpenBLAS's BLAS (the same
 LAPACK code, block sizes and DLASWP): every BLAS call of DGETRF timed,
-random matrices.  The extra time with ulmBLAS per routine, in % of
-DGETRF with OpenBLAS's BLAS:
+random matrices.  For each routine, the time per DGETRF with OpenBLAS's
+BLAS and with ulmBLAS (top, log scale) and the ratio (bottom):
 
-![time per routine, random, n ≤ 512](lapack/results/profile-dense-small.svg)
+![DGEMM within DGETRF](lapack/results/profile-dgemm.svg)
 
-![time per routine, random, n ≥ 512](lapack/results/profile-dense-large.svg)
+![DTRSM within DGETRF](lapack/results/profile-dtrsm.svg)
+
+![IDAMAX within DGETRF](lapack/results/profile-idamax.svg)
+
+![DSCAL within DGETRF](lapack/results/profile-dscal.svg)
+
+![Rest of DGETRF within DGETRF](lapack/results/profile-lapack.svg)
 
 - Small matrices: DTRSM (62–90% of the time lost; about 0.9 µs more per
   tiny call), then DGEMM.

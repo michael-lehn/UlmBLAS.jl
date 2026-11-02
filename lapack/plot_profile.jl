@@ -1,122 +1,142 @@
 #
-#  Where Netlib LAPACK + ulmBLAS loses against Netlib LAPACK + OpenBLAS's
+#  Each BLAS routine within Netlib's DGETRF: ulmBLAS against OpenBLAS's
 #  BLAS, from the results of profile.jl, one panel per machine:
 #
 #      julia plot_profile.jl OUTDIR "Ice Lake=il.profile.tsv" "Zen 4=zen4.profile.tsv"
 #
-#  writes OUTDIR/profile-MATRIX-small.svg (n <= 512) and
-#  OUTDIR/profile-MATRIX-large.svg (n >= 512), MATRIX default dense: for
-#  each routine the time it takes longer with ulmBLAS (median per DGETRF),
-#  in % of the time of DGETRF with OpenBLAS's BLAS (without the timing
-#  wrappers), against n (linear).  The parts add up to the slowdown of
-#  DGETRF; below 0 = that part is faster with ulmBLAS.  "rest of DGETRF" is
-#  the time outside the BLAS calls (DLASWP and the code of DGETRF and
-#  DGETRF2 in liblapack, the same code in both configurations).  Only
-#  Julia's standard library is used.
+#  writes OUTDIR/profile-ROUTINE.svg for dgemm, dtrsm, idamax, dscal and
+#  lapack (the rest of DGETRF: DLASWP and the code of DGETRF and DGETRF2,
+#  the same code in both configurations), random matrices: top, the time
+#  in the routine per DGETRF with OpenBLAS's BLAS and with ulmBLAS (medians,
+#  log scale); bottom, the ratio ulmBLAS / OpenBLAS (above 1 = slower with
+#  ulmBLAS); against n (linear).  (The column-dominant matrices make the
+#  same BLAS calls and give the same curves.)  MATRIX=coldom plots those.
+#  Only Julia's standard library is used.
 #
 const ROUTINES = ["dgemm", "dtrsm", "idamax", "dscal", "lapack"]
-const LABELS = Dict("dgemm" => "DGEMM", "dtrsm" => "DTRSM", "idamax" => "IDAMAX",
-                    "dscal" => "DSCAL", "lapack" => "rest of DGETRF")
-# categorical slots 1 to 5 (light, dark), fixed order
-const COLORS      = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
-const COLORS_DARK = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181"]
+const NAMES = Dict("dgemm" => "DGEMM", "dtrsm" => "DTRSM", "idamax" => "IDAMAX",
+                   "dscal" => "DSCAL", "lapack" => "Rest of DGETRF (DLASWP, LAPACK code)")
+const MATRIX = get(ENV, "MATRIX", "dense")
+const CONFIGS = ["netlib_openblas", "netlib_ulmblas"]
+const LABELS = Dict("netlib_openblas" => "OpenBLAS's BLAS", "netlib_ulmblas" => "ulmBLAS")
+# categorical slots 1 and 2 (light, dark), fixed order
+const COLORS      = ["#2a78d6", "#eb6834"]
+const COLORS_DARK = ["#3987e5", "#d95926"]
 
 outdir = ARGS[1]
-const MATRIX = get(ENV, "MATRIX", "dense")
 machines = map(ARGS[2:end]) do a
     name, path = split(a, '='; limit=2)
     lines = readlines(path)
     header = split(lines[1], '\t')
     col(c) = findfirst(==(c), header)
-    t = Dict{Tuple{String,String,Int},Float64}()
+    t = Dict{Tuple{String,String,String,Int},Float64}()
+    calls = Dict{Tuple{String,String,Int},Int}()
     for l in lines[2:end]
         f = split(l, '\t')
-        f[col("matrix")] == MATRIX || continue
-        t[(f[col("config")], f[col("routine")], parse(Int, f[col("n")]))] =
+        n = parse(Int, f[col("n")])
+        t[(f[col("matrix")], f[col("config")], f[col("routine")], n)] =
             parse(Float64, f[col("median_ns")])
+        calls[(f[col("matrix")], f[col("routine")], n)] = parse(Int, f[col("calls")])
     end
     sizes = sort(unique(last.(keys(t))))
-    loss(r, n) = t[("netlib_ulmblas", r, n)] - t[("netlib_openblas", r, n)]
-    share = Dict((r, n) => 100*loss(r, n)/t[("netlib_openblas", "plain", n)]
-                 for r in ROUTINES for n in sizes)
-    (name=String(name), t=t, sizes=sizes, share=share, loss=loss)
+    (name=String(name), t=t, calls=calls, sizes=sizes)
 end
 
-fmt_time(ns) = abs(ns) < 1e3 ? string(round(Int, ns), " ns") :
-               abs(ns) < 1e6 ? string(round(ns/1e3, digits=1), " µs") :
+fmt_time(ns) = ns < 1e3 ? string(round(Int, ns), " ns") :
+               ns < 1e6 ? string(round(ns/1e3, digits=1), " µs") :
                string(round(ns/1e6, digits=1), " ms")
+ratio(m, k, rt, n) = m.t[(k, "netlib_ulmblas", rt, n)]/m.t[(k, "netlib_openblas", rt, n)]
 
-function figure(part, nmin, nmax)
-    W, pw, ph, left, gapx, top = 0, 380, 300, 84, 100, 92
-    ms = [(m..., sizes=filter(n -> nmin <= n <= nmax, m.sizes)) for m in machines]
-    np = length(ms)
-    W = left + np*pw + (np - 1)*gapx + 110
-    H = top + ph + 80
+#  one panel at (x0, y0): x = n (linear), y = value(m, config or nothing, n)
+function panel(p, m, x0, y0, pw, ph, series, value, ylog, yticks, ytick_label, ylab, tip; ref=nothing)
+    r(v) = round(v, digits=1)
+    xmax = 512*ceil(Int, last(m.sizes)/512)
+    lx(n) = x0 + pw*n/xmax
+    f = ylog ? log : identity
+    ly(y) = y0 + ph*(1 - (f(y) - f(first(yticks)))/(f(last(yticks)) - f(first(yticks))))
+    for y in yticks
+        p("""<line class="grid" x1="$x0" x2="$(x0 + pw)" y1="$(r(ly(y)))" y2="$(r(ly(y)))"/>""")
+        p("""<text class="t2" x="$(x0 - 7)" y="$(r(ly(y)) + 4)" font-size="11" text-anchor="end">$(ytick_label(y))</text>""")
+    end
+    ref === nothing || p("""<line class="ref" x1="$x0" x2="$(x0 + pw)" y1="$(r(ly(ref)))" y2="$(r(ly(ref)))"/>""")
+    for n in 0:(xmax > 2048 ? 1024 : 512):xmax
+        p("""<text class="t2" x="$(r(lx(n)))" y="$(y0 + ph + 16)" font-size="11" text-anchor="middle">$n</text>""")
+    end
+    p("""<line class="axis" x1="$x0" x2="$(x0 + pw)" y1="$(y0 + ph)" y2="$(y0 + ph)"/>""")
+    p("""<text class="t2" font-size="12" text-anchor="middle" transform="translate($(x0 - 62) $(y0 + ph/2)) rotate(-90)">$ylab</text>""")
+    for (i, c) in series
+        pts = [(n, value(m, c, n)) for n in m.sizes]
+        p("""<path class="s$i" d="$(join(["$(q == 1 ? 'M' : 'L')$(r(lx(n))) $(r(ly(y)))" for (q, (n, y)) in enumerate(pts)], " "))"/>""")
+        for (n, y) in pts
+            p("""<circle class="m$i" cx="$(r(lx(n)))" cy="$(r(ly(y)))" r="3.5"><title>$(tip(m, c, n))</title></circle>""")
+        end
+    end
+end
+
+ticks_log(lo, hi) = [10.0^k for k in floor(Int, log10(lo)):ceil(Int, log10(hi))]
+fmt_tick(ns) = ns < 1e3 ? "$(round(Int, ns)) ns" : ns < 1e6 ? "$(round(Int, ns/1e3)) µs" :
+               ns < 1e9 ? "$(round(Int, ns/1e6)) ms" : "$(round(Int, ns/1e9)) s"
+
+function figure(rt)
+    pw, ph, left, gapx, top, gapy = 380, 230, 90, 100, 92, 80
+    np = length(machines)
+    W = left + np*pw + (np - 1)*gapx + 24
+    H = top + 2ph + gapy + 70
     io = IOBuffer()
     p(x...) = print(io, x..., '\n')
-    r(v) = round(v, digits=1)
-    what = MATRIX == "dense" ? "random matrices" : "matrices diagonally dominant by columns"
     p("""<svg xmlns="http://www.w3.org/2000/svg" width="$W" height="$H" viewBox="0 0 $W $H" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">""")
-    p("<title>Netlib DGETRF: where ulmBLAS loses time against OpenBLAS's BLAS</title>")
+    p("<title>$(NAMES[rt]) within Netlib's DGETRF: ulmBLAS against OpenBLAS's BLAS</title>")
     p("<style>")
     p("  .surface { fill: #fcfcfb; } .t1 { fill: #0b0b0b; } .t2 { fill: #52514e; }")
-    p("  .grid { stroke: #e3e2de; stroke-width: 1; } .axis, .ref { stroke: #8f8e88; stroke-width: 1; }")
-    for i in 1:5
+    p("  .grid { stroke: #e3e2de; stroke-width: 1; } .axis { stroke: #8f8e88; stroke-width: 1; }")
+    p("  .ref { stroke: #8f8e88; stroke-width: 1.5; stroke-dasharray: 5 4; }")
+    for i in 1:2
         p("  .s$i { stroke: $(COLORS[i]); fill: none; stroke-width: 2; } .m$i { fill: $(COLORS[i]); stroke: #fcfcfb; stroke-width: 2; } .k$i { fill: $(COLORS[i]); }")
     end
+    p("  .s3 { stroke: #52514e; fill: none; stroke-width: 2; } .m3 { fill: #52514e; stroke: #fcfcfb; stroke-width: 2; }")
     p("  @media (prefers-color-scheme: dark) {")
     p("    .surface { fill: #1a1a19; } .t1 { fill: #f0efec; } .t2 { fill: #c3c2b7; }")
     p("    .grid { stroke: #34332f; } .axis, .ref { stroke: #6b6a65; }")
-    for i in 1:5
+    for i in 1:2
         p("    .s$i { stroke: $(COLORS_DARK[i]); } .m$i { fill: $(COLORS_DARK[i]); stroke: #1a1a19; } .k$i { fill: $(COLORS_DARK[i]); }")
     end
+    p("    .s3 { stroke: #c3c2b7; } .m3 { fill: #c3c2b7; stroke: #1a1a19; }")
     p("  }")
     p("</style>")
     p("""<rect class="surface" x="0" y="0" width="$W" height="$H" rx="8"/>""")
-    p("""<text class="t1" x="24" y="28" font-size="15" font-weight="600">Netlib DGETRF, $what: $(part == "small" ? "n ≤ 512" : "n ≥ 512"): extra time with ulmBLAS per routine</text>""")
+    what = MATRIX == "dense" ? "random matrices" : "column-dominant matrices"
+    p("""<text class="t1" x="24" y="28" font-size="15" font-weight="600">$(NAMES[rt]) within Netlib's DGETRF ($what): ulmBLAS against OpenBLAS's BLAS</text>""")
     lx0 = 24
-    for (i, rt) in enumerate(ROUTINES)
+    for (i, c) in enumerate(CONFIGS)
         p("""<rect class="k$i" x="$lx0" y="44" width="12" height="12" rx="2"/>""")
-        p("""<text class="t2" x="$(lx0 + 17)" y="54" font-size="12">$(LABELS[rt])</text>""")
-        lx0 += 17 + 7*length(LABELS[rt]) + 22
+        p("""<text class="t2" x="$(lx0 + 17)" y="54" font-size="12">$(LABELS[c])</text>""")
+        lx0 += 17 + 6.4*length(LABELS[c]) + 24
     end
-
-    allv = [m.share[(rt, n)] for m in ms for rt in ROUTINES for n in m.sizes]
-    raw = maximum(allv) - min(0, minimum(allv))
-    step = raw > 300 ? 100 : raw > 150 ? 50 : raw > 60 ? 20 : raw > 30 ? 10 : 5
-    lo = minimum(allv) > -step/4 ? 0.0 : step*floor(minimum(allv)/step); hi = step*ceil(maximum(allv)/step)
-    yticks = collect(step*floor(lo/step):step:step*ceil(hi/step))
-    for (k, m) in enumerate(ms)
-        x0 = left + (k - 1)*(pw + gapx)
-        xmin = nmin; xmax = 512*ceil(Int, last(m.sizes)/512)
-        lx(n) = x0 + pw*(n - xmin)/(xmax - xmin)
-        ly(v) = top + ph*(1 - (v - first(yticks))/(last(yticks) - first(yticks)))
+    p("""<text class="t2" x="$lx0" y="54" font-size="12">(bottom: time ulmBLAS / time OpenBLAS)</text>""")
+    t(m, c, n) = m.t[(MATRIX, c, rt, n)]
+    rat(m, _, n) = t(m, "netlib_ulmblas", n)/t(m, "netlib_openblas", n)
+    times = [t(m, c, n) for m in machines for c in CONFIGS for n in m.sizes]
+    v = [rat(m, nothing, n) for m in machines for n in m.sizes]
+    hi = max(maximum(v), 1.0); lo = min(minimum(v), 1.0)
+    step = hi - lo > 6 ? 2.0 : hi - lo > 3 ? 1.0 : hi - lo > 1.2 ? 0.5 : hi - lo > 0.5 ? 0.25 : hi - lo > 0.2 ? 0.1 : 0.05
+    rticks = collect(step*floor(lo/step):step:step*ceil(hi/step))
+    callinfo(m, n) = rt == "lapack" ? "" : ", $(m.calls[(MATRIX, rt, n)]) calls"
+    for (j, m) in enumerate(machines)
+        x0 = left + (j - 1)*(pw + gapx)
         p("""<text class="t1" x="$x0" y="$(top - 14)" font-size="13" font-weight="600">$(m.name)</text>""")
-        for v in yticks
-            p("""<line class="grid" x1="$x0" x2="$(x0 + pw)" y1="$(r(ly(v)))" y2="$(r(ly(v)))"/>""")
-            p("""<text class="t2" x="$(x0 - 7)" y="$(r(ly(v)) + 4)" font-size="11" text-anchor="end">$(Int(v))%</text>""")
-        end
-        p("""<line class="ref" x1="$x0" x2="$(x0 + pw)" y1="$(r(ly(0)))" y2="$(r(ly(0)))"/>""")
-        for n in xmin:(xmax - xmin > 2048 ? 512 : xmax - xmin > 600 ? 256 : 128):xmax
-            p("""<text class="t2" x="$(r(lx(n)))" y="$(top + ph + 16)" font-size="11" text-anchor="middle">$n</text>""")
-        end
-        p("""<line class="axis" x1="$x0" x2="$(x0 + pw)" y1="$(top + ph)" y2="$(top + ph)"/>""")
-        p("""<text class="t2" x="$(x0 + pw/2)" y="$(top + ph + 34)" font-size="12" text-anchor="middle">n (n × n matrix)</text>""")
-        p("""<text class="t2" font-size="12" text-anchor="middle" transform="translate($(x0 - 50) $(top + ph/2)) rotate(-90)">extra time, % of DGETRF with OpenBLAS's BLAS</text>""")
-        for (i, rt) in enumerate(ROUTINES)
-            pts = [(n, m.share[(rt, n)]) for n in m.sizes]
-            p("""<path class="s$i" d="$(join(["$(j == 1 ? 'M' : 'L')$(r(lx(n))) $(r(ly(v)))" for (j, (n, v)) in enumerate(pts)], " "))"/>""")
-            for (n, v) in pts
-                p("""<circle class="m$i" cx="$(r(lx(n)))" cy="$(r(ly(v)))" r="3.5"><title>$(LABELS[rt]), n = $n: $(fmt_time(m.loss(rt, n))) more per DGETRF ($(round(v, digits=1))% of $(fmt_time(m.t[("netlib_openblas", "plain", n)])))</title></circle>""")
-            end
-        end
+        panel(p, m, x0, top, pw, ph, enumerate(CONFIGS), t, true,
+              ticks_log(minimum(times), maximum(times)), fmt_tick, "time per DGETRF",
+              (m, c, n) -> "$(NAMES[rt]), $(LABELS[c]), n = $n: $(fmt_time(t(m, c, n))) per DGETRF$(callinfo(m, n))")
+        panel(p, m, x0, top + ph + gapy, pw, ph, [(3, nothing)], rat, false,
+              rticks, y -> "$(round(y, digits=2))×", "ulmBLAS / OpenBLAS",
+              (m, _, n) -> "$(NAMES[rt]), n = $n: $(round(rat(m, nothing, n), digits=2))× ($(fmt_time(t(m, "netlib_openblas", n))) → $(fmt_time(t(m, "netlib_ulmblas", n))))"; ref=1.0)
+        p("""<text class="t2" x="$(x0 + pw/2)" y="$(top + 2ph + gapy + 34)" font-size="12" text-anchor="middle">n (n × n matrix)</text>""")
     end
-    p("""<text class="t2" x="24" y="$(H - 14)" font-size="11">Time with ulmBLAS minus time with OpenBLAS's BLAS, per routine (median per DGETRF, each call timed); in % of DGETRF with OpenBLAS's BLAS; the parts add up to the slowdown.</text>""")
+    p("""<text class="t2" x="24" y="$(H - 12)" font-size="11">Netlib LAPACK 3.12.1, the same code in both configurations; every BLAS call timed (median per DGETRF); one thread.</text>""")
     p("</svg>")
-    file = joinpath(outdir, "profile-$MATRIX-$part.svg")
+    file = joinpath(outdir, MATRIX == "dense" ? "profile-$rt.svg" : "profile-$MATRIX-$rt.svg")
     write(file, String(take!(io)))
     println("wrote ", file)
 end
 
-figure("small", 0, 512)
-figure("large", 512, typemax(Int))
+foreach(figure, ROUTINES)

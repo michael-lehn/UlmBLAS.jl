@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="974" height="702" viewBox="0 0 974 702" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+<title>DSCAL within Netlib's DGETRF: ulmBLAS against OpenBLAS's BLAS</title>
+<style>
+  .surface { fill: #fcfcfb; } .t1 { fill: #0b0b0b; } .t2 { fill: #52514e; }
+  .grid { stroke: #e3e2de; stroke-width: 1; } .axis { stroke: #8f8e88; stroke-width: 1; }
+  .ref { stroke: #8f8e88; stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .s1 { stroke: #2a78d6; fill: none; stroke-width: 2; } .m1 { fill: #2a78d6; stroke: #fcfcfb; stroke-width: 2; } .k1 { fill: #2a78d6; }
+  .s2 { stroke: #eb6834; fill: none; stroke-width: 2; } .m2 { fill: #eb6834; stroke: #fcfcfb; stroke-width: 2; } .k2 { fill: #eb6834; }
+  .s3 { stroke: #52514e; fill: none; stroke-width: 2; } .m3 { fill: #52514e; stroke: #fcfcfb; stroke-width: 2; }
+  @media (prefers-color-scheme: dark) {
+    .surface { fill: #1a1a19; } .t1 { fill: #f0efec; } .t2 { fill: #c3c2b7; }
+    .grid { stroke: #34332f; } .axis, .ref { stroke: #6b6a65; }
+    .s1 { stroke: #3987e5; } .m1 { fill: #3987e5; stroke: #1a1a19; } .k1 { fill: #3987e5; }
+    .s2 { stroke: #d95926; } .m2 { fill: #d95926; stroke: #1a1a19; } .k2 { fill: #d95926; }
+    .s3 { stroke: #c3c2b7; } .m3 { fill: #c3c2b7; stroke: #1a1a19; }
+  }
+</style>
+<rect class="surface" x="0" y="0" width="974" height="702" rx="8"/>
+<text class="t1" x="24" y="28" font-size="15" font-weight="600">DSCAL within Netlib's DGETRF (random matrices): ulmBLAS against OpenBLAS's BLAS</text>
+<rect class="k1" x="24" y="44" width="12" height="12" rx="2"/>
+<text class="t2" x="41" y="54" font-size="12">OpenBLAS's BLAS</text>
+<rect class="k2" x="161.0" y="44" width="12" height="12" rx="2"/>
+<text class="t2" x="178.0" y="54" font-size="12">ulmBLAS</text>
+<text class="t2" x="246.8" y="54" font-size="12">(bottom: time ulmBLAS / time OpenBLAS)</text>
+<text class="t1" x="90" y="78" font-size="13" font-weight="600">Intel Xeon Platinum 8358 (Ice Lake)</text>
+<line class="grid" x1="90" x2="470" y1="322.0" y2="322.0"/>
+<text class="t2" x="83" y="326.0" font-size="11" text-anchor="end">100 ns</text>
+<line class="grid" x1="90" x2="470" y1="276.0" y2="276.0"/>
+<text class="t2" x="83" y="280.0" font-size="11" text-anchor="end">1 µs</text>
+<line class="grid" x1="90" x2="470" y1="230.0" y2="230.0"/>
+<text class="t2" x="83" y="234.0" font-size="11" text-anchor="end">10 µs</text>
+<line class="grid" x1="90" x2="470" y1="184.0" y2="184.0"/>
+<text class="t2" x="83" y="188.0" font-size="11" text-anchor="end">100 µs</text>
+<line class="grid" x1="90" x2="470" y1="138.0" y2="138.0"/>
+<text class="t2" x="83" y="142.0" font-size="11" text-anchor="end">1 ms</text>
+<line class="grid" x1="90" x2="470" y1="92.0" y2="92.0"/>
+<text class="t2" x="83" y="96.0" font-size="11" text-anchor="end">10 ms</text>
+<text class="t2" x="90.0" y="338" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="185.0" y="338" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="280.0" y="338" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="375.0" y="338" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="470.0" y="338" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="90" x2="470" y1="322" y2="322"/>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(28 207.0) rotate(-90)">time per DGETRF</text>
+<path class="s1" d="M90.7 309.2 L91.1 300.4 L91.5 293.6 L92.2 284.2 L93.0 278.7 L94.5 269.5 L95.9 263.6 L98.9 249.4 L101.9 247.4 L107.8 238.0 L113.8 230.2 L125.6 218.7 L137.5 208.3 L161.2 196.2 L185.0 183.5 L232.5 169.6 L280.0 158.5 L375.0 142.6 L470.0 131.2"/>
+<circle class="m1" cx="90.7" cy="309.2" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 8: 190 ns per DGETRF, 7 calls</title></circle>
+<circle class="m1" cx="91.1" cy="300.4" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 12: 295 ns per DGETRF, 11 calls</title></circle>
+<circle class="m1" cx="91.5" cy="293.6" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 16: 414 ns per DGETRF, 15 calls</title></circle>
+<circle class="m1" cx="92.2" cy="284.2" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 24: 663 ns per DGETRF, 23 calls</title></circle>
+<circle class="m1" cx="93.0" cy="278.7" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 32: 875 ns per DGETRF, 31 calls</title></circle>
+<circle class="m1" cx="94.5" cy="269.5" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 48: 1.4 µs per DGETRF, 47 calls</title></circle>
+<circle class="m1" cx="95.9" cy="263.6" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 64: 1.9 µs per DGETRF, 63 calls</title></circle>
+<circle class="m1" cx="98.9" cy="249.4" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 96: 3.8 µs per DGETRF, 95 calls</title></circle>
+<circle class="m1" cx="101.9" cy="247.4" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 128: 4.2 µs per DGETRF, 127 calls</title></circle>
+<circle class="m1" cx="107.8" cy="238.0" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 192: 6.7 µs per DGETRF, 191 calls</title></circle>
+<circle class="m1" cx="113.8" cy="230.2" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 256: 9.9 µs per DGETRF, 255 calls</title></circle>
+<circle class="m1" cx="125.6" cy="218.7" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 384: 17.6 µs per DGETRF, 383 calls</title></circle>
+<circle class="m1" cx="137.5" cy="208.3" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 512: 29.7 µs per DGETRF, 511 calls</title></circle>
+<circle class="m1" cx="161.2" cy="196.2" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 768: 54.3 µs per DGETRF, 767 calls</title></circle>
+<circle class="m1" cx="185.0" cy="183.5" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 1024: 102.3 µs per DGETRF, 1023 calls</title></circle>
+<circle class="m1" cx="232.5" cy="169.6" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 1536: 205.7 µs per DGETRF, 1535 calls</title></circle>
+<circle class="m1" cx="280.0" cy="158.5" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 2048: 358.6 µs per DGETRF, 2047 calls</title></circle>
+<circle class="m1" cx="375.0" cy="142.6" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 3072: 794.8 µs per DGETRF, 3071 calls</title></circle>
+<circle class="m1" cx="470.0" cy="131.2" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 4096: 1.4 ms per DGETRF, 4095 calls</title></circle>
+<path class="s2" d="M90.7 313.1 L91.1 304.5 L91.5 298.3 L92.2 289.1 L93.0 283.2 L94.5 273.5 L95.9 266.7 L98.9 257.2 L101.9 248.8 L107.8 237.4 L113.8 229.1 L125.6 217.2 L137.5 208.4 L161.2 196.8 L185.0 185.1 L232.5 170.5 L280.0 159.2 L375.0 143.0 L470.0 131.6"/>
+<circle class="m2" cx="90.7" cy="313.1" r="3.5"><title>DSCAL, ulmBLAS, n = 8: 156 ns per DGETRF, 7 calls</title></circle>
+<circle class="m2" cx="91.1" cy="304.5" r="3.5"><title>DSCAL, ulmBLAS, n = 12: 240 ns per DGETRF, 11 calls</title></circle>
+<circle class="m2" cx="91.5" cy="298.3" r="3.5"><title>DSCAL, ulmBLAS, n = 16: 327 ns per DGETRF, 15 calls</title></circle>
+<circle class="m2" cx="92.2" cy="289.1" r="3.5"><title>DSCAL, ulmBLAS, n = 24: 518 ns per DGETRF, 23 calls</title></circle>
+<circle class="m2" cx="93.0" cy="283.2" r="3.5"><title>DSCAL, ulmBLAS, n = 32: 696 ns per DGETRF, 31 calls</title></circle>
+<circle class="m2" cx="94.5" cy="273.5" r="3.5"><title>DSCAL, ulmBLAS, n = 48: 1.1 µs per DGETRF, 47 calls</title></circle>
+<circle class="m2" cx="95.9" cy="266.7" r="3.5"><title>DSCAL, ulmBLAS, n = 64: 1.6 µs per DGETRF, 63 calls</title></circle>
+<circle class="m2" cx="98.9" cy="257.2" r="3.5"><title>DSCAL, ulmBLAS, n = 96: 2.6 µs per DGETRF, 95 calls</title></circle>
+<circle class="m2" cx="101.9" cy="248.8" r="3.5"><title>DSCAL, ulmBLAS, n = 128: 3.9 µs per DGETRF, 127 calls</title></circle>
+<circle class="m2" cx="107.8" cy="237.4" r="3.5"><title>DSCAL, ulmBLAS, n = 192: 6.9 µs per DGETRF, 191 calls</title></circle>
+<circle class="m2" cx="113.8" cy="229.1" r="3.5"><title>DSCAL, ulmBLAS, n = 256: 10.5 µs per DGETRF, 255 calls</title></circle>
+<circle class="m2" cx="125.6" cy="217.2" r="3.5"><title>DSCAL, ulmBLAS, n = 384: 19.0 µs per DGETRF, 383 calls</title></circle>
+<circle class="m2" cx="137.5" cy="208.4" r="3.5"><title>DSCAL, ulmBLAS, n = 512: 29.5 µs per DGETRF, 511 calls</title></circle>
+<circle class="m2" cx="161.2" cy="196.8" r="3.5"><title>DSCAL, ulmBLAS, n = 768: 52.7 µs per DGETRF, 767 calls</title></circle>
+<circle class="m2" cx="185.0" cy="185.1" r="3.5"><title>DSCAL, ulmBLAS, n = 1024: 94.7 µs per DGETRF, 1023 calls</title></circle>
+<circle class="m2" cx="232.5" cy="170.5" r="3.5"><title>DSCAL, ulmBLAS, n = 1536: 196.2 µs per DGETRF, 1535 calls</title></circle>
+<circle class="m2" cx="280.0" cy="159.2" r="3.5"><title>DSCAL, ulmBLAS, n = 2048: 346.7 µs per DGETRF, 2047 calls</title></circle>
+<circle class="m2" cx="375.0" cy="143.0" r="3.5"><title>DSCAL, ulmBLAS, n = 3072: 777.4 µs per DGETRF, 3071 calls</title></circle>
+<circle class="m2" cx="470.0" cy="131.6" r="3.5"><title>DSCAL, ulmBLAS, n = 4096: 1.4 ms per DGETRF, 4095 calls</title></circle>
+<line class="grid" x1="90" x2="470" y1="632.0" y2="632.0"/>
+<text class="t2" x="83" y="636.0" font-size="11" text-anchor="end">0.6×</text>
+<line class="grid" x1="90" x2="470" y1="586.0" y2="586.0"/>
+<text class="t2" x="83" y="590.0" font-size="11" text-anchor="end">0.7×</text>
+<line class="grid" x1="90" x2="470" y1="540.0" y2="540.0"/>
+<text class="t2" x="83" y="544.0" font-size="11" text-anchor="end">0.8×</text>
+<line class="grid" x1="90" x2="470" y1="494.0" y2="494.0"/>
+<text class="t2" x="83" y="498.0" font-size="11" text-anchor="end">0.9×</text>
+<line class="grid" x1="90" x2="470" y1="448.0" y2="448.0"/>
+<text class="t2" x="83" y="452.0" font-size="11" text-anchor="end">1.0×</text>
+<line class="grid" x1="90" x2="470" y1="402.0" y2="402.0"/>
+<text class="t2" x="83" y="406.0" font-size="11" text-anchor="end">1.1×</text>
+<line class="ref" x1="90" x2="470" y1="448.0" y2="448.0"/>
+<text class="t2" x="90.0" y="648" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="185.0" y="648" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="280.0" y="648" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="375.0" y="648" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="470.0" y="648" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="90" x2="470" y1="632" y2="632"/>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(28 517.0) rotate(-90)">ulmBLAS / OpenBLAS</text>
+<path class="s3" d="M90.7 530.3 L91.1 533.8 L91.5 544.7 L92.2 548.6 L93.0 542.1 L94.5 531.5 L95.9 513.2 L98.9 596.7 L101.9 479.4 L107.8 431.8 L113.8 421.8 L125.6 411.2 L137.5 451.5 L161.2 461.2 L185.0 481.9 L232.5 469.2 L280.0 463.3 L375.0 458.0 L470.0 456.8"/>
+<circle class="m3" cx="90.7" cy="530.3" r="3.5"><title>DSCAL, n = 8: 0.82× (190 ns → 156 ns)</title></circle>
+<circle class="m3" cx="91.1" cy="533.8" r="3.5"><title>DSCAL, n = 12: 0.81× (295 ns → 240 ns)</title></circle>
+<circle class="m3" cx="91.5" cy="544.7" r="3.5"><title>DSCAL, n = 16: 0.79× (414 ns → 327 ns)</title></circle>
+<circle class="m3" cx="92.2" cy="548.6" r="3.5"><title>DSCAL, n = 24: 0.78× (663 ns → 518 ns)</title></circle>
+<circle class="m3" cx="93.0" cy="542.1" r="3.5"><title>DSCAL, n = 32: 0.8× (875 ns → 696 ns)</title></circle>
+<circle class="m3" cx="94.5" cy="531.5" r="3.5"><title>DSCAL, n = 48: 0.82× (1.4 µs → 1.1 µs)</title></circle>
+<circle class="m3" cx="95.9" cy="513.2" r="3.5"><title>DSCAL, n = 64: 0.86× (1.9 µs → 1.6 µs)</title></circle>
+<circle class="m3" cx="98.9" cy="596.7" r="3.5"><title>DSCAL, n = 96: 0.68× (3.8 µs → 2.6 µs)</title></circle>
+<circle class="m3" cx="101.9" cy="479.4" r="3.5"><title>DSCAL, n = 128: 0.93× (4.2 µs → 3.9 µs)</title></circle>
+<circle class="m3" cx="107.8" cy="431.8" r="3.5"><title>DSCAL, n = 192: 1.04× (6.7 µs → 6.9 µs)</title></circle>
+<circle class="m3" cx="113.8" cy="421.8" r="3.5"><title>DSCAL, n = 256: 1.06× (9.9 µs → 10.5 µs)</title></circle>
+<circle class="m3" cx="125.6" cy="411.2" r="3.5"><title>DSCAL, n = 384: 1.08× (17.6 µs → 19.0 µs)</title></circle>
+<circle class="m3" cx="137.5" cy="451.5" r="3.5"><title>DSCAL, n = 512: 0.99× (29.7 µs → 29.5 µs)</title></circle>
+<circle class="m3" cx="161.2" cy="461.2" r="3.5"><title>DSCAL, n = 768: 0.97× (54.3 µs → 52.7 µs)</title></circle>
+<circle class="m3" cx="185.0" cy="481.9" r="3.5"><title>DSCAL, n = 1024: 0.93× (102.3 µs → 94.7 µs)</title></circle>
+<circle class="m3" cx="232.5" cy="469.2" r="3.5"><title>DSCAL, n = 1536: 0.95× (205.7 µs → 196.2 µs)</title></circle>
+<circle class="m3" cx="280.0" cy="463.3" r="3.5"><title>DSCAL, n = 2048: 0.97× (358.6 µs → 346.7 µs)</title></circle>
+<circle class="m3" cx="375.0" cy="458.0" r="3.5"><title>DSCAL, n = 3072: 0.98× (794.8 µs → 777.4 µs)</title></circle>
+<circle class="m3" cx="470.0" cy="456.8" r="3.5"><title>DSCAL, n = 4096: 0.98× (1.4 ms → 1.4 ms)</title></circle>
+<text class="t2" x="280.0" y="666" font-size="12" text-anchor="middle">n (n × n matrix)</text>
+<text class="t1" x="570" y="78" font-size="13" font-weight="600">AMD EPYC 9454 (Zen 4)</text>
+<line class="grid" x1="570" x2="950" y1="322.0" y2="322.0"/>
+<text class="t2" x="563" y="326.0" font-size="11" text-anchor="end">100 ns</text>
+<line class="grid" x1="570" x2="950" y1="276.0" y2="276.0"/>
+<text class="t2" x="563" y="280.0" font-size="11" text-anchor="end">1 µs</text>
+<line class="grid" x1="570" x2="950" y1="230.0" y2="230.0"/>
+<text class="t2" x="563" y="234.0" font-size="11" text-anchor="end">10 µs</text>
+<line class="grid" x1="570" x2="950" y1="184.0" y2="184.0"/>
+<text class="t2" x="563" y="188.0" font-size="11" text-anchor="end">100 µs</text>
+<line class="grid" x1="570" x2="950" y1="138.0" y2="138.0"/>
+<text class="t2" x="563" y="142.0" font-size="11" text-anchor="end">1 ms</text>
+<line class="grid" x1="570" x2="950" y1="92.0" y2="92.0"/>
+<text class="t2" x="563" y="96.0" font-size="11" text-anchor="end">10 ms</text>
+<text class="t2" x="570.0" y="338" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="665.0" y="338" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="760.0" y="338" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="855.0" y="338" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="950.0" y="338" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="570" x2="950" y1="322" y2="322"/>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(508 207.0) rotate(-90)">time per DGETRF</text>
+<path class="s1" d="M570.7 309.2 L571.1 300.7 L571.5 294.3 L572.2 285.5 L573.0 279.7 L574.5 270.9 L575.9 265.0 L578.9 256.0 L581.9 249.2 L587.8 239.6 L593.8 233.3 L605.6 222.1 L617.5 213.5 L641.2 200.6 L665.0 189.0 L712.5 175.6 L760.0 165.6 L855.0 150.9 L950.0 140.0"/>
+<circle class="m1" cx="570.7" cy="309.2" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 8: 190 ns per DGETRF, 7 calls</title></circle>
+<circle class="m1" cx="571.1" cy="300.7" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 12: 290 ns per DGETRF, 11 calls</title></circle>
+<circle class="m1" cx="571.5" cy="294.3" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 16: 400 ns per DGETRF, 15 calls</title></circle>
+<circle class="m1" cx="572.2" cy="285.5" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 24: 620 ns per DGETRF, 23 calls</title></circle>
+<circle class="m1" cx="573.0" cy="279.7" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 32: 830 ns per DGETRF, 31 calls</title></circle>
+<circle class="m1" cx="574.5" cy="270.9" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 48: 1.3 µs per DGETRF, 47 calls</title></circle>
+<circle class="m1" cx="575.9" cy="265.0" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 64: 1.7 µs per DGETRF, 63 calls</title></circle>
+<circle class="m1" cx="578.9" cy="256.0" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 96: 2.7 µs per DGETRF, 95 calls</title></circle>
+<circle class="m1" cx="581.9" cy="249.2" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 128: 3.8 µs per DGETRF, 127 calls</title></circle>
+<circle class="m1" cx="587.8" cy="239.6" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 192: 6.2 µs per DGETRF, 191 calls</title></circle>
+<circle class="m1" cx="593.8" cy="233.3" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 256: 8.5 µs per DGETRF, 255 calls</title></circle>
+<circle class="m1" cx="605.6" cy="222.1" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 384: 14.9 µs per DGETRF, 383 calls</title></circle>
+<circle class="m1" cx="617.5" cy="213.5" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 512: 22.8 µs per DGETRF, 511 calls</title></circle>
+<circle class="m1" cx="641.2" cy="200.6" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 768: 43.6 µs per DGETRF, 767 calls</title></circle>
+<circle class="m1" cx="665.0" cy="189.0" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 1024: 77.7 µs per DGETRF, 1023 calls</title></circle>
+<circle class="m1" cx="712.5" cy="175.6" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 1536: 152.6 µs per DGETRF, 1535 calls</title></circle>
+<circle class="m1" cx="760.0" cy="165.6" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 2048: 251.1 µs per DGETRF, 2047 calls</title></circle>
+<circle class="m1" cx="855.0" cy="150.9" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 3072: 523.4 µs per DGETRF, 3071 calls</title></circle>
+<circle class="m1" cx="950.0" cy="140.0" r="3.5"><title>DSCAL, OpenBLAS's BLAS, n = 4096: 903.3 µs per DGETRF, 4095 calls</title></circle>
+<path class="s2" d="M570.7 311.3 L571.1 301.7 L571.5 295.3 L572.2 286.5 L573.0 280.9 L574.5 272.0 L575.9 266.1 L578.9 257.1 L581.9 250.2 L587.8 240.6 L593.8 234.5 L605.6 222.6 L617.5 214.0 L641.2 201.0 L665.0 189.9 L712.5 176.3 L760.0 166.2 L855.0 151.4 L950.0 140.6"/>
+<circle class="m2" cx="570.7" cy="311.3" r="3.5"><title>DSCAL, ulmBLAS, n = 8: 171 ns per DGETRF, 7 calls</title></circle>
+<circle class="m2" cx="571.1" cy="301.7" r="3.5"><title>DSCAL, ulmBLAS, n = 12: 276 ns per DGETRF, 11 calls</title></circle>
+<circle class="m2" cx="571.5" cy="295.3" r="3.5"><title>DSCAL, ulmBLAS, n = 16: 380 ns per DGETRF, 15 calls</title></circle>
+<circle class="m2" cx="572.2" cy="286.5" r="3.5"><title>DSCAL, ulmBLAS, n = 24: 590 ns per DGETRF, 23 calls</title></circle>
+<circle class="m2" cx="573.0" cy="280.9" r="3.5"><title>DSCAL, ulmBLAS, n = 32: 782 ns per DGETRF, 31 calls</title></circle>
+<circle class="m2" cx="574.5" cy="272.0" r="3.5"><title>DSCAL, ulmBLAS, n = 48: 1.2 µs per DGETRF, 47 calls</title></circle>
+<circle class="m2" cx="575.9" cy="266.1" r="3.5"><title>DSCAL, ulmBLAS, n = 64: 1.6 µs per DGETRF, 63 calls</title></circle>
+<circle class="m2" cx="578.9" cy="257.1" r="3.5"><title>DSCAL, ulmBLAS, n = 96: 2.6 µs per DGETRF, 95 calls</title></circle>
+<circle class="m2" cx="581.9" cy="250.2" r="3.5"><title>DSCAL, ulmBLAS, n = 128: 3.6 µs per DGETRF, 127 calls</title></circle>
+<circle class="m2" cx="587.8" cy="240.6" r="3.5"><title>DSCAL, ulmBLAS, n = 192: 5.9 µs per DGETRF, 191 calls</title></circle>
+<circle class="m2" cx="593.8" cy="234.5" r="3.5"><title>DSCAL, ulmBLAS, n = 256: 8.0 µs per DGETRF, 255 calls</title></circle>
+<circle class="m2" cx="605.6" cy="222.6" r="3.5"><title>DSCAL, ulmBLAS, n = 384: 14.5 µs per DGETRF, 383 calls</title></circle>
+<circle class="m2" cx="617.5" cy="214.0" r="3.5"><title>DSCAL, ulmBLAS, n = 512: 22.3 µs per DGETRF, 511 calls</title></circle>
+<circle class="m2" cx="641.2" cy="201.0" r="3.5"><title>DSCAL, ulmBLAS, n = 768: 42.7 µs per DGETRF, 767 calls</title></circle>
+<circle class="m2" cx="665.0" cy="189.9" r="3.5"><title>DSCAL, ulmBLAS, n = 1024: 74.5 µs per DGETRF, 1023 calls</title></circle>
+<circle class="m2" cx="712.5" cy="176.3" r="3.5"><title>DSCAL, ulmBLAS, n = 1536: 147.0 µs per DGETRF, 1535 calls</title></circle>
+<circle class="m2" cx="760.0" cy="166.2" r="3.5"><title>DSCAL, ulmBLAS, n = 2048: 243.3 µs per DGETRF, 2047 calls</title></circle>
+<circle class="m2" cx="855.0" cy="151.4" r="3.5"><title>DSCAL, ulmBLAS, n = 3072: 511.2 µs per DGETRF, 3071 calls</title></circle>
+<circle class="m2" cx="950.0" cy="140.6" r="3.5"><title>DSCAL, ulmBLAS, n = 4096: 879.7 µs per DGETRF, 4095 calls</title></circle>
+<line class="grid" x1="570" x2="950" y1="632.0" y2="632.0"/>
+<text class="t2" x="563" y="636.0" font-size="11" text-anchor="end">0.6×</text>
+<line class="grid" x1="570" x2="950" y1="586.0" y2="586.0"/>
+<text class="t2" x="563" y="590.0" font-size="11" text-anchor="end">0.7×</text>
+<line class="grid" x1="570" x2="950" y1="540.0" y2="540.0"/>
+<text class="t2" x="563" y="544.0" font-size="11" text-anchor="end">0.8×</text>
+<line class="grid" x1="570" x2="950" y1="494.0" y2="494.0"/>
+<text class="t2" x="563" y="498.0" font-size="11" text-anchor="end">0.9×</text>
+<line class="grid" x1="570" x2="950" y1="448.0" y2="448.0"/>
+<text class="t2" x="563" y="452.0" font-size="11" text-anchor="end">1.0×</text>
+<line class="grid" x1="570" x2="950" y1="402.0" y2="402.0"/>
+<text class="t2" x="563" y="406.0" font-size="11" text-anchor="end">1.1×</text>
+<line class="ref" x1="570" x2="950" y1="448.0" y2="448.0"/>
+<text class="t2" x="570.0" y="648" font-size="11" text-anchor="middle">0</text>
+<text class="t2" x="665.0" y="648" font-size="11" text-anchor="middle">1024</text>
+<text class="t2" x="760.0" y="648" font-size="11" text-anchor="middle">2048</text>
+<text class="t2" x="855.0" y="648" font-size="11" text-anchor="middle">3072</text>
+<text class="t2" x="950.0" y="648" font-size="11" text-anchor="middle">4096</text>
+<line class="axis" x1="570" x2="950" y1="632" y2="632"/>
+<text class="t2" font-size="12" text-anchor="middle" transform="translate(508 517.0) rotate(-90)">ulmBLAS / OpenBLAS</text>
+<path class="s3" d="M570.7 494.0 L571.1 469.4 L571.5 471.0 L572.2 470.3 L573.0 474.6 L574.5 473.0 L575.9 471.9 L578.9 472.2 L581.9 469.8 L587.8 472.4 L593.8 475.5 L605.6 459.8 L617.5 459.2 L641.2 457.7 L665.0 466.6 L712.5 464.8 L760.0 462.2 L855.0 458.7 L950.0 460.0"/>
+<circle class="m3" cx="570.7" cy="494.0" r="3.5"><title>DSCAL, n = 8: 0.9× (190 ns → 171 ns)</title></circle>
+<circle class="m3" cx="571.1" cy="469.4" r="3.5"><title>DSCAL, n = 12: 0.95× (290 ns → 276 ns)</title></circle>
+<circle class="m3" cx="571.5" cy="471.0" r="3.5"><title>DSCAL, n = 16: 0.95× (400 ns → 380 ns)</title></circle>
+<circle class="m3" cx="572.2" cy="470.3" r="3.5"><title>DSCAL, n = 24: 0.95× (620 ns → 590 ns)</title></circle>
+<circle class="m3" cx="573.0" cy="474.6" r="3.5"><title>DSCAL, n = 32: 0.94× (830 ns → 782 ns)</title></circle>
+<circle class="m3" cx="574.5" cy="473.0" r="3.5"><title>DSCAL, n = 48: 0.95× (1.3 µs → 1.2 µs)</title></circle>
+<circle class="m3" cx="575.9" cy="471.9" r="3.5"><title>DSCAL, n = 64: 0.95× (1.7 µs → 1.6 µs)</title></circle>
+<circle class="m3" cx="578.9" cy="472.2" r="3.5"><title>DSCAL, n = 96: 0.95× (2.7 µs → 2.6 µs)</title></circle>
+<circle class="m3" cx="581.9" cy="469.8" r="3.5"><title>DSCAL, n = 128: 0.95× (3.8 µs → 3.6 µs)</title></circle>
+<circle class="m3" cx="587.8" cy="472.4" r="3.5"><title>DSCAL, n = 192: 0.95× (6.2 µs → 5.9 µs)</title></circle>
+<circle class="m3" cx="593.8" cy="475.5" r="3.5"><title>DSCAL, n = 256: 0.94× (8.5 µs → 8.0 µs)</title></circle>
+<circle class="m3" cx="605.6" cy="459.8" r="3.5"><title>DSCAL, n = 384: 0.97× (14.9 µs → 14.5 µs)</title></circle>
+<circle class="m3" cx="617.5" cy="459.2" r="3.5"><title>DSCAL, n = 512: 0.98× (22.8 µs → 22.3 µs)</title></circle>
+<circle class="m3" cx="641.2" cy="457.7" r="3.5"><title>DSCAL, n = 768: 0.98× (43.6 µs → 42.7 µs)</title></circle>
+<circle class="m3" cx="665.0" cy="466.6" r="3.5"><title>DSCAL, n = 1024: 0.96× (77.7 µs → 74.5 µs)</title></circle>
+<circle class="m3" cx="712.5" cy="464.8" r="3.5"><title>DSCAL, n = 1536: 0.96× (152.6 µs → 147.0 µs)</title></circle>
+<circle class="m3" cx="760.0" cy="462.2" r="3.5"><title>DSCAL, n = 2048: 0.97× (251.1 µs → 243.3 µs)</title></circle>
+<circle class="m3" cx="855.0" cy="458.7" r="3.5"><title>DSCAL, n = 3072: 0.98× (523.4 µs → 511.2 µs)</title></circle>
+<circle class="m3" cx="950.0" cy="460.0" r="3.5"><title>DSCAL, n = 4096: 0.97× (903.3 µs → 879.7 µs)</title></circle>
+<text class="t2" x="760.0" y="666" font-size="12" text-anchor="middle">n (n × n matrix)</text>
+<text class="t2" x="24" y="690" font-size="11">Netlib LAPACK 3.12.1, the same code in both configurations; every BLAS call timed (median per DGETRF); one thread.</text>
+</svg>
