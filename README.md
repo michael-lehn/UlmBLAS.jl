@@ -280,3 +280,42 @@ of `LinearAlgebra` are run as well (several minutes).
 BSD 3-Clause, like ulmBLAS.  The libraries contain micro kernels of BLIS,
 AOCL-BLAS and OpenBLAS; their licenses are part of every artifact
 (`share/licenses/ulmBLAS/LICENSE`).
+
+## LAPACK Experiments
+
+This branch (`experiment/lapack`, not merged into `main`) runs Netlib LAPACK
+3.12.1 on top of ulmBLAS and benchmarks its LU factorization (`DGETRF`)
+against Julia's default LAPACK (OpenBLAS).  Netlib LAPACK is built against
+libblastrampoline (ILP64, `_64` names), so with `UlmBLAS.forward()` all its
+BLAS calls run in ulmBLAS (checked by counting the calls that reach ulmBLAS
+during `DGETRF`).  Full methodology, raw data, tests and reproduction:
+[`lapack/README.md`](lapack/README.md).
+
+Three configurations, one thread, Julia 1.13.3, complete `DGETRF` calls,
+bwUniCluster nodes with an Intel Xeon Platinum 8358 (Ice Lake) and an AMD
+EPYC 9454 (Zen 4):
+
+- OpenBLAS: Julia's default LAPACK and BLAS (OpenBLAS's own LU)
+- Netlib LAPACK + ulmBLAS
+- Netlib LAPACK + OpenBLAS's BLAS (same LAPACK, to separate the effect of
+  the LAPACK algorithm from that of the BLAS)
+
+### Random dense matrices (randn)
+
+![DGETRF time, random matrices](lapack/results/getrf-time.svg)
+
+![DGETRF speedup, random matrices](lapack/results/getrf-speedup.svg)
+
+Netlib LAPACK on top of ulmBLAS is slower than Julia's default at every
+size: 0.6–0.9× for n ≥ 768 and 0.04–0.3× for n ≤ 128.  For large matrices
+the gap comes mostly from the LAPACK algorithm (Netlib LAPACK with
+OpenBLAS's BLAS is about as slow); for small matrices it is the cost of the
+many tiny BLAS calls of Netlib's recursive panel factorization (about
+250 ns more per call in ulmBLAS).  The tests of `DGETRF` (632 checks: INFO,
+pivots equal to OpenBLAS, residuals) pass on both machines.
+
+### Matrices diagonally dominant by columns
+
+In progress: the same benchmark for matrices strictly diagonally dominant
+by columns, for which partial pivoting makes no row interchanges
+(`IPIV[i] == i`, checked).
