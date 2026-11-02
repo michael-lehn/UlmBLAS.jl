@@ -65,6 +65,18 @@ has(feature) = CPUID.test_cpu_feature(feature)
 """
     variants()
 
+The builds of ulmBLAS in ulmBLAS_jll this CPU can run, the preferred one
+first ([`cpu_variants`](@ref) for which ulmBLAS_jll has a library).
+"""
+variants() = filter(has_library, cpu_variants())
+
+#  ulmBLAS_jll has a library of variant v for this platform (ulmBLAS_jll 0.2
+#  has no sme library: SME2 needs a newer LLVMCompilerRT_jll)
+has_library(v) = isdefined(ulmBLAS_jll, Symbol("libulmblas_", v, "_path"))
+
+"""
+    cpu_variants()
+
 The builds of ulmBLAS this CPU can run, the preferred one first:
 
 - AArch64: `"sme"` (Apple M4 and later: SME2 with FEAT_SME_F64F64 and a
@@ -73,7 +85,7 @@ The builds of ulmBLAS this CPU can run, the preferred one first:
   `"skylakex"` (Intel with AVX-512 F, DQ and VL), `"haswell"` (AVX2 and
   FMA), `"x86_64"` (SSE3).  With AVX-512 both `"zen4"` and `"skylakex"` run.
 """
-function variants()
+function cpu_variants()
     if Sys.ARCH === :aarch64
         return Sys.isapple() ? arm_variants(sysctl_int) : ["neon"]
     elseif Sys.ARCH === :x86_64
@@ -106,7 +118,7 @@ variant() = (v = variants(); isempty(v) ? nothing : first(v))
 
 #  the library of variant v from ulmBLAS_jll (nothing if there is none)
 function artifact_library(v)
-    ulmBLAS_jll.is_available() || return nothing
+    ulmBLAS_jll.is_available() && has_library(v) || return nothing
     path = getfield(ulmBLAS_jll, Symbol("libulmblas_", v, "_path"))
     return isfile(path) ? path : nothing
 end

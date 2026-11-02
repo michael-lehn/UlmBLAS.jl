@@ -1,0 +1,153 @@
+#  The complete test suite with the libraries of ulmBLAS_jll: the recipe
+#  .github/jll-test/ulmBLAS (the one to be submitted to Yggdrasil) is built
+#  with Yggdrasil's BinaryBuilder environment, ulmBLAS_jll is generated
+#  from the tarballs as Yggdrasil does, and the package (loading the
+#  libraries from ulmBLAS_jll) is tested with it on Apple M1 (GitHub's arm64
+#  macOS runners) and x86-64 Linux.  Development branch only.
+name: jll
+
+on:
+  push:
+    branches: [jll-release]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build ${{ matrix.platform }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [x86_64-linux-gnu, aarch64-apple-darwin]
+    steps:
+      - name: free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+      - name: allow user namespaces
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      #  the commit of Yggdrasil the recipe is based on
+      - uses: actions/checkout@v7
+        with:
+          repository: JuliaPackaging/Yggdrasil
+          ref: f54922238f5f5cbcb5fd937af7527f513cedeb28
+          path: ygg
+          sparse-checkout: .ci/bb1_project
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1.13'
+      - name: recipe
+        run: |
+          #  the recipe of the Yggdrasil branch ulmBLAS-neon (4905e4fb9)
+          echo "4df22b875f30a694b3c7dfa01e345ba1a8322c490cffc3882204c37d3eecd84a  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
+          mkdir -p ygg/U/ulmBLAS
+          cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
+      - name: build
+        env:
+          BINARYBUILDER_AUTOMATIC_APPLE: 'true'
+          BINARYBUILDER_RUNNER: userns
+        run: |
+          julia --project=ygg/.ci/bb1_project -e 'using Pkg; Pkg.instantiate()'
+          cd ygg/U/ulmBLAS
+          P=$GITHUB_WORKSPACE/ygg/.ci/bb1_project
+          julia --project=$P build_tarballs.jl --meta-json=$GITHUB_WORKSPACE/meta-${{ matrix.platform }}.json ${{ matrix.platform }}
+          julia --project=$P build_tarballs.jl --verbose ${{ matrix.platform }}
+          mkdir -p $GITHUB_WORKSPACE/out
+          cp products/ulmBLAS.v*.${{ matrix.platform }}.tar.gz $GITHUB_WORKSPACE/meta-${{ matrix.platform }}.json $GITHUB_WORKSPACE/out/
+          sha256sum $GITHUB_WORKSPACE/out/*.tar.gz
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tarball-${{ matrix.platform }}
+          path: out
+
+  jll:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      - uses: actions/checkout@v7
+        with:
+          repository: JuliaPackaging/Yggdrasil
+          ref: f54922238f5f5cbcb5fd937af7527f513cedeb28
+          path: ygg
+          sparse-checkout: .ci/bb1_project
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1.13'
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: tarball-*
+          merge-multiple: true
+          path: stage
+      - name: ulmBLAS_jll
+        run: |
+          julia --project=ygg/.ci/bb1_project -e 'using Pkg; Pkg.instantiate()'
+          cat stage/meta-*.json > meta.json
+          rm stage/meta-*.json
+          #  download URLs: /tmp/ulmblas-jll on the test runners
+          julia --project=ygg/.ci/bb1_project \
+              pkg/.github/jll-test/gen_jll.jl meta.json stage file:///tmp/ulmblas-jll
+          #  BinaryBuilder writes the package to ~/.julia/dev
+          cp -R ~/.julia/dev/ulmBLAS_jll stage/
+          sha256sum stage/*.tar.gz
+          cat stage/ulmBLAS_jll/Artifacts.toml
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ulmBLAS_jll
+          path: stage
+
+  test:
+    needs: jll
+    name: Julia ${{ matrix.version }}, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        #  macos-14, macos-latest: arm64 with Apple M1 (step "CPU")
+        os: [macos-14, macos-latest, ubuntu-latest]
+        version: ['1.9', 'lts', '1']
+        exclude:
+          #  Julia 1.9 does not start on ubuntu-latest (executable stack)
+          - os: ubuntu-latest
+            version: '1.9'
+        include:
+          - os: ubuntu-22.04
+            version: '1.9'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: pkg
+      #  at the path of the download URLs in Artifacts.toml
+      - uses: actions/download-artifact@v7
+        with:
+          name: ulmBLAS_jll
+          path: /tmp/ulmblas-jll
+      - name: CPU
+        run: |
+          if [ "$(uname)" = Darwin ]; then
+              sysctl -n machdep.cpu.brand_string hw.model
+              sysctl hw.optional.arm.FEAT_SME2 hw.optional.arm.FEAT_SME_F64F64 hw.optional.arm.sme_max_svl_b || true
+              sw_vers
+              shasum -a 256 /tmp/ulmblas-jll/*.tar.gz
+          else
+              lscpu | grep -E 'Model name|Flags' | cut -c1-400
+              sha256sum /tmp/ulmblas-jll/*.tar.gz
+          fi
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.version }}
+      - name: develop
+        run: |
+          julia --project=env -e 'using Pkg
+              Pkg.develop([PackageSpec(path="/tmp/ulmblas-jll/ulmBLAS_jll"),
+                           PackageSpec(path="pkg")])'
+      - name: identity
+        run: julia --project=env pkg/.github/jll-test/identity.jl
+      #  the complete suite, with the LAPACK, triangular, dense and symmetric
+      #  tests of LinearAlgebra
+      - name: test
+        env:
+          ULMBLAS_TEST_LINALG: '1'
+        run: julia --project=env -e 'using Pkg; Pkg.test("UlmBLAS")'

@@ -58,9 +58,20 @@ end
         @test UlmBLAS.sysctl_int("hw.optional.arm.FEAT_SME2") === nothing
     end
     if Sys.isapple() && Sys.ARCH === :aarch64
-        @test UlmBLAS.variants() == UlmBLAS.arm_variants(UlmBLAS.sysctl_int)
+        @test UlmBLAS.cpu_variants() == UlmBLAS.arm_variants(UlmBLAS.sysctl_int)
         @info "UlmBLAS: CPU $(Sys.cpu_info()[1].model), " *
               join(("$n = $(UlmBLAS.sysctl_int(n))" for (n, _) in m4), ", ")
+    end
+end
+
+@testset "variants in ulmBLAS_jll" begin
+    #  the variants the CPU runs and ulmBLAS_jll has, in the order of
+    #  cpu_variants(); on Apple silicon at least neon
+    @test UlmBLAS.variants() == filter(UlmBLAS.has_library, UlmBLAS.cpu_variants())
+    @test all(v -> isfile(UlmBLAS.artifact_library(v)), UlmBLAS.variants())
+    @test !UlmBLAS.has_library("no_such_variant")
+    if Sys.isapple() && Sys.ARCH === :aarch64
+        @test "neon" in UlmBLAS.variants()
     end
 end
 
@@ -83,7 +94,7 @@ end
           ["zen4", "skylakex", "haswell", "x86_64"]
     if Sys.ARCH === :x86_64
         #  this CPU: an AVX-512 variant only with F, DQ and VL
-        avx512 = any(in(UlmBLAS.variants()), ("zen4", "skylakex"))
+        avx512 = any(in(UlmBLAS.cpu_variants()), ("zen4", "skylakex"))
         @test avx512 == all(X.test_cpu_feature,
                             (X.JL_X86_avx512f, X.JL_X86_avx512dq, X.JL_X86_avx512vl))
     end
