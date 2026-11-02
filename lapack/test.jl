@@ -114,7 +114,7 @@ const REF_RES = [residual(A, F, ipiv) for ((_, A), (F, ipiv)) in zip(CASES, REF)
 const REF_LU = [lu(A; check=false) for (_, A, _, _, _) in CASES]
 
 @testset "DGETRF" begin
-for c in (:netlib_ulmblas, :netlib_openblas)
+for c in filter(!=(:openblas), CONFIGS)
     configure(c)
     config = string(BLAS.get_config())
     results = [factor(A; pad) for (_, A, pad, _, _) in CASES]

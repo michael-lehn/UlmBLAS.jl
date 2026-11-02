@@ -14,6 +14,9 @@
 #  they must be ipiv[i] == i (no row interchanges), otherwise bench.jl
 #  stops.
 #
+#  CONFIGS (common.jl) selects the configurations; the configurations not
+#  in it are not measured (the pivots are still compared with OpenBLAS).
+#
 #  Columns: n, matrix, config, samples, median_ns, min_ns, q25_ns, q75_ns,
 #  gflops (2n^3/3 / median), ipiv_equal (pivots equal to OpenBLAS),
 #  interchanges (number of i with ipiv[i] != i).
@@ -43,6 +46,12 @@ function samples(A, B, ipiv)
 end
 
 describe()
+#  where the BLAS routines of DGETRF and DGETRF itself go in each configuration
+for c in CONFIGS
+    configure(c)
+    println(rpad(c, 22), join(("$(chop(r)) → $(basename(forward_target(r)))"
+                               for r in ("dgetrf_", "dgemm_", "dtrsm_", "idamax_", "dscal_")), ", "))
+end
 configure(:openblas)
 println("BLAS threads: ", BLAS.get_num_threads(), ", Julia threads: ", Threads.nthreads())
 const MATRICES = Symbol.(split(get(ENV, "MATRIX", "dense"), ','))

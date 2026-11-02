@@ -4,6 +4,12 @@
 #      :openblas         Julia's default: LAPACK and BLAS of OpenBLAS
 #      :netlib_ulmblas   Netlib LAPACK, BLAS of ulmBLAS (UlmBLAS.forward())
 #      :netlib_openblas  Netlib LAPACK, BLAS of OpenBLAS
+#      :netlib_ulmblas_obtrsm
+#                        Netlib LAPACK, BLAS of ulmBLAS except DTRSM, which
+#                        is OpenBLAS's (the LBT entry of dtrsm_64_ set to it)
+#
+#  CONFIGS (environment, comma-separated) selects the configurations of
+#  bench.jl and the other scripts; default the first three.
 #
 #  Netlib LAPACK is the library of build.sh, LAPACK_LIBRARY (default
 #  lapack/liblapack/lib/liblapack.{so,dylib}).  Its BLAS calls go through
@@ -15,17 +21,22 @@ using LinearAlgebra.BLAS: libblas
 
 const LAPACK_LIBRARY = get(ENV, "LAPACK_LIBRARY",
     joinpath(@__DIR__, "liblapack", "lib", "liblapack." * Libdl.dlext))
-const CONFIGS = (:openblas, :netlib_ulmblas, :netlib_openblas)
+const ALL_CONFIGS = (:openblas, :netlib_ulmblas, :netlib_openblas, :netlib_ulmblas_obtrsm)
+const CONFIGS = Tuple(Symbol.(split(get(ENV, "CONFIGS", "openblas,netlib_ulmblas,netlib_openblas"), ',')))
 
 function configure(c::Symbol)
     isfile(LAPACK_LIBRARY) || error("no Netlib LAPACK: $LAPACK_LIBRARY (lapack/build.sh)")
     BLAS.lbt_forward(OpenBLAS_jll.libopenblas_path; clear=true, suffix_hint="64_")
     BLAS.set_num_threads(1)
     c === :openblas && return
-    c === :netlib_ulmblas && UlmBLAS.forward()
+    c in ALL_CONFIGS || error("unknown configuration $c")
+    c in (:netlib_ulmblas, :netlib_ulmblas_obtrsm) && UlmBLAS.forward()
     n = BLAS.lbt_forward(LAPACK_LIBRARY; clear=false, suffix_hint="64_")
     n > 0 || error("no routine forwarded from $LAPACK_LIBRARY")
-    c in CONFIGS || error("unknown configuration $c")
+    if c === :netlib_ulmblas_obtrsm
+        f = Libdl.dlsym(Libdl.dlopen(OpenBLAS_jll.libopenblas_path), :dtrsm_64_)
+        BLAS.lbt_set_forward("dtrsm_", f, :ilp64)
+    end
     return
 end
 
