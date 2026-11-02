@@ -3,9 +3,13 @@
 #
 #      julia plot.jl OUTDIR "Ice Lake=results/il.tsv" "Zen 4=results/zen4.tsv" ...
 #
-#  writes OUTDIR/getrf-time.svg (median time of a complete DGETRF, log-log)
-#  and OUTDIR/getrf-speedup.svg (time of OpenBLAS / time, log n axis,
-#  above 1 = faster than Julia's default).  Only Julia's standard library
+#  writes OUTDIR/PREFIX-time.svg (median time of a complete DGETRF, log-log)
+#  and OUTDIR/PREFIX-speedup.svg (time of OpenBLAS / time, log n axis,
+#  above 1 = faster than Julia's default) for the matrices MATRIX (default
+#  dense; files without a column matrix are dense), PREFIX default getrf.
+#  With MATRIX=coldom also OUTDIR/PREFIX-pivoting.svg: time for the dense
+#  matrices / time for the column-dominant ones, per configuration (above
+#  1 = faster without row interchanges).  Only Julia's standard library
 #  is used.
 #
 const CONFIGS = ["openblas", "netlib_ulmblas", "netlib_openblas"]
@@ -19,18 +23,27 @@ const COLORS      = ["#2a78d6", "#eb6834", "#1baf7a"]
 const COLORS_DARK = ["#3987e5", "#d95926", "#199e70"]
 
 outdir = ARGS[1]
-machines = map(ARGS[2:end]) do a
-    name, path = split(a, '='; limit=2)
+const MATRIX = get(ENV, "MATRIX", "dense")
+const PREFIX = get(ENV, "PREFIX", "getrf")
+#  median times by (config, n) of the matrices kind
+function read_times(path, kind)
     lines = readlines(path)
     header = split(lines[1], '\t')
     col(c) = findfirst(==(c), header)
     t = Dict{Tuple{String,Int},Float64}()
     for l in lines[2:end]
         f = split(l, '\t')
+        k = col("matrix") === nothing ? "dense" : f[col("matrix")]
+        k == kind || continue
         t[(f[col("config")], parse(Int, f[col("n")]))] = parse(Float64, f[col("median_ns")])
     end
+    return t
+end
+machines = map(ARGS[2:end]) do a
+    name, path = split(a, '='; limit=2)
+    t = read_times(path, MATRIX)
     sizes = sort(unique(last.(keys(t))))
-    (name=String(name), t=t, sizes=sizes)
+    (name=String(name), t=t, sizes=sizes, dense=read_times(path, "dense"))
 end
 
 fmt(v) = isinteger(v) || v >= 100 ? string(round(Int, v)) : v >= 10 ? string(round(v, digits=1)) :
@@ -128,10 +141,13 @@ function figure(file, title, configs, value, ylog, yticks, ylab, ytick_label, ti
     println("wrote ", joinpath(outdir, file))
 end
 
-note = "Median of repeated calls, one thread, same matrices (randn) and Julia version for all configurations."
+what = MATRIX == "dense" ? "random matrices" : "matrices diagonally dominant by columns"
+note = MATRIX == "dense" ?
+    "Median of repeated calls, one thread, same matrices (randn) and Julia version for all configurations." :
+    "Median of repeated calls, one thread, same matrices (randn, diagonal ±1.25 × column sum: no row interchanges) for all configurations."
 
 alltimes = [v for m in machines for v in values(m.t)]
-figure("getrf-time.svg", "DGETRF (LU with partial pivoting): median time, lower is better",
+figure("$PREFIX-time.svg", "DGETRF (LU with partial pivoting), $what: median time, lower is better",
        CONFIGS, (m, c, n) -> m.t[(c, n)], true,
        ticks_log(minimum(alltimes), maximum(alltimes)), "time per call",
        fmt_time, (m, c, n) -> fmt_time(m.t[(c, n)]), note)
@@ -140,7 +156,20 @@ speedup(m, c, n) = m.t[("openblas", n)]/m.t[(c, n)]
 s = [speedup(m, c, n) for m in machines for c in CONFIGS[2:3] for n in m.sizes if haskey(m.t, (c, n))]
 step = maximum(s) > 2 ? 0.5 : 0.25
 yt = collect(0.0:step:step*ceil(maximum(s)/step))
-figure("getrf-speedup.svg", "DGETRF: speedup over Julia's default (OpenBLAS), higher is better",
+figure("$PREFIX-speedup.svg", "DGETRF, $what: speedup over Julia's default (OpenBLAS), higher is better",
        CONFIGS[2:3], speedup, false, yt, "time of OpenBLAS / time",
        v -> string(v, "×"), (m, c, n) -> string(round(speedup(m, c, n), digits=2), "× (",
        fmt_time(m.t[(c, n)]), " vs. ", fmt_time(m.t[("openblas", n)]), ")"), note; ref=1.0)
+
+MATRIX == "dense" && exit()
+#  dense / column-dominant, for each configuration
+gain(m, c, n) = m.dense[(c, n)]/m.t[(c, n)]
+g = [gain(m, c, n) for m in machines for c in CONFIGS for n in m.sizes if haskey(m.dense, (c, n))]
+lo, hi = min(minimum(g), 1.0), maximum(g)
+step = hi - lo > 2 ? 0.5 : hi - lo > 0.6 ? 0.25 : 0.1
+yt = collect(step*floor(lo/step):step:step*ceil(maximum(g)/step))
+figure("$PREFIX-pivoting.svg", "DGETRF without row interchanges: time for random / column-dominant matrices",
+       CONFIGS, gain, false, yt, "time random / time column-dominant",
+       v -> string(v, "×"), (m, c, n) -> string(round(gain(m, c, n), digits=2), "× (",
+       fmt_time(m.dense[(c, n)]), " → ", fmt_time(m.t[(c, n)]), ")"),
+       "Same off-diagonal entries (randn, seed n); both kinds measured in the same job, taking turns. Above 1 = faster without row interchanges."; ref=1.0)
