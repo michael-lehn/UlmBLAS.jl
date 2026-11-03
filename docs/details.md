@@ -150,7 +150,7 @@ included) and checks the results.
 
 `UlmBLAS.cpu_variants()` lists the builds the CPU can run, the preferred
 one first; `UlmBLAS.variants()` those of them ulmBLAS_jll has a library
-for (ulmBLAS_jll 0.2 has no `sme` library, so Apple M4 and M5 use `neon`);
+for;
 `UlmBLAS.variant()` is the first:
 
 - AArch64: `sme` on macOS if the sysctls `hw.optional.arm.FEAT_SME2` and

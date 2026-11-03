@@ -25,6 +25,9 @@ end
     #  `using UlmBLAS` does not change the BLAS of Julia
     @test [l.libname for l in BLAS.get_config().loaded_libs] == LIBS_BEFORE
     @test UlmBLAS.variant() in UlmBLAS.variants()
+    #  only the library of the selected variant is loaded
+    @test basename.(filter(contains("libulmblas_"), Libdl.dllist())) ==
+          [basename(UlmBLAS.library_path())]
     @info "UlmBLAS: library $(UlmBLAS.library_path()) ($(UlmBLAS.chosen[])), " *
           "variants of this CPU: $(join(UlmBLAS.variants(), ", "))"
 end
@@ -72,6 +75,11 @@ end
     @test !UlmBLAS.has_library("no_such_variant")
     if Sys.isapple() && Sys.ARCH === :aarch64
         @test "neon" in UlmBLAS.variants()
+        @test UlmBLAS.has_library("sme")
+        #  sme whenever the CPU runs it, otherwise never
+        expected = "sme" in UlmBLAS.cpu_variants() ? "sme" : "neon"
+        @test UlmBLAS.variant() == expected
+        isempty(get(ENV, "ULMBLAS_LIBRARY", "")) && @test UlmBLAS.chosen[] == expected
     end
 end
 
@@ -207,6 +215,12 @@ end
 @testset "variant $v" for v in (isempty(get(ENV, "ULMBLAS_LIBRARY", "")) ?
                                 UlmBLAS.variants() : String[])
     @test script_passes("variant.jl", "ULMBLAS_VARIANT" => v)
+end
+#  a CPU without SME2: the sme library is not loaded even if requested
+if Sys.isapple() && Sys.ARCH === :aarch64 && !("sme" in UlmBLAS.cpu_variants())
+    @testset "ULMBLAS_VARIANT=sme without SME2" begin
+        @test script_passes("nosme.jl", "ULMBLAS_VARIANT" => "sme")
+    end
 end
 @testset "ULMBLAS_LIBRARY does not exist" begin
     p, out, err = run_script("init.jl", "ULMBLAS_LIBRARY" => "/nonexistent/libulmblas_lbt")
