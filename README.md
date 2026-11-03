@@ -394,4 +394,27 @@ Time of DGETRF (top) and time / time with OpenBLAS's BLAS (bottom):
 - Column-dominant matrices: the same picture (DLASWP is the same code in
   all three configurations).
 
+Speedup over Julia's default (OpenBLAS's LAPACK and BLAS), the same
+benchmark with all four configurations in one run:
+
+![DGETRF with OpenBLAS's DTRSM against Julia's default, random](lapack/results/trsm-vs-openblas-dense.svg)
+
+![DGETRF with OpenBLAS's DTRSM against Julia's default, column-dominant](lapack/results/trsm-vs-openblas-coldom.svg)
+
+- **Small matrices:** with OpenBLAS's DTRSM, Netlib + ulmBLAS reaches
+  0.18–0.21× of Julia's default at n = 8 (0.04–0.05× without) and
+  0.52–0.65× at n = 128 (0.29–0.31×).  Netlib + OpenBLAS's BLAS itself
+  reaches only 0.36–0.42× at n = 8: a factor of about 2 remains in
+  ulmBLAS's other small calls, a factor of 2.4–2.8 is Netlib's DGETRF
+  itself.
+- **Large random matrices:** ulmBLAS with OpenBLAS's DTRSM is 0.71–0.90×
+  on Ice Lake and 0.53–0.83× on Zen 4 (n ≥ 512).  On Zen 4 that is
+  Netlib + OpenBLAS's BLAS (0.93–1.04× of it), on Ice Lake 4–14% below
+  it (DGEMM).  The rest of the gap is Netlib's DGETRF, as with OpenBLAS's
+  BLAS; without row interchanges it closes (next point).
+- **Column-dominant matrices (no interchanges):** ulmBLAS with OpenBLAS's
+  DTRSM is faster than Julia's default on Ice Lake for n = 768–2048
+  (1.08–1.18×) and equal on Zen 4 for n = 768–3072 (0.99–1.01×; without
+  OpenBLAS's DTRSM 0.87–0.98×).
+
 Details, tables and raw data: [`lapack/README.md`](lapack/README.md).

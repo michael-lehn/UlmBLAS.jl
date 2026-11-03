@@ -342,6 +342,58 @@ Time of DGETRF (top, log scale) and time / time with OpenBLAS's BLAS
 - Column-dominant matrices: the same picture (DLASWP is the same code in
   all three configurations).
 
+### Against Julia's default
+
+The same benchmark with all four configurations in one run
+(`CONFIGS=openblas,netlib_ulmblas,netlib_ulmblas_obtrsm,netlib_openblas`,
+`cluster/job-trsm.sh R JULIA CONFIGS`); `test.jl` (948 checks) and
+`coldom.jl` (308 checks) pass, pivots equal to OpenBLAS's in every run.
+Jobs 8245019 (Ice Lake, uc2n601) and 8245020 (Zen 4, uc3n069),
+`results/*-trsm4.*`.  Speedup over Julia's default (time of OpenBLAS's
+DGETRF / time):
+
+| n | Ice Lake: ulmBLAS | ulmBLAS + OpenBLAS's DTRSM | OpenBLAS's BLAS | Zen 4: ulmBLAS | ulmBLAS + OpenBLAS's DTRSM | OpenBLAS's BLAS |
+|---:|---:|---:|---:|---:|---:|---:|
+| random | | | | | | |
+| 8 | 0.05× | 0.18× | 0.36× | 0.04× | 0.21× | 0.42× |
+| 32 | 0.13× | 0.35× | 0.61× | 0.09× | 0.40× | 0.66× |
+| 128 | 0.31× | 0.52× | 0.85× | 0.29× | 0.65× | 0.90× |
+| 256 | 0.43× | 0.53× | 0.68× | 0.43× | 0.63× | 0.73× |
+| 512 | 0.65× | 0.71× | 0.83× | 0.47× | 0.53× | 0.56× |
+| 1024 | 0.85× | 0.87× | 0.97× | 0.60× | 0.63× | 0.65× |
+| 2048 | 0.85× | 0.86× | 0.92× | 0.65× | 0.67× | 0.67× |
+| 4096 | 0.73× | 0.74× | 0.77× | 0.75× | 0.76× | 0.73× |
+| column-dominant | | | | | | |
+| 8 | 0.05× | 0.17× | 0.34× | 0.04× | 0.19× | 0.38× |
+| 32 | 0.12× | 0.33× | 0.62× | 0.08× | 0.37× | 0.64× |
+| 128 | 0.31× | 0.53× | 0.94× | 0.29× | 0.67× | 0.98× |
+| 256 | 0.55× | 0.74× | 1.09× | 0.51× | 0.82× | 1.03× |
+| 512 | 0.89× | 0.99× | 1.27× | 0.77× | 0.95× | 1.06× |
+| 1024 | 1.15× | 1.18× | 1.38× | 0.93× | 1.01× | 1.07× |
+| 2048 | 1.08× | 1.08× | 1.20× | 0.98× | 1.01× | 1.01× |
+| 4096 | 0.88× | 0.89× | 0.94× | 0.96× | 0.97× | 0.93× |
+
+![DGETRF with OpenBLAS's DTRSM against Julia's default, random](results/trsm-vs-openblas-dense.svg)
+
+![DGETRF with OpenBLAS's DTRSM against Julia's default, column-dominant](results/trsm-vs-openblas-coldom.svg)
+
+
+- **Small matrices:** with OpenBLAS's DTRSM, Netlib + ulmBLAS reaches
+  0.18–0.21× of Julia's default at n = 8 (0.04–0.05× without) and
+  0.52–0.65× at n = 128 (0.29–0.31×).  Netlib + OpenBLAS's BLAS itself
+  reaches only 0.36–0.42× at n = 8: a factor of about 2 remains in
+  ulmBLAS's other small calls, a factor of 2.4–2.8 is Netlib's DGETRF
+  itself.
+- **Large random matrices:** ulmBLAS with OpenBLAS's DTRSM is 0.71–0.90×
+  on Ice Lake and 0.53–0.83× on Zen 4 (n ≥ 512).  On Zen 4 that is
+  Netlib + OpenBLAS's BLAS (0.93–1.04× of it), on Ice Lake 4–14% below
+  it (DGEMM).  The rest of the gap is Netlib's DGETRF, as with OpenBLAS's
+  BLAS; without row interchanges it closes (next point).
+- **Column-dominant matrices (no interchanges):** ulmBLAS with OpenBLAS's
+  DTRSM is faster than Julia's default on Ice Lake for n = 768–2048
+  (1.08–1.18×) and equal on Zen 4 for n = 768–3072 (0.99–1.01×; without
+  OpenBLAS's DTRSM 0.87–0.98×).
+
 ## Reproduce
 
 ```sh
@@ -350,7 +402,7 @@ julia --project=lapack -e 'using Pkg; Pkg.instantiate()'
 julia --project=lapack lapack/verify.jl
 julia --project=lapack lapack/test.jl
 julia --project=lapack lapack/coldom.jl                 # column-dominant matrices
-CONFIGS=netlib_ulmblas,netlib_ulmblas_obtrsm,netlib_openblas MATRIX=dense,coldom \
+CONFIGS=openblas,netlib_ulmblas,netlib_ulmblas_obtrsm,netlib_openblas MATRIX=dense,coldom \
     julia -t1 --project=lapack lapack/bench.jl t.tsv     # with OpenBLAS's DTRSM
 julia lapack/plot_trsm.jl OUTDIR "Ice Lake=t.tsv" ...
 julia -t1 --project=lapack lapack/profile.jl p.tsv      # time per BLAS routine
