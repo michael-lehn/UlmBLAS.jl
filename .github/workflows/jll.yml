@@ -107,7 +107,7 @@ jobs:
       - name: recipe
         run: |
           #  the recipe of the Yggdrasil PR branch ulmBLAS-0.2.0
-          echo "2118e124d31035d52f7fd561196c89c3470184de5f8797bfeb484f921bd20f91  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
+          echo "c348f13ae557315863d8dd93eb79d75d4633913cf6e92cd6b6e2944ed744427b  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
           mkdir -p ygg/U/ulmBLAS
           #  only difference: LLVMCompilerRT_jll from the local repository
           sed 's|name="LLVMCompilerRT_jll", version="20.1.8"|name="LLVMCompilerRT_jll", path="/tmp/crt-jll/LLVMCompilerRT_jll"|' \
