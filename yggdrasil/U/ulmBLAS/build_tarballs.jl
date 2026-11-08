@@ -6,29 +6,27 @@ const YGGDRASIL_DIR = "../.."
 include(joinpath(YGGDRASIL_DIR, "fancy_toys.jl"))
 
 name = "ulmBLAS"
-version = v"0.1.0"
+version = v"0.3.0"
 
 sources = [
+    # draft: a commit of the branch windows-lapack (test build); the release
+    # will use the tag v0.3.0
     GitSource("https://github.com/michael-lehn/ulmBLAS.git",
-              "6c554eec707e22f118bae5dcaea10ad9945aac54"),
-    # The SME support routines (`__arm_tpidr2_save`, ...) for macOS, which
-    # Apple's clang links from libclang_rt.osx.a.  The toolchain doesn't
-    # have them and LLVMCompilerRT_jll (17.0.6) predates them.
-    ArchiveSource("https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.8/compiler-rt-20.1.8.src.tar.xz",
-                  "15277402f6fd63397c0917a5c7171cda82d16d226094b828c1ed0f58f73b9c69"),
+              "340d2d6ec8027a3ffd6b85a6cb185ae0c65ad7eb"),
 ]
 
 # One library per instruction set, `libulmblas_VARIANT`, with the BLAS
-# interface for libblastrampoline (ILP64, suffix `64_`) and GEMM with
-# arbitrary strides (`ulmblas_dgemm_strided`, ...).  UlmBLAS.jl selects the
-# variant for the CPU at run time.
+# interface for libblastrampoline (ILP64, suffix `64_`), GEMM with
+# arbitrary strides (`ulmblas_dgemm_strided`, ...) and the LAPACK functions
+# ?getrf, ?potrf, solves and inverses with OpenMP tasks (OPENMP=1
+# LAPACK=1; their number of threads: `ulmblas_set_num_threads_64_`).
+# UlmBLAS.jl selects the variant for the CPU at run time.
 script = raw"""
 cd ${WORKSPACE}/srcdir/ulmBLAS
 
 flags() {
     case $1 in
     neon)     echo "-DULMBLAS_NO_SME";;
-    sme)      echo "-mcpu=apple-m4";;
     x86_64)   echo "-msse3";;
     haswell)  echo "-mavx -mavx2 -mfma" \
                    "-DULMBLAS_DGEMM_UKERNEL_openblas_haswell_4x8" \
@@ -53,29 +51,27 @@ for v in ${variants}; do
     # The makefile picks these with `uname`, i.e. for the build host.
     if [[ ${target} == *-apple-* ]]; then
         link="-dynamiclib -Wl,-force_load,${build}/liblbtblas.a"
-        if [[ ${v} == sme ]]; then
-            mkdir -pv ${build}
-            # hidden, as in libclang_rt.osx.a
-            ${CC} -c -x assembler-with-cpp -DVISIBILITY_HIDDEN -o ${build}/sme_abi.o \
-                ${WORKSPACE}/srcdir/compiler-rt-*/lib/builtins/aarch64/arm_apple_sme_abi.s
-            link+=" ${build}/sme_abi.o"
-        fi
+        link+=" -Wl,-force_load,${build}/liblbtlapack.a"
+        # libomp of LLVMOpenMP_jll
+        omp="OMPFLAGS=-fopenmp -I${includedir}"
+        omplibs="OMPLIBS=-L${libdir} -lomp"
     else
-        link="-shared -Wl,--whole-archive ${build}/liblbtblas.a -Wl,--no-whole-archive"
+        link="-shared -Wl,--whole-archive ${build}/liblbtblas.a ${build}/liblbtlapack.a -Wl,--no-whole-archive"
+        # libgomp of CompilerSupportLibraries_jll
+        omp="OMPFLAGS=-fopenmp"
+        omplibs="OMPLIBS=-fopenmp"
         link+=" -static-libstdc++ -static-libgcc -Wl,--no-undefined -Wl,--strip-debug"
         # don't export the static libstdc++
         link+=" -Wl,--exclude-libs,libstdc++.a:libgcc.a:libgcc_eh.a"
     fi
     make -j${nproc} lbt CXX="${CXX}" CC="${CC}" ARCHFLAGS="$(flags ${v})" \
+         OPENMP=1 LAPACK=1 "${omp}" "${omplibs}" \
          BUILD_DIR=${build} LBT_LIB=${build}/libulmblas_${v}.${dlext} LBT_LINK="${link}"
     install -Dvm 755 ${build}/libulmblas_${v}.${dlext} ${libdir}/libulmblas_${v}.${dlext}
 done
 
 # includes the licenses of the micro kernels from BLIS, AOCL-BLAS and OpenBLAS
 install_license LICENSE
-if [[ ${target} == *-apple-* ]]; then
-    install_license ${WORKSPACE}/srcdir/compiler-rt-*/LICENSE.TXT
-fi
 """
 
 platforms = supported_platforms()
@@ -92,13 +88,19 @@ filter!(!Sys.iswindows, platforms)
 # Not built or tested yet: FreeBSD and musl.
 filter!(p -> !Sys.isfreebsd(p) && libc(p) != "musl", platforms)
 
-variants(p) = Sys.isapple(p) ? ["neon", "sme"] : ["x86_64", "haswell", "skylakex", "zen4"]
+# macOS: NEON for all Apple silicon.  The SME2 kernels of ulmBLAS (M4 and
+# later) need the SME support routines of compiler-rt (LLVMCompilerRT_jll
+# 20, not yet available) and will be added in a later version.
+variants(p) = Sys.isapple(p) ? ["neon"] : ["x86_64", "haswell", "skylakex", "zen4"]
 
 # Not loaded with the JLL: only some variants run on a given CPU.
 products(p) = [LibraryProduct("libulmblas_$(v)", Symbol("libulmblas_$(v)"); dont_dlopen=true)
                for v in variants(p)]
 
-dependencies = Dependency[]
+#  OpenMP runtime: libgomp (GCC) on Linux, libomp (LLVM) on macOS
+dependencies(p) = Sys.isapple(p) ?
+    [Dependency(PackageSpec(name="LLVMOpenMP_jll", uuid="1d63c593-3942-5779-bab2-d838dc0a180e"))] :
+    [Dependency(PackageSpec(name="CompilerSupportLibraries_jll", uuid="e66e0078-7015-5450-92f7-15fbd957f2ae"))]
 
 for platform in platforms
     should_build_platform(triplet(platform)) || continue
@@ -109,7 +111,7 @@ for platform in platforms
     compilers = Sys.islinux(platform) ? (; preferred_gcc_version=v"11") : (;)
     build_tarballs(ARGS, name, version, sources,
                    "variants=\"$(join(variants(platform), ' '))\"\n" * script,
-                   [platform], products(platform), dependencies;
+                   [platform], products(platform), dependencies(platform);
                    julia_compat="1.9",
                    # The variants choose their instruction sets.
                    lock_microarchitecture=false,

@@ -5,7 +5,7 @@ name: yggdrasil
 
 on:
   push:
-    branches: [yggdrasil-recipe]
+    branches: [yggdrasil-recipe, yggdrasil-0.3]
   workflow_dispatch:
     inputs:
       gcc:
