@@ -55,6 +55,13 @@ for v in ${variants}; do
         # libomp of LLVMOpenMP_jll
         omp="OMPFLAGS=-fopenmp -I${includedir}"
         omplibs="OMPLIBS=-L${libdir} -lomp"
+    elif [[ ${target} == *-mingw* ]]; then
+        # MinGW-w64: all global symbols are exported (none is dllexport)
+        link="-shared -Wl,--whole-archive ${build}/liblbtblas.a ${build}/liblbtlapack.a -Wl,--no-whole-archive"
+        link+=" -static-libstdc++ -static-libgcc -Wl,--no-undefined"
+        # libgomp of CompilerSupportLibraries_jll
+        omp="OMPFLAGS=-fopenmp"
+        omplibs="OMPLIBS=-fopenmp"
     else
         link="-shared -Wl,--whole-archive ${build}/liblbtblas.a ${build}/liblbtlapack.a -Wl,--no-whole-archive"
         # libgomp of CompilerSupportLibraries_jll
@@ -82,9 +89,8 @@ filter!(p -> arch(p) in ("x86_64", "aarch64"), platforms)
 filter!(p -> !(Sys.islinux(p) && arch(p) == "aarch64"), platforms)
 # Not built or tested yet: the x86-64 variants on macOS.
 filter!(p -> !(Sys.isapple(p) && arch(p) == "x86_64"), platforms)
-# Windows needs changes to ulmBLAS (aligned allocation, 64-bit indices in the
-# kernels) that are not yet in a release.
-filter!(!Sys.iswindows, platforms)
+# Windows: x86-64 only (MinGW-w64)
+filter!(p -> !Sys.iswindows(p) || arch(p) == "x86_64", platforms)
 # Not built or tested yet: FreeBSD and musl.
 filter!(p -> !Sys.isfreebsd(p) && libc(p) != "musl", platforms)
 
@@ -108,7 +114,9 @@ for platform in platforms
     # GCC 6: zgemm up to 2.8x in the SSE3 variant); GCC 5 fails.  With GCC 11
     # only zgemv without transposition is slower than with GCC 14 (about 3x).
     # libstdc++ is linked statically.
-    compilers = Sys.islinux(platform) ? (; preferred_gcc_version=v"11") : (;)
+    # The OpenMP tasks need OpenMP 5.0 (iterators in depend clauses): GCC 9
+    # or newer, also with MinGW-w64.
+    compilers = Sys.isapple(platform) ? (;) : (; preferred_gcc_version=v"11")
     build_tarballs(ARGS, name, version, sources,
                    "variants=\"$(join(variants(platform), ' '))\"\n" * script,
                    [platform], products(platform), dependencies(platform);
