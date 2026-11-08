@@ -40,7 +40,7 @@ jobs:
         run: |
           #  draft of the recipe 0.3.0 (LAPACK with OpenMP; UlmBLAS.jl branch
           #  yggdrasil-0.3)
-          echo "fd74afc7f01d1a6b5ada50803cc5059422d5a66c66a79d82b062d838301b951e  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
+          echo "d671a2fc521e4359c6f08d2b35bc78252fa41545aeb55c297764f43888a79a3b  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
           mkdir -p ygg/U/ulmBLAS
           cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
       - name: build

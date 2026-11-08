@@ -103,10 +103,13 @@ variants(p) = Sys.isapple(p) ? ["neon"] : ["x86_64", "haswell", "skylakex", "zen
 products(p) = [LibraryProduct("libulmblas_$(v)", Symbol("libulmblas_$(v)"); dont_dlopen=true)
                for v in variants(p)]
 
-#  OpenMP runtime: libgomp (GCC) on Linux, libomp (LLVM) on macOS
-dependencies(p) = Sys.isapple(p) ?
-    [Dependency(PackageSpec(name="LLVMOpenMP_jll", uuid="1d63c593-3942-5779-bab2-d838dc0a180e"))] :
-    [Dependency(PackageSpec(name="CompilerSupportLibraries_jll", uuid="e66e0078-7015-5450-92f7-15fbd957f2ae"))]
+#  OpenMP runtime: libgomp (GCC) on Linux and Windows, libomp (LLVM) on macOS
+dependencies = [
+    Dependency(PackageSpec(name="CompilerSupportLibraries_jll", uuid="e66e0078-7015-5450-92f7-15fbd957f2ae");
+               platforms=filter(!Sys.isapple, platforms)),
+    Dependency(PackageSpec(name="LLVMOpenMP_jll", uuid="1d63c593-3942-5779-bab2-d838dc0a180e");
+               platforms=filter(Sys.isapple, platforms)),
+]
 
 for platform in platforms
     should_build_platform(triplet(platform)) || continue
@@ -119,7 +122,7 @@ for platform in platforms
     compilers = Sys.isapple(platform) ? (;) : (; preferred_gcc_version=v"11")
     build_tarballs(ARGS, name, version, sources,
                    "variants=\"$(join(variants(platform), ' '))\"\n" * script,
-                   [platform], products(platform), dependencies(platform);
+                   [platform], products(platform), dependencies;
                    julia_compat="1.9",
                    # The variants choose their instruction sets.
                    lock_microarchitecture=false,

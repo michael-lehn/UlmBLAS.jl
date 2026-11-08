@@ -47,8 +47,16 @@ ulm(n) = (p = dlsym_e(ULM, n * "64_"); p == C_NULL ? UInt(0) : UInt(p))
     end
     for n in ("crot_", "zrot_", "csymv_", "zsymv_", "csyr_", "zsyr_",
               "cblas_ddot", "cblas_sdot", "cblas_zdotc_sub", "cblas_cdotc_sub",
-              "cblas_zdotu_sub", "cblas_cdotu_sub", "dgetrf_", "zheevd_")
+              "cblas_zdotu_sub", "cblas_cdotu_sub", "zheevd_")
         @test backing(n) == backing_before[n] != ""
+    end
+    #  LAPACK: ?getrf and ?potrf go to ulmBLAS if its library has them
+    for n in ("dgetrf_", "zpotrf_")
+        if ulm(n) != 0
+            @test occursin("ulmblas", backing(n))
+        else
+            @test backing(n) == backing_before[n] != ""
+        end
     end
     for n in ("dgemm_", "zgemm_", "strsm_", "ctrmm_", "dgemv_", "zherk_",
               "daxpy_", "idamax_", "dnrm2_", "zdotc_")
