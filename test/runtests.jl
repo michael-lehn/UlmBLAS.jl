@@ -129,6 +129,37 @@ include("strided.jl")
     end
 end
 
+#  the LAPACK functions of ulmBLAS (libraries built with LAPACK): threads
+#  as BLAS.set_num_threads, results of lu, cholesky, inv and \
+@testset "LAPACK" begin
+    h = dlopen(UlmBLAS.library_path())
+    getter = dlsym(h, :ulmblas_get_num_threads_64_; throw_error=false)
+    if getter === nothing
+        #  a library without LAPACK
+        @test dlsym(h, :dgetrf_64_; throw_error=false) === nothing
+    else
+        @test UInt(BLAS.lbt_get_forward("dgetrf_", :ilp64)) == UInt(dlsym(h, :dgetrf_64_))
+        @test UInt(BLAS.lbt_get_forward("zpotrf_", :ilp64)) == UInt(dlsym(h, :zpotrf_64_))
+        n0 = BLAS.get_num_threads()
+        BLAS.set_num_threads(2)
+        @test ccall(getter, Cint, ()) == 2
+        BLAS.set_num_threads(n0)
+        @test ccall(getter, Cint, ()) == n0
+        for T in (Float32, Float64, ComplexF32, ComplexF64), n in (5, 120, 400)
+            tol = 100 * n * eps(real(T))
+            A = rand(T, n, n) + n * I
+            F = lu(A)
+            @test norm(F.L * F.U - A[F.p, :]) <= tol * norm(A)
+            S = A' * A
+            C = cholesky(Hermitian(S))
+            @test norm(C.U' * C.U - S) <= tol * norm(S)
+            b = rand(T, n)
+            @test norm(A * (A \ b) - b) <= tol * norm(A) * norm(A \ b)
+            @test norm(A * inv(A) - I) <= tol * cond(A)
+        end
+    end
+end
+
 #  results against Julia's generic implementations (no BLAS)
 gemm_ref(A, B) = [sum(A[i, l] * B[l, j] for l in axes(A, 2)) for i in axes(A, 1), j in axes(B, 2)]
 

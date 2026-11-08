@@ -6,17 +6,21 @@ const YGGDRASIL_DIR = "../.."
 include(joinpath(YGGDRASIL_DIR, "fancy_toys.jl"))
 
 name = "ulmBLAS"
-version = v"0.2.0"
+version = v"0.3.0"
 
 sources = [
+    # draft: a commit of the branch windows-lapack (test build); the release
+    # will use the tag v0.3.0
     GitSource("https://github.com/michael-lehn/ulmBLAS.git",
-              "6a7d7dc6f951a8d1e648b759016a20806d527d6d"),
+              "340d2d6ec8027a3ffd6b85a6cb185ae0c65ad7eb"),
 ]
 
 # One library per instruction set, `libulmblas_VARIANT`, with the BLAS
-# interface for libblastrampoline (ILP64, suffix `64_`) and GEMM with
-# arbitrary strides (`ulmblas_dgemm_strided`, ...).  UlmBLAS.jl selects the
-# variant for the CPU at run time.
+# interface for libblastrampoline (ILP64, suffix `64_`), GEMM with
+# arbitrary strides (`ulmblas_dgemm_strided`, ...) and the LAPACK functions
+# ?getrf, ?potrf, solves and inverses with OpenMP tasks (OPENMP=1
+# LAPACK=1; their number of threads: `ulmblas_set_num_threads_64_`).
+# UlmBLAS.jl selects the variant for the CPU at run time.
 script = raw"""
 cd ${WORKSPACE}/srcdir/ulmBLAS
 
@@ -47,13 +51,28 @@ for v in ${variants}; do
     # The makefile picks these with `uname`, i.e. for the build host.
     if [[ ${target} == *-apple-* ]]; then
         link="-dynamiclib -Wl,-force_load,${build}/liblbtblas.a"
+        link+=" -Wl,-force_load,${build}/liblbtlapack.a"
+        # libomp of LLVMOpenMP_jll
+        omp="OMPFLAGS=-fopenmp -I${includedir}"
+        omplibs="OMPLIBS=-L${libdir} -lomp"
+    elif [[ ${target} == *-mingw* ]]; then
+        # MinGW-w64: all global symbols are exported (none is dllexport)
+        link="-shared -Wl,--whole-archive ${build}/liblbtblas.a ${build}/liblbtlapack.a -Wl,--no-whole-archive"
+        link+=" -static-libstdc++ -static-libgcc -Wl,--no-undefined"
+        # libgomp of CompilerSupportLibraries_jll
+        omp="OMPFLAGS=-fopenmp"
+        omplibs="OMPLIBS=-fopenmp"
     else
-        link="-shared -Wl,--whole-archive ${build}/liblbtblas.a -Wl,--no-whole-archive"
+        link="-shared -Wl,--whole-archive ${build}/liblbtblas.a ${build}/liblbtlapack.a -Wl,--no-whole-archive"
+        # libgomp of CompilerSupportLibraries_jll
+        omp="OMPFLAGS=-fopenmp"
+        omplibs="OMPLIBS=-fopenmp"
         link+=" -static-libstdc++ -static-libgcc -Wl,--no-undefined -Wl,--strip-debug"
         # don't export the static libstdc++
         link+=" -Wl,--exclude-libs,libstdc++.a:libgcc.a:libgcc_eh.a"
     fi
     make -j${nproc} lbt CXX="${CXX}" CC="${CC}" ARCHFLAGS="$(flags ${v})" \
+         OPENMP=1 LAPACK=1 "${omp}" "${omplibs}" \
          BUILD_DIR=${build} LBT_LIB=${build}/libulmblas_${v}.${dlext} LBT_LINK="${link}"
     install -Dvm 755 ${build}/libulmblas_${v}.${dlext} ${libdir}/libulmblas_${v}.${dlext}
 done
@@ -70,9 +89,8 @@ filter!(p -> arch(p) in ("x86_64", "aarch64"), platforms)
 filter!(p -> !(Sys.islinux(p) && arch(p) == "aarch64"), platforms)
 # Not built or tested yet: the x86-64 variants on macOS.
 filter!(p -> !(Sys.isapple(p) && arch(p) == "x86_64"), platforms)
-# Windows needs changes to ulmBLAS (aligned allocation, 64-bit indices in the
-# kernels) that are not yet in a release.
-filter!(!Sys.iswindows, platforms)
+# Windows: x86-64 only (MinGW-w64)
+filter!(p -> !Sys.iswindows(p) || arch(p) == "x86_64", platforms)
 # Not built or tested yet: FreeBSD and musl.
 filter!(p -> !Sys.isfreebsd(p) && libc(p) != "musl", platforms)
 
@@ -85,7 +103,10 @@ variants(p) = Sys.isapple(p) ? ["neon"] : ["x86_64", "haswell", "skylakex", "zen
 products(p) = [LibraryProduct("libulmblas_$(v)", Symbol("libulmblas_$(v)"); dont_dlopen=true)
                for v in variants(p)]
 
-dependencies = Dependency[]
+#  OpenMP runtime: libgomp (GCC) on Linux, libomp (LLVM) on macOS
+dependencies(p) = Sys.isapple(p) ?
+    [Dependency(PackageSpec(name="LLVMOpenMP_jll", uuid="1d63c593-3942-5779-bab2-d838dc0a180e"))] :
+    [Dependency(PackageSpec(name="CompilerSupportLibraries_jll", uuid="e66e0078-7015-5450-92f7-15fbd957f2ae"))]
 
 for platform in platforms
     should_build_platform(triplet(platform)) || continue
@@ -93,10 +114,12 @@ for platform in platforms
     # GCC 6: zgemm up to 2.8x in the SSE3 variant); GCC 5 fails.  With GCC 11
     # only zgemv without transposition is slower than with GCC 14 (about 3x).
     # libstdc++ is linked statically.
-    compilers = Sys.islinux(platform) ? (; preferred_gcc_version=v"11") : (;)
+    # The OpenMP tasks need OpenMP 5.0 (iterators in depend clauses): GCC 9
+    # or newer, also with MinGW-w64.
+    compilers = Sys.isapple(platform) ? (;) : (; preferred_gcc_version=v"11")
     build_tarballs(ARGS, name, version, sources,
                    "variants=\"$(join(variants(platform), ' '))\"\n" * script,
-                   [platform], products(platform), dependencies;
+                   [platform], products(platform), dependencies(platform);
                    julia_compat="1.9",
                    # The variants choose their instruction sets.
                    lock_microarchitecture=false,

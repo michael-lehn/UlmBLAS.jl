@@ -8,7 +8,7 @@ name: jll
 
 on:
   push:
-    branches: [jll-release]
+    branches: [jll-release, lapack]
   workflow_dispatch:
 
 jobs:
@@ -38,8 +38,9 @@ jobs:
           version: '1.13'
       - name: recipe
         run: |
-          #  the recipe of the Yggdrasil branch ulmBLAS-neon (4905e4fb9)
-          echo "4df22b875f30a694b3c7dfa01e345ba1a8322c490cffc3882204c37d3eecd84a  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
+          #  draft of the recipe 0.3.0 (LAPACK with OpenMP; UlmBLAS.jl branch
+          #  yggdrasil-0.3)
+          echo "fd74afc7f01d1a6b5ada50803cc5059422d5a66c66a79d82b062d838301b951e  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
           mkdir -p ygg/U/ulmBLAS
           cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
       - name: build
