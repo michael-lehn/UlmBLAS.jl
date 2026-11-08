@@ -74,12 +74,16 @@ BLAS.gemm!('C', 'N', one(ComplexF32), A, B, zero(ComplexF32), C);
 println(C ≈ A' * B)                 # should print true
 ```
 
-- LAPACK (`lu`, `qr`, `eigen`, ...) comes from OpenBLAS and uses OpenBLAS's
-  BLAS internally.
+- LU and Cholesky (`lu`, `cholesky`, `inv`, `\`) come from ulmBLAS if the
+  library has them (`?getrf`, `?potrf`, solves and inverses, with OpenMP
+  tasks).  The rest of LAPACK (`qr`, `eigen`, ...) comes from OpenBLAS and
+  uses OpenBLAS's BLAS internally.
 - Routines ulmBLAS does not have (e.g. `BLAS.gemmt!`, `BLAS.axpby!`) and
   the dot products of `LinearAlgebra.BLAS` keep going to OpenBLAS; see
   [docs/details.md](docs/details.md#routines-that-ulmblas-does-not-provide).
-- Single-threaded: `BLAS.set_num_threads` has no effect on ulmBLAS.
+- BLAS is single-threaded.  The LAPACK functions take the number of
+  threads of `BLAS.set_num_threads` (`UlmBLAS.forward()` registers them
+  with libblastrampoline).
 - `UlmBLAS.forward()` can be called again (no effect).  Call it before
   starting concurrent BLAS work; see
   [docs/details.md](docs/details.md#threads) for concurrent calls.
