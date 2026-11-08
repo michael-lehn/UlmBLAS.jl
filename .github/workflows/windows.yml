@@ -7,19 +7,19 @@ name: windows
 
 on:
   push:
-    branches: [windows]
+    branches: [windows, windows-lapack]
   workflow_dispatch:
     inputs:
       ulmblas:
         description: 'branch or commit of ulmBLAS'
-        default: 'windows'
+        default: 'windows-lapack'
       only_diag:
         description: 'only the diagnostics job'
         type: boolean
         default: false
 
 env:
-  ULMBLAS: ${{ inputs.ulmblas || 'windows' }}
+  ULMBLAS: ${{ inputs.ulmblas || 'windows-lapack' }}
 
 jobs:
   test:
