@@ -60,12 +60,9 @@ for v in ${variants}; do
         omplibs="OMPLIBS=-L${libdir} -lomp"
     else
         link="-shared -Wl,--whole-archive ${build}/liblbtblas.a ${build}/liblbtlapack.a -Wl,--no-whole-archive"
-        link+=" -static-libstdc++ -static-libgcc -Wl,--no-undefined"
-        if [[ ${target} != *-mingw* ]]; then
-            link+=" -Wl,--strip-debug"
-            # don't export the static libstdc++
-            link+=" -Wl,--exclude-libs,libstdc++.a:libgcc.a:libgcc_eh.a"
-        fi
+        link+=" -static-libstdc++ -static-libgcc -Wl,--no-undefined -Wl,--strip-debug"
+        # don't export the static libstdc++ (MinGW exports all global symbols)
+        link+=" -Wl,--exclude-libs,libstdc++.a:libgcc.a:libgcc_eh.a"
         # libgomp of CompilerSupportLibraries_jll
         omp="OMPFLAGS=-fopenmp"
         omplibs="OMPLIBS=-fopenmp"
