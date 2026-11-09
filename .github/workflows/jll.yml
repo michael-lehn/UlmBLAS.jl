@@ -3,7 +3,8 @@
 #  with Yggdrasil's BinaryBuilder environment, ulmBLAS_jll is generated
 #  from the tarballs as Yggdrasil does, and the package (loading the
 #  libraries from ulmBLAS_jll) is tested with it on Apple M1 (GitHub's arm64
-#  macOS runners) and x86-64 Linux.  Development branch only.
+#  macOS runners), x86-64 Linux and x86-64 Windows (MinGW build).
+#  Development branch only.
 name: jll
 
 on:
@@ -17,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [x86_64-linux-gnu, aarch64-apple-darwin]
+        platform: [x86_64-linux-gnu, aarch64-apple-darwin, x86_64-w64-mingw32]
     steps:
       - name: free disk space
         run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
@@ -40,7 +41,7 @@ jobs:
         run: |
           #  draft of the recipe 0.3.0 (LAPACK with OpenMP; UlmBLAS.jl branch
           #  yggdrasil-0.3)
-          echo "d671a2fc521e4359c6f08d2b35bc78252fa41545aeb55c297764f43888a79a3b  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
+          echo "726e0e9dd3477eaff50bdb086d0241b3705cd1d6f41424c1d8e3ea50dc4bdf49  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
           mkdir -p ygg/U/ulmBLAS
           cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
       - name: build
@@ -103,6 +104,9 @@ jobs:
     needs: jll
     name: Julia ${{ matrix.version }}, ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -116,6 +120,10 @@ jobs:
         include:
           - os: ubuntu-22.04
             version: '1.9'
+          - os: windows-latest
+            version: 'lts'
+          - os: windows-latest
+            version: '1'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -127,7 +135,11 @@ jobs:
           path: /tmp/ulmblas-jll
       - name: CPU
         run: |
-          if [ "$(uname)" = Darwin ]; then
+          if [ "$RUNNER_OS" = Windows ]; then
+              powershell -c "(Get-CimInstance Win32_Processor).Name"
+              #  /tmp of Git's bash is another directory than D:\tmp
+              julia -e 'foreach(println, readdir("/tmp/ulmblas-jll"))' || true
+          elif [ "$(uname)" = Darwin ]; then
               sysctl -n machdep.cpu.brand_string hw.model
               sysctl hw.optional.arm.FEAT_SME2 hw.optional.arm.FEAT_SME_F64F64 hw.optional.arm.sme_max_svl_b || true
               sw_vers
@@ -139,6 +151,15 @@ jobs:
       - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
+      #  Windows: the download URLs point to /tmp/ulmblas-jll; the action
+      #  put the files to that path on the current drive (D:\tmp\...)
+      - name: download URLs (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          julia -e 'f = "/tmp/ulmblas-jll/ulmBLAS_jll/Artifacts.toml"
+              d = "file:///" * replace(abspath("/tmp/ulmblas-jll"), "\\" => "/")
+              s = replace(read(f, String), "file:///tmp/ulmblas-jll" => d)
+              write(f, s); println(s)'
       - name: develop
         run: |
           julia --project=env -e 'using Pkg
