@@ -28,17 +28,17 @@ BLAS.get_config()                   # OpenBLAS and ulmBLAS
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/michael-lehn/UlmBLAS.jl")
+Pkg.add("UlmBLAS")
 ```
 
-The package is not registered yet.  Pkg installs prebuilt libraries of
-ulmBLAS together with the package (ulmBLAS_jll), and the package loads
-the one for the CPU (see [CPU variants](#cpu-variants)):
+Pkg installs prebuilt libraries of ulmBLAS together with the package
+(ulmBLAS_jll), and the package loads the one for the CPU (see
+[CPU variants](#cpu-variants)):
 
 - macOS on Apple silicon (macOS 11 or later): `neon` (all Apple silicon)
   and `sme` (Apple M4 and later);
-- Linux on x86-64 with glibc 2.28 or later (e.g. RHEL 8, Ubuntu 20.04,
-  Debian 10): `zen4`, `skylakex`, `haswell`, `x86_64`;
+- Linux on x86-64 (glibc 2.17 or later, as Julia; tested on RHEL 8,
+  Ubuntu 20.04 and newer): `zen4`, `skylakex`, `haswell`, `x86_64`;
 - Windows on x86-64 (MinGW-w64 build): the same as on Linux.
 
 Julia 1.9 or later.  On other platforms the package prints a warning;
@@ -95,6 +95,32 @@ Julia calls BLAS through
 OpenBLAS.  To undo it, load OpenBLAS again:
 `BLAS.lbt_forward(OpenBLAS_jll.libopenblas_path; clear=true)`.  Details
 in [docs/details.md](docs/details.md).
+
+## TODO
+
+- LU and Cholesky (`lu`, `cholesky`) from ulmBLAS (`?getrf`, `?potrf`,
+  with OpenMP tasks): comes with the next version of the library.
+- Then: small matrices.  For n up to about 100 these are still slower
+  than OpenBLAS, and `lu` and `cholesky` are often called with small
+  matrices.  For this ulmBLAS has to pick kernels and variants by problem
+  size, so the cleanup of its configuration comes first.
+- Threads: take the number `BLAS.set_num_threads` gives us.
+- More LAPACK, PLASMA style (tasks), C++ templates like the rest:
+  - solve: `getrs`, `gesv`, `potrs`, `posv`, `trtrs`, `laswp`, so that
+    `A \ b` stays in ulmBLAS
+  - inverse: `trtri`, `lauum`, `potri`, `getri` (`inv`)
+  - `geqrf` (`qr`).  OpenBLAS has its own versions only of the routines
+    above (plus `laed3`); QR comes from Reference LAPACK.  Tile QR is where
+    PLASMA gains most.
+- Other element types: `Float16`, `BFloat16`, integers (with Julia's
+  wraparound), `Double64`, ...  For these Julia has no BLAS, only its
+  generic code.
+  - First instantiate the ulmBLAS templates with the generic kernels for
+    all of them (GEMM, then `lu`, `cholesky`).  Even without dedicated
+    kernels the blocking should beat a generic loop.
+  - Then dedicated kernels, step by step, with assembly or intrinsics
+    (e.g. FP16 on Apple M and Sapphire Rapids, BF16 on Zen 4, VNNI for
+    `Int8` on Ice Lake).
 
 ## GEMM with arbitrary strides: `UlmBLAS.mul!`
 
@@ -238,39 +264,14 @@ one library per kind of CPU and loads the one for the CPU it runs on
 | `haswell` | AVX2 and FMA | OpenBLAS HASWELL |
 | `x86_64` | other x86-64 | ulmBLAS SSE (D), reference kernels |
 
-Platforms: macOS on Apple silicon, Linux on x86-64 (glibc 2.28 or
-later).  The libraries are built from ulmBLAS
-[6c554eec](https://github.com/michael-lehn/ulmBLAS/commit/6c554eec707e22f118bae5dcaea10ad9945aac54)
-(macOS: Apple clang 21, deployment target 12.0; Linux: GCC 14.2 in the
-container manylinux_2_28 (AlmaLinux 8, glibc 2.28), libstdc++ linked
-statically); `share/ulmBLAS/build.txt` in the artifact
-records the commit, compilers and flags.  The choice
-follows the
+The libraries come from
+[ulmBLAS_jll](https://github.com/JuliaBinaryWrappers/ulmBLAS_jll.jl)
+(ulmBLAS v0.3.0, built by
+[Yggdrasil](https://github.com/JuliaPackaging/Yggdrasil/tree/master/U/ulmBLAS)).
+The choice of kernels follows the
 [benchmark campaigns](https://github.com/michael-lehn/ulmBLAS/tree/master/benchmark_results)
 of ulmBLAS; the flags of each variant are in
 [docs/details.md](docs/details.md#kernel-selection).
-
-## Building the libraries (maintainers)
-
-```sh
-build/build.sh ~/ulmBLAS out-mac        # all variants of this platform
-gh workflow run build-linux.yml -f ulmblas=COMMIT   # Linux, in a container
-julia build/artifacts.jl libulmblas-6c554eec out-mac=aarch64-apple-darwin \
-                                             out-linux=x86_64-linux-gnu
-```
-
-- `build/build.sh SRC OUT [VARIANT ...]` builds
-  `OUT/lib/VARIANT/libulmblas_lbt.*` from the ulmBLAS sources in `SRC`,
-  with the license and a record of the build (commit, compiler, flags).
-- `build/linux-container.sh SRC OUT` runs `build.sh` in the container
-  `manylinux_2_28` (glibc 2.28, GCC 14) and checks that the libraries need
-  no newer glibc and no libstdc++; the workflow `build-linux` runs it in
-  the image pinned by digest and uploads the result for testing.
-- `build/artifacts.jl TAG ...` packs these directories into `dist/` and
-  writes `Artifacts.toml`; the tarballs are the assets of the release
-  `TAG` of this repository (named after the ulmBLAS commit, not after a
-  version of the package).  With `BASEURL=file:///path/to/dist` they are
-  bound to local files, to test the installation before the release.
 
 ## Tests
 
@@ -289,5 +290,5 @@ of `LinearAlgebra` are run as well (several minutes).
 ## License
 
 BSD 3-Clause, like ulmBLAS.  The libraries contain micro kernels of BLIS,
-AOCL-BLAS and OpenBLAS; their licenses are part of every artifact
+AOCL-BLAS and OpenBLAS; their licenses are installed with ulmBLAS_jll
 (`share/licenses/ulmBLAS/LICENSE`).

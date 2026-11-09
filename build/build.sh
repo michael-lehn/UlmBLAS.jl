@@ -19,8 +19,7 @@
 #  the build logs go to LOGDIR (default OUT.logs, not into the artifact);
 #  on Linux and Windows the debug information is stripped;
 #  ULMBLAS_COMMIT names the commit of SRC if SRC is no git checkout;
-#  ULMBLAS_BUILD_ENV describes the build environment (e.g. the container,
-#  see linux-container.sh) in build.txt.
+#  ULMBLAS_BUILD_ENV describes the build environment in build.txt.
 #
 set -eu
 SRC=$(cd "$1" && pwd); OUT=$2; shift 2

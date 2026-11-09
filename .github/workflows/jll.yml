@@ -11,8 +11,6 @@
 name: jll
 
 on:
-  push:
-    branches: [jll-release, lapack]
   workflow_dispatch:
 
 jobs:
