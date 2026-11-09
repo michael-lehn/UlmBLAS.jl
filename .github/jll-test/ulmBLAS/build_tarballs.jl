@@ -12,7 +12,7 @@ sources = [
     # draft: a commit of the branch windows-lapack (test build); the release
     # will use the tag v0.3.0
     GitSource("https://github.com/michael-lehn/ulmBLAS.git",
-              "bf075f60a07e7fb1f98be66c0c40111922b56894"),
+              "e01ff187fcba74c469831d9c16a47b87f78a8d07"),
 ]
 
 # One library per instruction set, `libulmblas_VARIANT`, with the BLAS
