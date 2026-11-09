@@ -110,8 +110,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #  macos-14, macos-latest: arm64 with Apple M1 (step "CPU")
-        os: [macos-14, macos-latest, ubuntu-latest]
+        #  macos-15, macos-latest: arm64 with Apple M1 (step "CPU")
+        os: [macos-15, macos-latest, ubuntu-latest]
         version: ['1.9', 'lts', '1']
         exclude:
           #  Julia 1.9 does not start on ubuntu-latest (executable stack)
