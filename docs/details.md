@@ -181,43 +181,36 @@ for; `UlmBLAS.variant()` is the first:
 `MACOSX_DEPLOYMENT_TARGET` defaults to 12.0.
 
 `ULMBLAS_LIBRARY` (a library built with `make lbt`) overrides the choice;
-`ULMBLAS_VARIANT` selects another build of the artifact if it is in
+`ULMBLAS_VARIANT` selects another library of ulmBLAS_jll if it is in
 `UlmBLAS.variants()` (otherwise a warning, and the preferred one is
 used).  The tests run every build in `UlmBLAS.variants()`.
 
-## Artifacts
+## ulmBLAS_jll
 
-- `build/build.sh SRC OUT` writes, per platform,
-  `OUT/lib/VARIANT/libulmblas_lbt.*`,
-  `OUT/share/licenses/ulmBLAS/LICENSE` and `OUT/share/ulmBLAS/build.txt`
-  (commit, compiler, flags).  Variants: `neon`, `sme` on macOS arm64;
-  `x86_64`, `haswell`, `skylakex`, `zen4` on Linux x86-64.  On Linux the
-  debug information is stripped.
-- `julia build/artifacts.jl TAG DIR=TRIPLET ...` packs each directory as
-  `dist/TAG.TRIPLET.tar.gz` and binds it as artifact `ulmblas` in
-  `Artifacts.toml`, with
-  `https://github.com/michael-lehn/UlmBLAS.jl/releases/download/TAG/`
-  as download location (`BASEURL` overrides it for tests).
-- Pkg downloads the artifact of the platform when the package is
-  installed and checks its SHA-256 and tree hash.  When loaded, the
-  package takes `lib/VARIANT/libulmblas_lbt.*` from it.
-- Current libraries (release `libulmblas-6c554eec`): ulmBLAS 6c554eec;
-  macOS with Apple clang 21.0.0 (`MACOSX_DEPLOYMENT_TARGET=12.0`, links
-  only `libSystem` and `libc++`); Linux with GCC 14.2.1 (gcc-toolset-14)
-  in the container `quay.io/pypa/manylinux_2_28_x86_64` (AlmaLinux 8.10,
-  glibc 2.28, image pinned by digest in
-  `.github/workflows/build-linux.yml`), built by that workflow.  The
-  Linux libraries link only `libc`, `libm` and the dynamic loader
-  (libstdc++ static) and need glibc symbol versions up to `GLIBC_2.25`
-  (`getentropy`, from the static libstdc++); declared and tested: glibc
-  2.28 or later.
-- Builds are not bit-identical across build machines: the objects are
-  added to the static library in the order a parallel `make` finishes
-  them, which changes the layout of the linked library.
+- The libraries come from
+  [ulmBLAS_jll](https://github.com/JuliaBinaryWrappers/ulmBLAS_jll.jl),
+  built by [Yggdrasil](https://github.com/JuliaPackaging/Yggdrasil) with
+  the recipe `U/ulmBLAS/build_tarballs.jl`: one library
+  `lib/libulmblas_VARIANT.*` per variant, `neon` and `sme` on macOS
+  (aarch64), `x86_64`, `haswell`, `skylakex` and `zen4` on Linux (x86-64).
+  ulmBLAS_jll does not load them (`dont_dlopen`); the package loads the
+  one of `UlmBLAS.variant()`.
+- ulmBLAS_jll 0.2.0: ulmBLAS v0.2.0 (6a7d7dc6).  macOS with the clang of
+  BinaryBuilder (deployment target 11.0, links only `libSystem` and
+  `libc++`; `libulmblas_sme` links the SME support routines of
+  compiler-rt from LLVMCompilerRT_jll 20.1.8 statically).  Linux with
+  GCC 11 (libstdc++ static, symbol versions up to `GLIBC_2.14`).
+- `.github/workflows/jll.yml` (development branches) builds a recipe
+  (`.github/jll-test/ulmBLAS/build_tarballs.jl`) in Yggdrasil's
+  environment, generates ulmBLAS_jll from the tarballs as Yggdrasil does
+  and runs the tests with it, before the recipe is submitted.
+- `build/build.sh SRC OUT [VARIANT ...]` builds
+  `OUT/lib/VARIANT/libulmblas_lbt.*` with the flags of the variants
+  (above), for tests with `ULMBLAS_LIBRARY`.
 
 ## Licenses
 
 ulmBLAS and this package are BSD 3-Clause.  Some micro kernels come from
 BLIS, AOCL-BLAS and OpenBLAS and keep their own copyright and license
 terms.  The license file of ulmBLAS, `share/licenses/ulmBLAS/LICENSE` in
-every artifact, reproduces them.
+ulmBLAS_jll, reproduces them.
