@@ -103,11 +103,16 @@ products(p) = [LibraryProduct("libulmblas_$(v)", Symbol("libulmblas_$(v)"); dont
                for v in variants(p)]
 
 # The OpenMP runtime: libomp on macOS, libgomp on Linux and Windows.
-# LLVMCompilerRT_jll is only needed to link libulmblas_sme.
-dependencies(p) = Sys.isapple(p) ?
-    [Dependency(PackageSpec(name="LLVMOpenMP_jll", uuid="1d63c593-3942-5779-bab2-d838dc0a180e"); compat="15.0.7 - 23"),
-     BuildDependency(PackageSpec(name="LLVMCompilerRT_jll", version="20.1.8"))] :
-    [Dependency(PackageSpec(name="CompilerSupportLibraries_jll", uuid="e66e0078-7015-5450-92f7-15fbd957f2ae"); compat="1.0.5")]
+# LLVMCompilerRT_jll is only needed to link libulmblas_sme.  One list for
+# all platforms (with `platforms`): the JLL gets its dependencies from it.
+dependencies = [
+    Dependency(PackageSpec(name="CompilerSupportLibraries_jll", uuid="e66e0078-7015-5450-92f7-15fbd957f2ae");
+               compat="1.0.5", platforms=filter(!Sys.isapple, platforms)),
+    Dependency(PackageSpec(name="LLVMOpenMP_jll", uuid="1d63c593-3942-5779-bab2-d838dc0a180e");
+               compat="15.0.7 - 23", platforms=filter(Sys.isapple, platforms)),
+    BuildDependency(PackageSpec(name="LLVMCompilerRT_jll", version="20.1.8");
+                    platforms=filter(Sys.isapple, platforms)),
+]
 
 for platform in platforms
     should_build_platform(triplet(platform)) || continue
@@ -119,7 +124,7 @@ for platform in platforms
     compilers = Sys.isapple(platform) ? (;) : (; preferred_gcc_version=v"11")
     build_tarballs(ARGS, name, version, sources,
                    "variants=\"$(join(variants(platform), ' '))\"\n" * script,
-                   [platform], products(platform), dependencies(platform);
+                   [platform], products(platform), dependencies;
                    julia_compat="1.9",
                    # The variants choose their instruction sets.
                    lock_microarchitecture=false,
