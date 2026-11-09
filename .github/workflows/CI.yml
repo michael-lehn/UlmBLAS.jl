@@ -33,6 +33,9 @@ jobs:
         with:
           version: ${{ matrix.version }}
       - uses: julia-actions/cache@v3
+      - name: ulmBLAS_jll before its registration
+        shell: bash
+        run: julia --project -e 'using Pkg; Pkg.add(url="https://github.com/JuliaBinaryWrappers/ulmBLAS_jll.jl")'
       - uses: julia-actions/julia-buildpkg@v1
       #  the libraries of ulmBLAS come from ulmBLAS_jll (General registry),
       #  not from ULMBLAS_LIBRARY; the tests also run every variant the CPU
@@ -65,5 +68,8 @@ jobs:
       - uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.version }}
+      - name: ulmBLAS_jll before its registration
+        shell: bash
+        run: julia --project -e 'using Pkg; Pkg.add(url="https://github.com/JuliaBinaryWrappers/ulmBLAS_jll.jl")'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
