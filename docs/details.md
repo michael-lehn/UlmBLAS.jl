@@ -41,6 +41,12 @@ With Julia 1.13 and OpenBLAS (`LinearAlgebra.BLAS.get_config()`):
 - The LP64 table (32-bit integers, e.g. OpenBLAS32.jl) is not changed:
   the library of ulmBLAS has only the ILP64 interface.  With OpenBLAS32
   loaded, LP64 calls keep going to OpenBLAS32.
+- Windows: `zdotc` and `zdotu` stay with OpenBLAS.  Their double complex
+  result is returned through a hidden argument there, so LBT calls them
+  through an adapter (`complex_retstyle` `float_normal_double_argument`,
+  for OpenBLAS and ulmBLAS alike); after `forward()` the adapter still
+  calls OpenBLAS (the results are those of OpenBLAS bit for bit), although
+  `lbt_find_backing_library` reports ulmBLAS.
 
 The tests check this for every symbol of LBT in a fresh process
 (`test/subprocess/routing.jl`) and run test files of `LinearAlgebra`
