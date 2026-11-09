@@ -5,10 +5,8 @@
 #  libraries from ulmBLAS_jll) is tested with it on Apple M1 (GitHub's arm64
 #  macOS runners) and x86-64 Linux.  Development branch only.
 #
-#  LLVMCompilerRT_jll 20.1.8 is not registered yet (Yggdrasil's build of the
-#  merged recipe failed on aarch64-apple-darwin, see job crt): it is built and
-#  generated here from .github/jll-test/LLVMCompilerRT and used from a local git
-#  repository; apart from this the recipe is the one for Yggdrasil.
+#  LLVMCompilerRT_jll 20.1.8 (only for linking libulmblas_sme) comes from
+#  the General registry, as on Yggdrasil.
 name: jll
 
 on:
@@ -17,66 +15,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  crt:
-    name: LLVMCompilerRT_jll
-    runs-on: ubuntu-latest
-    steps:
-      - name: free disk space
-        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-      - name: allow user namespaces
-        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      - uses: actions/checkout@v7
-        with:
-          path: pkg
-      - uses: actions/checkout@v7
-        with:
-          repository: JuliaPackaging/Yggdrasil
-          ref: 8017adef5546eae34215051db39d6076de77a18e
-          path: ygg
-          sparse-checkout: .ci/bb1_project
-      - uses: julia-actions/setup-julia@v3
-        with:
-          version: '1.13'
-      - name: build
-        env:
-          BINARYBUILDER_AUTOMATIC_APPLE: 'true'
-          BINARYBUILDER_RUNNER: userns
-        run: |
-          julia --project=ygg/.ci/bb1_project -e 'using Pkg; Pkg.instantiate()'
-          mkdir -p ygg/L/LLVMCompilerRT
-          cp pkg/.github/jll-test/LLVMCompilerRT/build_tarballs.jl ygg/L/LLVMCompilerRT/
-          cd ygg/L/LLVMCompilerRT
-          P=$GITHUB_WORKSPACE/ygg/.ci/bb1_project
-          T=aarch64-apple-darwin
-          julia --project=$P build_tarballs.jl --meta-json=$GITHUB_WORKSPACE/meta.json $T
-          julia --project=$P build_tarballs.jl --verbose $T 2>&1 | tee $GITHUB_WORKSPACE/crt.log
-          test ${PIPESTATUS[0]} = 0
-          #  no helper is generated twice: the race cannot happen
-          n=$(grep -c 'Generating outline_atomic_helpers.dir/outline_atomic_swp1_1.S' $GITHUB_WORKSPACE/crt.log)
-          echo "outline_atomic_swp1_1.S generated $n time(s)"
-          test "$n" = 1
-          mkdir -p $GITHUB_WORKSPACE/stage
-          cp products/LLVMCompilerRT.v*.$T.tar.gz $GITHUB_WORKSPACE/stage/
-          sha256sum $GITHUB_WORKSPACE/stage/*
-      - name: LLVMCompilerRT_jll
-        run: |
-          julia --project=ygg/.ci/bb1_project \
-              pkg/.github/jll-test/gen_jll.jl meta.json stage file:///tmp/crt-jll
-          cp -R ~/.julia/dev/LLVMCompilerRT_jll stage/
-          cd stage/LLVMCompilerRT_jll
-          rm -rf .git
-          git init -q
-          git add -A
-          git -c user.name=ci -c user.email=ci@example.invalid commit -qm LLVMCompilerRT_jll
-          cat Project.toml Artifacts.toml
-      - uses: actions/upload-artifact@v7
-        with:
-          name: LLVMCompilerRT_jll
-          path: stage
-          include-hidden-files: true
-
   build:
-    needs: crt
     name: build ${{ matrix.platform }}
     runs-on: ubuntu-latest
     strategy:
@@ -100,19 +39,12 @@ jobs:
       - uses: julia-actions/setup-julia@v3
         with:
           version: '1.13'
-      - uses: actions/download-artifact@v7
-        with:
-          name: LLVMCompilerRT_jll
-          path: /tmp/crt-jll
       - name: recipe
         run: |
           #  the recipe of the Yggdrasil PR branch ulmBLAS-0.2.0
           echo "c348f13ae557315863d8dd93eb79d75d4633913cf6e92cd6b6e2944ed744427b  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
           mkdir -p ygg/U/ulmBLAS
-          #  only difference: LLVMCompilerRT_jll from the local repository
-          sed 's|name="LLVMCompilerRT_jll", version="20.1.8"|name="LLVMCompilerRT_jll", path="/tmp/crt-jll/LLVMCompilerRT_jll"|' \
-              pkg/.github/jll-test/ulmBLAS/build_tarballs.jl > ygg/U/ulmBLAS/build_tarballs.jl
-          diff pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/build_tarballs.jl | grep -c '^>' | grep -qx 1
+          cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
       - name: build
         env:
           BINARYBUILDER_AUTOMATIC_APPLE: 'true'
@@ -126,6 +58,13 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/out
           cp products/ulmBLAS.v*.${{ matrix.platform }}.tar.gz $GITHUB_WORKSPACE/meta-${{ matrix.platform }}.json $GITHUB_WORKSPACE/out/
           sha256sum $GITHUB_WORKSPACE/out/*.tar.gz
+          #  libulmblas_sme links compiler-rt statically: its license is included
+          if [ ${{ matrix.platform }} = aarch64-apple-darwin ]; then
+              tar tzf $GITHUB_WORKSPACE/out/*.tar.gz | sort
+              mkdir lic
+              tar xzf $GITHUB_WORKSPACE/out/*.tar.gz -C lic share/licenses/ulmBLAS/LICENSE.TXT
+              head -3 lic/share/licenses/ulmBLAS/LICENSE.TXT
+          fi
       - uses: actions/upload-artifact@v7
         with:
           name: tarball-${{ matrix.platform }}
