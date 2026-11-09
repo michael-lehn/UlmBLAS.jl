@@ -71,8 +71,7 @@ first ([`cpu_variants`](@ref) for which ulmBLAS_jll has a library).
 """
 variants() = filter(has_library, cpu_variants())
 
-#  ulmBLAS_jll has a library of variant v for this platform (ulmBLAS_jll 0.2
-#  has no sme library: SME2 needs a newer LLVMCompilerRT_jll)
+#  ulmBLAS_jll has a library of variant v for this platform
 has_library(v) = isdefined(ulmBLAS_jll, Symbol("libulmblas_", v, "_path"))
 
 """

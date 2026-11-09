@@ -1,6 +1,6 @@
 #  The CPU, the library UlmBLAS selected and the identity of the artifact of
 #  ulmBLAS_jll it was loaded from; fails if they do not match.
-using Pkg, UlmBLAS, ulmBLAS_jll
+using Libdl, Pkg, UlmBLAS, ulmBLAS_jll
 
 meta = Pkg.Artifacts.artifact_meta("ulmBLAS", joinpath(pkgdir(ulmBLAS_jll), "Artifacts.toml"))
 dir = ulmBLAS_jll.artifact_dir
@@ -24,3 +24,11 @@ println("url:           ", only(meta["download"])["url"])
 @assert basename(UlmBLAS.library_path()) ==
         "libulmblas_$(UlmBLAS.chosen[]).$(Libc.Libdl.dlext)"
 @assert UlmBLAS.chosen[] == UlmBLAS.variant()
+#  only the selected library is loaded; on macOS arm64 sme iff the CPU runs it
+loaded = basename.(filter(contains("libulmblas_"), dllist()))
+println("loaded:        ", join(loaded, ", "))
+@assert loaded == [basename(UlmBLAS.library_path())]
+if Sys.isapple() && Sys.ARCH === :aarch64
+    @assert UlmBLAS.chosen[] == ("sme" in UlmBLAS.cpu_variants() ? "sme" : "neon")
+    @assert UlmBLAS.has_library("sme") && UlmBLAS.has_library("neon")
+end

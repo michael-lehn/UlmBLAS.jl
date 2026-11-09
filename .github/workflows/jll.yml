@@ -5,6 +5,9 @@
 #  libraries from ulmBLAS_jll) is tested with it on Apple M1 (GitHub's arm64
 #  macOS runners), x86-64 Linux and x86-64 Windows (MinGW build).
 #  Development branch only.
+#
+#  LLVMCompilerRT_jll 20.1.8 (only for linking libulmblas_sme) comes from
+#  the General registry, as on Yggdrasil.
 name: jll
 
 on:
@@ -31,7 +34,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: JuliaPackaging/Yggdrasil
-          ref: f54922238f5f5cbcb5fd937af7527f513cedeb28
+          ref: 8017adef5546eae34215051db39d6076de77a18e
           path: ygg
           sparse-checkout: .ci/bb1_project
       - uses: julia-actions/setup-julia@v3
@@ -39,9 +42,8 @@ jobs:
           version: '1.13'
       - name: recipe
         run: |
-          #  draft of the recipe 0.3.0 (LAPACK with OpenMP; UlmBLAS.jl branch
-          #  yggdrasil-0.3)
-          echo "e8f60ea26587d8c13bd769a29d398b59aedf5df77d98e29bde67f448074edec5  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
+          #  the recipe of ulmBLAS 0.3.0 (Yggdrasil PR branch ulmBLAS-0.3.0)
+          echo "ee90387953a4f7406d7abb70438af9f81bea828303e6fb99d4d028ff5b8648f6  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
           mkdir -p ygg/U/ulmBLAS
           cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
       - name: build
@@ -57,6 +59,13 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/out
           cp products/ulmBLAS.v*.${{ matrix.platform }}.tar.gz $GITHUB_WORKSPACE/meta-${{ matrix.platform }}.json $GITHUB_WORKSPACE/out/
           sha256sum $GITHUB_WORKSPACE/out/*.tar.gz
+          #  libulmblas_sme links compiler-rt statically: its license is included
+          if [ ${{ matrix.platform }} = aarch64-apple-darwin ]; then
+              tar tzf $GITHUB_WORKSPACE/out/*.tar.gz | sort
+              mkdir lic
+              tar xzf $GITHUB_WORKSPACE/out/*.tar.gz -C lic share/licenses/ulmBLAS/LICENSE.TXT
+              head -3 lic/share/licenses/ulmBLAS/LICENSE.TXT
+          fi
       - uses: actions/upload-artifact@v7
         with:
           name: tarball-${{ matrix.platform }}
@@ -72,7 +81,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: JuliaPackaging/Yggdrasil
-          ref: f54922238f5f5cbcb5fd937af7527f513cedeb28
+          ref: 8017adef5546eae34215051db39d6076de77a18e
           path: ygg
           sparse-checkout: .ci/bb1_project
       - uses: julia-actions/setup-julia@v3

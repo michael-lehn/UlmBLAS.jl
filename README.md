@@ -35,10 +35,11 @@ The package is not registered yet.  Pkg installs prebuilt libraries of
 ulmBLAS together with the package (ulmBLAS_jll), and the package loads
 the one for the CPU (see [CPU variants](#cpu-variants)):
 
-- macOS on Apple silicon (macOS 11 or later): `neon` (all Apple silicon;
-  the SME2 kernels for M4 and later will follow in a later version);
+- macOS on Apple silicon (macOS 11 or later): `neon` (all Apple silicon)
+  and `sme` (Apple M4 and later);
 - Linux on x86-64 with glibc 2.28 or later (e.g. RHEL 8, Ubuntu 20.04,
-  Debian 10): `zen4`, `skylakex`, `haswell`, `x86_64`.
+  Debian 10): `zen4`, `skylakex`, `haswell`, `x86_64`;
+- Windows on x86-64 (MinGW-w64 build): the same as on Linux.
 
 Julia 1.9 or later.  On other platforms the package prints a warning;
 `UlmBLAS.mul!` and `UlmBLAS.forward()` then raise an error, and Julia
@@ -230,7 +231,7 @@ one library per kind of CPU and loads the one for the CPU it runs on
 
 | Variant | CPU | Micro kernels (S, D, C, Z) |
 |---|---|---|
-| `sme` | Apple M4 and later (not in ulmBLAS_jll 0.2) | ulmBLAS SME2 |
+| `sme` | Apple M4 and later | ulmBLAS SME2 |
 | `neon` | Apple silicon (M1 and later) | ulmBLAS NEON |
 | `zen4` | AMD with AVX-512 (Zen 4, Zen 5) | OpenBLAS SKYLAKEX (S, C), AOCL zen4 (D, Z) |
 | `skylakex` | Intel with AVX-512 | OpenBLAS SKYLAKEX (S, D, C), AOCL zen4 (Z) |
