@@ -107,6 +107,35 @@ const OUT_LAYOUTS = (:col, :row, :stride2, :negrow, :negboth)
     end
 end
 
+#  integers: exact, with wraparound (rand over the whole range); only with
+#  a library that has them (ulmBLAS_jll 0.3 and later)
+const HAS_INT = get(UlmBLAS.gemm_strided_ptr, Int64, C_NULL) != C_NULL
+HAS_INT || @info "UlmBLAS: library without integer GEMM, tests skipped"
+@testset "strided $T" for T in (HAS_INT ? (Int8, Int16, Int32, Int64, UInt8,
+                                           UInt16, UInt32, UInt64) : ())
+    for (m, n, k) in ((1, 1, 1), (3, 2, 5), (17, 13, 29), (70, 53, 131),
+                      (301, 263, 517), (0, 5, 3), (4, 0, 3), (4, 5, 0))
+        for (lA, lB, lC) in ((:col, :col, :col), (:row, :negboth, :stride2),
+                             (:zerorow, :stride2, :row),
+                             (:negrow, :zerocol, :negboth)),
+            (opA, opB) in ((:N, :N), (:T, :C)),
+            (α, β) in ((1, 0), (T(3), T(5)), (0, 7))
+            PA, A = operand_op(T, lA, opA, m, k)
+            PB, B = operand_op(T, lB, opB, k, n)
+            PC, C = operand(T, lC, m, n)
+            C0 = copy(C); PC0 = copy(PC)
+            ref = T(α) * (Matrix(A) * Matrix(B)) + T(β) * C0
+            UlmBLAS.mul!(C, A, B, α, β)
+            @test C == ref
+            C .= C0
+            @test PC == PC0
+        end
+    end
+    #  same as Julia's A*B with wraparound
+    A = rand(T, 100, 80); B = rand(T, 80, 90)
+    @test UlmBLAS.mul!(zeros(T, 100, 90), A, B) == A * B
+end
+
 @testset "strided: no allocations" begin
     A = view(rand(200, 200), 1:2:200, 1:100); B = rand(100, 100)
     C = zeros(100, 100)
@@ -122,8 +151,9 @@ end
     @test_throws DimensionMismatch UlmBLAS.mul!(zeros(3, 4), rand(3, 2),
                                                 rand(3, 4))
     #  no fallback for other types
-    @test_throws MethodError UlmBLAS.mul!(zeros(Int, 2, 2), ones(Int, 2, 2),
-                                          ones(Int, 2, 2))
+    @test_throws MethodError UlmBLAS.mul!(zeros(Int128, 2, 2),
+                                          ones(Int128, 2, 2),
+                                          ones(Int128, 2, 2))
     @test_throws MethodError UlmBLAS.mul!(zeros(2, 2), rand(Float32, 2, 2),
                                           rand(2, 2))
     #  other matrix types: a view with a vector of indices, an adjoint C

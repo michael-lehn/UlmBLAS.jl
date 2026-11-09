@@ -6,13 +6,23 @@
 
 using LinearAlgebra: BlasFloat, Adjoint, Transpose
 
-#  addresses of ulmblas_{s,d,c,z}gemm_strided in the library in use
+#  integers: wraparound as Julia's arithmetic; UInt64 uses the function of
+#  Int64 (same bits)
+const IntTypes = Union{Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32,
+                       UInt64}
+const GemmTypes = Union{BlasFloat, IntTypes}
+
+#  addresses of ulmblas_?gemm_strided in the library in use (C_NULL if the
+#  library does not have it, e.g. the integer ones before 0.3)
 const gemm_strided_ptr = Dict{DataType,Ptr{Cvoid}}()
 
 function load_strided(path)
     h = Libdl.dlopen(path)
-    for (T, c) in ((Float32, 's'), (Float64, 'd'),
-                   (ComplexF32, 'c'), (ComplexF64, 'z'))
+    for (T, c) in ((Float32, "s"), (Float64, "d"),
+                   (ComplexF32, "c"), (ComplexF64, "z"),
+                   (Int8, "i8"), (UInt8, "i8"), (Int16, "i16"),
+                   (UInt16, "i16"), (Int32, "i32"), (UInt32, "i32"),
+                   (Int64, "i64"), (UInt64, "i64"))
         gemm_strided_ptr[T] = Libdl.dlsym_e(h, "ulmblas_$(c)gemm_strided")
     end
     return nothing
@@ -49,7 +59,7 @@ end
 end
 
 #  the C functions: real types take alpha, beta by value and no conj flags
-for T in (Float32, Float64)
+for T in (Float32, Float64, Int8, Int16, Int32, Int64)
     @eval @inline function gemm_strided!(f, m, n, k, α::$T, A::Ptr{$T}, rA,
                                          cA, ::Bool, B::Ptr{$T}, rB, cB,
                                          ::Bool, β::$T, C::Ptr{$T}, rC, cC)
@@ -57,6 +67,19 @@ for T in (Float32, Float64)
               (Int64, Int64, Int64, $T, Ptr{$T}, Int64, Int64, Ptr{$T},
                Int64, Int64, $T, Ptr{$T}, Int64, Int64),
               m, n, k, α, A, rA, cA, B, rB, cB, β, C, rC, cC)
+    end
+end
+
+#  unsigned integers: the function of the signed type (same bits; the C
+#  ABI may expect a sign-extended alpha, beta)
+for (U, S) in ((UInt8, Int8), (UInt16, Int16), (UInt32, Int32),
+               (UInt64, Int64))
+    @eval @inline function gemm_strided!(f, m, n, k, α::$U, A::Ptr{$U}, rA,
+                                         cA, cjA::Bool, B::Ptr{$U}, rB, cB,
+                                         cjB::Bool, β::$U, C::Ptr{$U}, rC, cC)
+        gemm_strided!(f, m, n, k, reinterpret($S, α), Ptr{$S}(A), rA, cA,
+                      cjA, Ptr{$S}(B), rB, cB, cjB, reinterpret($S, β),
+                      Ptr{$S}(C), rC, cC)
     end
 end
 
@@ -76,8 +99,12 @@ end
 """
     UlmBLAS.mul!(C, A, B, α=true, β=false) -> C
 
-`C = α A B + β C` for `Float32`, `Float64`, `ComplexF32`, `ComplexF64`, with
-the GEMM of ulmBLAS for arbitrary strides, without copies.
+`C = α A B + β C` for `Float32`, `Float64`, `ComplexF32`, `ComplexF64` and
+the integer types `Int8` ... `Int64`, `UInt8` ... `UInt64`, with the GEMM of
+ulmBLAS for arbitrary strides, without copies.
+
+Integers wrap around as in Julia (`A*B` gives the same result).  There are
+no tuned micro kernels for integers yet; ulmBLAS uses its generic one.
 
 - `C`: a strided matrix (`Matrix`, a `view` with ranges, ...) or its
   `transpose` (row major), without zero strides (except for a dimension of
@@ -86,7 +113,8 @@ the GEMM of ulmBLAS for arbitrary strides, without copies.
   matrices (`adjoint` conjugates complex elements), also nested once
   (`adjoint(transpose(X))`).  Any strides are
   allowed: non-unit, negative, zero (e.g. a repeated row), row major.
-- All three have the same element type; `α` and `β` are converted to it.
+- All three have the same element type; `α` and `β` are converted to it
+  (`InexactError` if that is not possible, e.g. `α = 0.5` for `Int`).
 - Other element types, mixed types and other matrix types (e.g. a `view`
   with a vector of indices, an `adjoint` `C`) are not supported and raise
   a `MethodError`; there is no fallback.
@@ -104,7 +132,7 @@ This is not a method of `LinearAlgebra.mul!`: `LinearAlgebra.mul!` keeps
 its own behavior (BLAS only for unit row strides).
 """
 function mul!(C::StridedOut{T}, A::StridedOp{T}, B::StridedOp{T},
-              α::Number=true, β::Number=false) where {T<:BlasFloat}
+              α::Number=true, β::Number=false) where {T<:GemmTypes}
     m, n = size(C)
     k = size(A, 2)
     if size(A, 1) != m || size(B, 1) != k || size(B, 2) != n
@@ -138,7 +166,7 @@ Also available as `UlmBLAS.mul_iansmba!` ("I Am Not Sure, Might Be
 Aliased").
 """
 function mul_aliased!(C::StridedOut{T}, A::StridedOp{T}, B::StridedOp{T},
-                      α::Number=true, β::Number=false) where {T<:BlasFloat}
+                      α::Number=true, β::Number=false) where {T<:GemmTypes}
     if !(Base.mightalias(C, A) || Base.mightalias(C, B))
         return mul!(C, A, B, α, β)
     end

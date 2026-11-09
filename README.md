@@ -125,9 +125,15 @@ UlmBLAS.mul!(Y, transpose(Z), X');  # Y = Zᵀ Xᴴ
 println(Y ≈ transpose(Z) * X')      # should print true
 ```
 
-- Types: `Float32`, `Float64`, `ComplexF32`, `ComplexF64`, the same for
-  `A`, `B` and `C`; `α` and `β` are converted.  Other types raise a
+- Types: `Float32`, `Float64`, `ComplexF32`, `ComplexF64` and the
+  integers `Int8` ... `Int64`, `UInt8` ... `UInt64`, the same for `A`,
+  `B` and `C`; `α` and `β` are converted.  Other types raise a
   `MethodError` (no fallback).
+- Integers wrap around as in Julia, `UlmBLAS.mul!(C, A, B) == A * B`.
+  There are no tuned integer kernels yet, ulmBLAS uses its generic one.
+  Apple M5, one thread, n = 1000, `A * B` against `UlmBLAS.mul!` (2 means
+  twice as fast): `Int64` 3.1, `Int32` 1.6, `Int16` 0.9, `Int8` 0.6.  For
+  8 and 16 bit ulmBLAS computes in 32 bit, so Julia is faster there.
 - `A`, `B`: strided matrices (`Matrix`, views with ranges, also with
   negative or zero steps) and their `transpose` or `adjoint`.  `C`: a
   strided matrix or its `transpose`.
