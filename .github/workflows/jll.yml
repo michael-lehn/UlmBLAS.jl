@@ -152,13 +152,15 @@ jobs:
         with:
           version: ${{ matrix.version }}
       #  Windows: the download URLs point to /tmp/ulmblas-jll; the action
-      #  put the files to that path on the current drive (D:\tmp\...)
+      #  put the files to that path on the current drive (D:\tmp\...).
+      #  abspath("/tmp") has no drive letter on Windows, so take it from pwd()
       - name: download URLs (Windows)
         if: runner.os == 'Windows'
         run: |
           julia -e 'f = "/tmp/ulmblas-jll/ulmBLAS_jll/Artifacts.toml"
-              d = "file:///" * replace(abspath("/tmp/ulmblas-jll"), "\\" => "/")
+              d = "file:///" * splitdrive(pwd())[1] * "/tmp/ulmblas-jll"
               s = replace(read(f, String), "file:///tmp/ulmblas-jll" => d)
+              occursin(d, s) || error("no URL replaced")
               write(f, s); println(s)'
       - name: develop
         run: |
