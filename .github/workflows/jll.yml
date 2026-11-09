@@ -43,7 +43,7 @@ jobs:
       - name: recipe
         run: |
           #  the recipe of ulmBLAS 0.3.0 (Yggdrasil PR branch ulmBLAS-0.3.0)
-          echo "ee90387953a4f7406d7abb70438af9f81bea828303e6fb99d4d028ff5b8648f6  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
+          echo "b41ce497ae778f249cd4b8937386a3c9813f0471877585d380f2e17cf7916495  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
           mkdir -p ygg/U/ulmBLAS
           cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
       - name: build
