@@ -1,4 +1,4 @@
-using LinearAlgebra, Libdl, Test
+using LinearAlgebra, Libdl, Test, BFloat16s
 const LIBS_BEFORE = [l.libname for l in BLAS.get_config().loaded_libs]
 using UlmBLAS
 
@@ -110,6 +110,7 @@ end
 
 #  UlmBLAS.mul! before forward()
 include("strided.jl")
+include("mixed.jl")
 
 @testset "forwarding" begin
     lib = UlmBLAS.library_path()

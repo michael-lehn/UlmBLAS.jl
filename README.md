@@ -148,8 +148,9 @@ println(Y ≈ transpose(Z) * X')      # should print true
 ```
 
 - Types: `Float32`, `Float64`, `ComplexF32`, `ComplexF64`, the same for
-  `A`, `B` and `C`; `α` and `β` are converted.  Other types raise a
-  `MethodError` (no fallback).
+  `A`, `B` and `C`; `α` and `β` are converted.  Also 8-bit integers,
+  `Float16` and `BFloat16` (see below).  Other types raise a `MethodError`
+  (no fallback).
 - `A`, `B`: strided matrices (`Matrix`, views with ranges, also with
   negative or zero steps) and their `transpose` or `adjoint`.  `C`: a
   strided matrix or its `transpose`.
@@ -170,6 +171,44 @@ println(Q[1:n, :] ≈ Q0[n+1:2n, :] * Q0[1:2:2n, :])  # should print true
 
 It computes `α A B` into a temporary matrix if `Base.mightalias` reports a
 possible overlap, and is `UlmBLAS.mul!` otherwise.
+
+### 8-bit integers, Float16 and BFloat16
+
+`UlmBLAS.mul!` also multiplies matrices Julia itself multiplies with
+generic loops:
+
+- `A`, `B` with element type `Int8` or `UInt8` (each its own), `C` with
+  `Int32`: exact modulo 2^32, like Julia's `Int32` arithmetic.
+- `A`, `B` with `Float16`, `C` with `Float32` (products and sums in
+  `Float32`); with the package BFloat16s also `BFloat16`.
+
+The layouts are the same as above.
+
+```julia
+using UlmBLAS, BFloat16s
+
+A = rand(Int8, 1024, 1024); B = rand(Int8, 1024, 1024);
+C = zeros(Int32, 1024, 1024);
+UlmBLAS.mul!(C, A, B);              # C = A B in Int32
+
+X = BFloat16.(randn(1024, 1024)); Y = BFloat16.(randn(1024, 1024));
+Z = zeros(Float32, 1024, 1024);
+UlmBLAS.mul!(Z, X, Y);              # Z = X Y in Float32
+```
+
+On one core of an Apple M5, n = 1024, in G op/s:
+
+| | Julia | `UlmBLAS.mul!` |
+|---|---|---|
+| `Int8` (result `Int32`) | 33 | 3447 |
+| `Float16` | 13 | 1645 (result `Float32`) |
+| `BFloat16` | 0.6 | 1731 (result `Float32`) |
+| `Float32` (OpenBLAS) | 115 | 1794 |
+
+These need a library of ulmBLAS that has the functions
+(`ulmblas_i8i32gemm_strided`, `ulmblas_sbgemm_strided`,
+`ulmblas_shgemm_strided`); with an older one `UlmBLAS.mul!` raises an
+error that says so.
 
 ## First Benchmarks
 
