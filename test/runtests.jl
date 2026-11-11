@@ -1,4 +1,4 @@
-using LinearAlgebra, Libdl, Test
+using LinearAlgebra, Libdl, Test, BFloat16s
 const LIBS_BEFORE = [l.libname for l in BLAS.get_config().loaded_libs]
 using UlmBLAS
 
@@ -110,6 +110,14 @@ end
 
 #  UlmBLAS.mul! before forward()
 include("strided.jl")
+#  the GEMM for Int8, Float16, BFloat16: only with a library that has it
+if all(p -> p != C_NULL, values(UlmBLAS.gemm_mixed_ptr))
+    include("mixed.jl")
+else
+    @info "UlmBLAS: the library has no ulmblas_i8i32gemm_strided, " *
+          "ulmblas_sbgemm_strided, ulmblas_shgemm_strided: tests skipped"
+    @test_skip false
+end
 
 @testset "forwarding" begin
     lib = UlmBLAS.library_path()

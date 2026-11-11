@@ -16,6 +16,10 @@ const GemmTypes = Union{BlasFloat, IntTypes}
 #  library does not have it, e.g. the integer ones before 0.3)
 const gemm_strided_ptr = Dict{DataType,Ptr{Cvoid}}()
 
+#  addresses of the GEMM for 8-bit integers (C Int32) and 16-bit floating
+#  point (C Float32) by the name of the C function
+const gemm_mixed_ptr = Dict{String,Ptr{Cvoid}}()
+
 function load_strided(path)
     #  Windows: with Julia 1.13, dlopen of a file that is no DLL did not
     #  return (GitHub Actions); a DLL starts with "MZ"
@@ -30,7 +34,39 @@ function load_strided(path)
                    (Int64, "i64"), (UInt64, "i64"))
         gemm_strided_ptr[T] = Libdl.dlsym_e(h, "ulmblas_$(c)gemm_strided")
     end
+    for name in ("i8i32", "sb", "sh")
+        f = "ulmblas_$(name)gemm_strided"
+        gemm_mixed_ptr[f] = Libdl.dlsym_e(h, f)
+    end
     return nothing
+end
+
+@noinline function missing_mixed(f)
+    error("UlmBLAS: the library $(library[]) has no $f (built before " *
+          "it was added, or no library loaded)")
+end
+
+#  the address of the C function f (error if the library has none)
+@inline function mixed_ptr(f)
+    p = get(gemm_mixed_ptr, f, C_NULL)
+    p == C_NULL && missing_mixed(f)
+    return p
+end
+
+@inline function check_sizes(C, A, B)
+    m, n = size(C)
+    k = size(A, 2)
+    if size(A, 1) != m || size(B, 1) != k || size(B, 2) != n
+        throw(DimensionMismatch(lazy"C has size $(size(C)), A $(size(A)), " *
+                                lazy"B $(size(B))"))
+    end
+    return m, n, k
+end
+
+@inline function check_out(rC, cC, m, n)
+    if (m > 1 && rC == 0) || (n > 1 && cC == 0)
+        throw(ArgumentError("UlmBLAS.mul!: C has a zero stride"))
+    end
 end
 
 #  A strided matrix, its transpose or adjoint, and transpose or adjoint of
@@ -185,3 +221,66 @@ function mul_aliased!(C::StridedOut{T}, A::StridedOp{T}, B::StridedOp{T},
 end
 
 const mul_iansmba! = mul_aliased!
+
+const Int8or = Union{Int8,UInt8}
+
+"""
+    UlmBLAS.mul!(C::Int32 matrix, A, B, α=1, β=0) -> C
+
+8-bit integers: `C = α A B + β C` with `A` and `B` of element type `Int8` or
+`UInt8` (each its own) and `C` of element type `Int32`, exact modulo 2^32
+(as Julia's `Int32` arithmetic).  The same layouts as for the floating-point
+types (strided matrices, `transpose`, `adjoint`, any strides).  ulmBLAS uses
+the int8 instructions of the CPU (Apple M4/M5 SME2: about twice the speed of
+`Float32`; ARM dot products, x86 AVX-VNNI, AVX512-VNNI, AVX2).
+"""
+function mul!(C::StridedOut{Int32}, A::StridedOp{TA}, B::StridedOp{TB},
+              α::Integer=1, β::Integer=0) where {TA<:Int8or,TB<:Int8or}
+    m, n, k = check_sizes(C, A, B)
+    f = mixed_ptr("ulmblas_i8i32gemm_strided")
+    PA, rA, cA, _ = layout(A)
+    PB, rB, cB, _ = layout(B)
+    PC, rC, cC, _ = layout(C)
+    check_out(rC, cC, m, n)
+    GC.@preserve PA PB PC begin
+        ccall(f, Cvoid,
+              (Int64, Int64, Int64, Int32, Cint, Ptr{Cvoid}, Int64, Int64,
+               Cint, Ptr{Cvoid}, Int64, Int64, Int32, Ptr{Int32}, Int64,
+               Int64),
+              m, n, k, α % Int32, TA === UInt8, pointer(PA), rA, cA,
+              TB === UInt8, pointer(PB), rB, cB, β % Int32, pointer(PC), rC,
+              cC)
+    end
+    return C
+end
+
+#  A and B 16-bit floating point (bits as UInt16), C Float32: f the C function
+function gemm16!(f, C, A, B, α, β)
+    m, n, k = check_sizes(C, A, B)
+    PA, rA, cA, _ = layout(A)
+    PB, rB, cB, _ = layout(B)
+    PC, rC, cC, _ = layout(C)
+    check_out(rC, cC, m, n)
+    GC.@preserve PA PB PC begin
+        ccall(mixed_ptr(f), Cvoid,
+              (Int64, Int64, Int64, Float32, Ptr{Cvoid}, Int64, Int64,
+               Ptr{Cvoid}, Int64, Int64, Float32, Ptr{Float32}, Int64, Int64),
+              m, n, k, Float32(α), pointer(PA), rA, cA, pointer(PB), rB, cB,
+              Float32(β), pointer(PC), rC, cC)
+    end
+    return C
+end
+
+"""
+    UlmBLAS.mul!(C::Float32 matrix, A::Float16 matrix, B::Float16 matrix,
+                 α=true, β=false) -> C
+
+IEEE half precision: `C = α A B + β C` with `A`, `B` of element type
+`Float16` and `C` of element type `Float32`, the products and sums in
+`Float32` (`ulmblas_shgemm_strided`).  With the package BFloat16s also for
+`BFloat16` (`ulmblas_sbgemm_strided`).  Layouts as for the other types.
+"""
+function mul!(C::StridedOut{Float32}, A::StridedOp{Float16},
+              B::StridedOp{Float16}, α::Number=true, β::Number=false)
+    return gemm16!("ulmblas_shgemm_strided", C, A, B, α, β)
+end

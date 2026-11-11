@@ -32,3 +32,7 @@ if Sys.isapple() && Sys.ARCH === :aarch64
     @assert UlmBLAS.chosen[] == ("sme" in UlmBLAS.cpu_variants() ? "sme" : "neon")
     @assert UlmBLAS.has_library("sme") && UlmBLAS.has_library("neon")
 end
+#  this JLL is built from a source with the GEMM for Int8, Float16, BFloat16:
+#  the tests in test/mixed.jl must not be skipped
+println("mixed GEMM:    ", join(sort(collect(keys(UlmBLAS.gemm_mixed_ptr))), ", "))
+@assert all(p -> p != C_NULL, values(UlmBLAS.gemm_mixed_ptr))

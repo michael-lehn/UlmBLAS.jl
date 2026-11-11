@@ -10,7 +10,7 @@ version = v"0.3.0"
 
 sources = [
     GitSource("https://github.com/michael-lehn/ulmBLAS.git",
-              "58e67dc8a19b385b33935750e58792db3e9de5e5"; tag="v$(version)"),
+              "b27c2f632aa971c55afd760ab29a7a5906ed4dca"),
 ]
 
 # One library per instruction set, `libulmblas_VARIANT`, with the BLAS
