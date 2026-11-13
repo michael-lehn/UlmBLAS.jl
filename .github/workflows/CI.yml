@@ -16,9 +16,9 @@ jobs:
         #  long-term support, current release
         version: ['lts', '1']
         #  macos-15, macos-latest: Apple M1 (arm64, without SME2: variant
-        #  neon); ubuntu-latest: x86-64 (variants as the CPU of the runner
-        #  allows)
-        os: [ubuntu-latest, macos-15, macos-latest]
+        #  neon); ubuntu-latest, windows-latest: x86-64 (variants as the CPU
+        #  of the runner allows)
+        os: [ubuntu-latest, macos-15, macos-latest, windows-latest]
         #  the oldest supported version; Julia 1.9 does not start on
         #  ubuntu-latest (its libopenlibm requests an executable stack,
         #  which newer versions of glibc refuse)

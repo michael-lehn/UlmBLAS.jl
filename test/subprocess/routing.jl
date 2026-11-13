@@ -22,6 +22,13 @@ end
 
 UlmBLAS.forward()
 after = snapshot()
+
+#  Windows: libblastrampoline returns the double complex results of zdotc_
+#  and zdotu_ through an adapter (complex return style
+#  float_normal_double_argument); after forward() the adapter still calls
+#  the library loaded before (OpenBLAS), see docs/details.md
+const ADAPTED = BLAS.get_config().loaded_libs[end].complex_retstyle ===
+                :float_normal_double_argument ? ["zdotc_", "zdotu_"] : String[]
 const ULM = dlopen(UlmBLAS.library_path())
 #  address of the symbol in the library of ulmBLAS (dgemm_64_, cblas_ddot64_)
 ulm(n) = (p = dlsym_e(ULM, n * "64_"); p == C_NULL ? UInt(0) : UInt(p))
@@ -32,9 +39,10 @@ ulm(n) = (p = dlsym_e(ULM, n * "64_"); p == C_NULL ? UInt(0) : UInt(p))
     @test isempty(lost)
     #  ILP64: what ulmBLAS provides goes to ulmBLAS, everything else is
     #  unchanged; LP64 is unchanged
-    wrong = [n for n in NAMES if after[(n, :ilp64)] !=
+    wrong = [n for n in NAMES if !(n in ADAPTED) && after[(n, :ilp64)] !=
              (ulm(n) != 0 ? ulm(n) : before[(n, :ilp64)])]
     @test isempty(wrong)
+    @test all(after[(n, :ilp64)] == before[(n, :ilp64)] for n in ADAPTED)
     @test all(after[(n, :lp64)] == before[(n, :lp64)] for n in NAMES)
     @test count(n -> ulm(n) != 0, NAMES) >= 149
     #  BLAS routines of LinearAlgebra that ulmBLAS does not provide keep
@@ -47,8 +55,16 @@ ulm(n) = (p = dlsym_e(ULM, n * "64_"); p == C_NULL ? UInt(0) : UInt(p))
     end
     for n in ("crot_", "zrot_", "csymv_", "zsymv_", "csyr_", "zsyr_",
               "cblas_ddot", "cblas_sdot", "cblas_zdotc_sub", "cblas_cdotc_sub",
-              "cblas_zdotu_sub", "cblas_cdotu_sub", "dgetrf_", "zheevd_")
+              "cblas_zdotu_sub", "cblas_cdotu_sub", "zheevd_")
         @test backing(n) == backing_before[n] != ""
+    end
+    #  LAPACK: ?getrf and ?potrf go to ulmBLAS if its library has them
+    for n in ("dgetrf_", "zpotrf_")
+        if ulm(n) != 0
+            @test occursin("ulmblas", backing(n))
+        else
+            @test backing(n) == backing_before[n] != ""
+        end
     end
     for n in ("dgemm_", "zgemm_", "strsm_", "ctrmm_", "dgemv_", "zherk_",
               "daxpy_", "idamax_", "dnrm2_", "zdotc_")

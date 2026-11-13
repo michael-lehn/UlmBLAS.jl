@@ -38,7 +38,8 @@ Pkg installs prebuilt libraries of ulmBLAS together with the package
 - macOS on Apple silicon (macOS 11 or later): `neon` (all Apple silicon)
   and `sme` (Apple M4 and later);
 - Linux on x86-64 (glibc 2.17 or later, as Julia; tested on RHEL 8,
-  Ubuntu 20.04 and newer): `zen4`, `skylakex`, `haswell`, `x86_64`.
+  Ubuntu 20.04 and newer): `zen4`, `skylakex`, `haswell`, `x86_64`;
+- Windows on x86-64 (MinGW-w64 build): the same as on Linux.
 
 Julia 1.9 or later.  On other platforms the package prints a warning;
 `UlmBLAS.mul!` and `UlmBLAS.forward()` then raise an error, and Julia
@@ -74,12 +75,16 @@ BLAS.gemm!('C', 'N', one(ComplexF32), A, B, zero(ComplexF32), C);
 println(C ≈ A' * B)                 # should print true
 ```
 
-- LAPACK (`lu`, `qr`, `eigen`, ...) comes from OpenBLAS and uses OpenBLAS's
-  BLAS internally.
+- LU and Cholesky (`lu`, `cholesky`, `inv`, `\`) come from ulmBLAS if the
+  library has them (`?getrf`, `?potrf`, solves and inverses, with OpenMP
+  tasks).  The rest of LAPACK (`qr`, `eigen`, ...) comes from OpenBLAS and
+  uses OpenBLAS's BLAS internally.
 - Routines ulmBLAS does not have (e.g. `BLAS.gemmt!`, `BLAS.axpby!`) and
   the dot products of `LinearAlgebra.BLAS` keep going to OpenBLAS; see
   [docs/details.md](docs/details.md#routines-that-ulmblas-does-not-provide).
-- Single-threaded: `BLAS.set_num_threads` has no effect on ulmBLAS.
+- BLAS is single-threaded.  The LAPACK functions take the number of
+  threads of `BLAS.set_num_threads` (`UlmBLAS.forward()` registers them
+  with libblastrampoline).
 - `UlmBLAS.forward()` can be called again (no effect).  Call it before
   starting concurrent BLAS work; see
   [docs/details.md](docs/details.md#threads) for concurrent calls.
@@ -147,9 +152,15 @@ UlmBLAS.mul!(Y, transpose(Z), X');  # Y = Zᵀ Xᴴ
 println(Y ≈ transpose(Z) * X')      # should print true
 ```
 
-- Types: `Float32`, `Float64`, `ComplexF32`, `ComplexF64`, the same for
-  `A`, `B` and `C`; `α` and `β` are converted.  Other types raise a
+- Types: `Float32`, `Float64`, `ComplexF32`, `ComplexF64` and the
+  integers `Int8` ... `Int64`, `UInt8` ... `UInt64`, the same for `A`,
+  `B` and `C`; `α` and `β` are converted.  Other types raise a
   `MethodError` (no fallback).
+- Integers wrap around as in Julia, `UlmBLAS.mul!(C, A, B) == A * B`.
+  There are no tuned integer kernels yet, ulmBLAS uses its generic one.
+  Apple M5, one thread, n = 1000, `A * B` against `UlmBLAS.mul!` (2 means
+  twice as fast): `Int64` 3.1, `Int32` 1.6, `Int16` 0.9, `Int8` 0.6.  For
+  8 and 16 bit ulmBLAS computes in 32 bit, so Julia is faster there.
 - `A`, `B`: strided matrices (`Matrix`, views with ranges, also with
   negative or zero steps) and their `transpose` or `adjoint`.  `C`: a
   strided matrix or its `transpose`.
@@ -255,7 +266,7 @@ one library per kind of CPU and loads the one for the CPU it runs on
 
 The libraries come from
 [ulmBLAS_jll](https://github.com/JuliaBinaryWrappers/ulmBLAS_jll.jl)
-(ulmBLAS v0.2.0, built by
+(ulmBLAS v0.3.0, built by
 [Yggdrasil](https://github.com/JuliaPackaging/Yggdrasil/tree/master/U/ulmBLAS)).
 The choice of kernels follows the
 [benchmark campaigns](https://github.com/michael-lehn/ulmBLAS/tree/master/benchmark_results)

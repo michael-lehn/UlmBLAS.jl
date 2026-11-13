@@ -41,6 +41,12 @@ With Julia 1.13 and OpenBLAS (`LinearAlgebra.BLAS.get_config()`):
 - The LP64 table (32-bit integers, e.g. OpenBLAS32.jl) is not changed:
   the library of ulmBLAS has only the ILP64 interface.  With OpenBLAS32
   loaded, LP64 calls keep going to OpenBLAS32.
+- Windows: `zdotc` and `zdotu` stay with OpenBLAS.  Their double complex
+  result is returned through a hidden argument there, so LBT calls them
+  through an adapter (`complex_retstyle` `float_normal_double_argument`,
+  for OpenBLAS and ulmBLAS alike); after `forward()` the adapter still
+  calls OpenBLAS (the results are those of OpenBLAS bit for bit), although
+  `lbt_find_backing_library` reports ulmBLAS.
 
 The tests check this for every symbol of LBT in a fresh process
 (`test/subprocess/routing.jl`) and run test files of `LinearAlgebra`
@@ -191,16 +197,21 @@ used).  The tests run every build in `UlmBLAS.variants()`.
   [ulmBLAS_jll](https://github.com/JuliaBinaryWrappers/ulmBLAS_jll.jl),
   built by [Yggdrasil](https://github.com/JuliaPackaging/Yggdrasil) with
   the recipe `U/ulmBLAS/build_tarballs.jl`: one library
-  `lib/libulmblas_VARIANT.*` per variant, `neon` and `sme` on macOS
-  (aarch64), `x86_64`, `haswell`, `skylakex` and `zen4` on Linux (x86-64).
-  ulmBLAS_jll does not load them (`dont_dlopen`); the package loads the
-  one of `UlmBLAS.variant()`.
-- ulmBLAS_jll 0.2.0: ulmBLAS v0.2.0 (6a7d7dc6).  macOS with the clang of
-  BinaryBuilder (deployment target 11.0, links only `libSystem` and
-  `libc++`; `libulmblas_sme` links the SME support routines of
-  compiler-rt from LLVMCompilerRT_jll 20.1.8 statically).  Linux with
-  GCC 11 (libstdc++ static, symbol versions up to `GLIBC_2.14`).
-- `.github/workflows/jll.yml` (development branches) builds a recipe
+  `lib/libulmblas_VARIANT.*` per variant (`bin/` on Windows), `neon` and
+  `sme` on macOS (aarch64), `x86_64`, `haswell`, `skylakex` and `zen4` on
+  Linux and Windows (x86-64).  ulmBLAS_jll does not load them
+  (`dont_dlopen`); the package loads the one of `UlmBLAS.variant()`.
+- ulmBLAS_jll 0.3.0: ulmBLAS v0.3.0 (58e67dc8), with the LAPACK functions
+  `?getrf`, `?potrf`, `?getrs`, `?potrs`, `?gesv`, `?posv`, `?getri` and
+  `?potri` (OpenMP tasks).  macOS with the clang of BinaryBuilder
+  (deployment target 11.0; links `libSystem`, `libc++` and `libomp` of
+  LLVMOpenMP_jll; `libulmblas_sme` links the SME support routines of
+  compiler-rt from LLVMCompilerRT_jll 20.1.8 statically).  Linux and
+  Windows (MinGW-w64) with GCC 11, libstdc++ static, `libgomp` of
+  CompilerSupportLibraries_jll; Linux symbol versions up to `GLIBC_2.17`.
+- ulmBLAS_jll 0.2.0 (used by UlmBLAS.jl 0.1): ulmBLAS v0.2.0 (6a7d7dc6),
+  BLAS only, without Windows and OpenMP.
+- `.github/workflows/jll.yml` (started by hand) builds a recipe
   (`.github/jll-test/ulmBLAS/build_tarballs.jl`) in Yggdrasil's
   environment, generates ulmBLAS_jll from the tarballs as Yggdrasil does
   and runs the tests with it, before the recipe is submitted.

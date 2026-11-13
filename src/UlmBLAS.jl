@@ -25,7 +25,8 @@ module UlmBLAS
 using Libdl, LinearAlgebra, ulmBLAS_jll
 using Base.BinaryPlatforms.CPUID
 
-const LIBNAME = Sys.isapple() ? "libulmblas_lbt.dylib" : "libulmblas_lbt.so"
+const LIBNAME = Sys.isapple() ? "libulmblas_lbt.dylib" :
+                Sys.iswindows() ? "libulmblas_lbt.dll" : "libulmblas_lbt.so"
 
 #  path and variant of the library in use (set by __init__)
 const library = Ref{String}("")
@@ -181,11 +182,34 @@ clear=true)`.
 #  (calls of BLAS.lbt_forward by other code are not).
 const FORWARD_LOCK = ReentrantLock()
 
+#  A library built with LAPACK (OPENMP=1 LAPACK=1) has ?getrf, ?potrf, ...
+#  and its own number of threads.  Its thread functions are registered with
+#  libblastrampoline before forwarding (libblastrampoline appends the suffix
+#  64_ itself); then BLAS.get_num_threads and BLAS.set_num_threads include
+#  ulmBLAS, and ulmBLAS takes the number of threads Julia gives BLAS.
+const THREADS_REGISTERED = Ref(false)
+
+function has_thread_functions(path)
+    h = Libdl.dlopen(path; throw_error=false)
+    h === nothing && return false
+    return Libdl.dlsym(h, :ulmblas_get_num_threads_64_; throw_error=false) !== nothing
+end
+
 function forward()
     path = library[]
     isempty(path) && error("UlmBLAS: no library of ulmBLAS loaded")
     n = lock(FORWARD_LOCK) do
-        BLAS.lbt_forward(path; clear=false, suffix_hint="64_")
+        threads = BLAS.get_num_threads()
+        lapack = has_thread_functions(path)
+        if lapack && !THREADS_REGISTERED[]
+            ccall((:lbt_register_thread_interface, LinearAlgebra.libblastrampoline),
+                  Cvoid, (Cstring, Cstring),
+                  "ulmblas_get_num_threads_", "ulmblas_set_num_threads_")
+            THREADS_REGISTERED[] = true
+        end
+        k = BLAS.lbt_forward(path; clear=false, suffix_hint="64_")
+        lapack && BLAS.set_num_threads(threads)
+        k
     end
     n > 0 || error("UlmBLAS: no BLAS routines forwarded from $path")
     return n
