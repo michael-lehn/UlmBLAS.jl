@@ -169,11 +169,14 @@ jobs:
               s = replace(read(f, String), "file:///tmp/ulmblas-jll" => d)
               occursin(d, s) || error("no URL replaced")
               write(f, s); println(s)'
+      #  absolute path: Pkg of Julia 1.9 fails for a relative path to a
+      #  package with weak dependencies ("depends on BFloat16s, but no such
+      #  entry exists in the manifest")
       - name: develop
         run: |
           julia --project=env -e 'using Pkg
               Pkg.develop([PackageSpec(path="/tmp/ulmblas-jll/ulmBLAS_jll"),
-                           PackageSpec(path="pkg")])'
+                           PackageSpec(path=abspath("pkg"))])'
       - name: identity
         run: julia --project=env pkg/.github/jll-test/identity.jl
       #  the complete suite, with the LAPACK, triangular, dense and symmetric
