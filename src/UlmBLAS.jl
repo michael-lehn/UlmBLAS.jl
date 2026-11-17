@@ -13,7 +13,7 @@ not change the BLAS of Julia:
   ulmBLAS then replace those of OpenBLAS, and LAPACK and every routine
   ulmBLAS does not provide stay with OpenBLAS.
 
-ulmBLAS selects its micro kernels when it is compiled.  The package
+ulmBLAS selects its instruction set when it is compiled.  The package
 therefore contains one library per kind of CPU and picks the one for this
 CPU when it is loaded (see [`variant`](@ref)).  For development, the
 environment variable `ULMBLAS_LIBRARY` (path of a library built with
@@ -95,8 +95,8 @@ function cpu_variants()
 end
 
 #  x86-64: the variants for the features has(CPUID.JL_X86_...) reports, AMD
-#  preferring zen4.  The AVX-512 libraries are compiled with AVX-512 F and DQ,
-#  and the vendored assembly kernels also use AVX-512 VL.
+#  preferring zen4.  The AVX-512 libraries are compiled with AVX-512 F, DQ
+#  and VL.
 function x86_variants(has, amd)
     v = String[]
     if has(CPUID.JL_X86_avx512f) && has(CPUID.JL_X86_avx512dq) &&
@@ -183,7 +183,8 @@ clear=true)`.
 const FORWARD_LOCK = ReentrantLock()
 
 #  A library built with LAPACK (OPENMP=1 LAPACK=1) has ?getrf, ?potrf, ...
-#  and its own number of threads.  Its thread functions are registered with
+#  and its own number of threads (level 3, level 2 and the LAPACK
+#  functions).  Its thread functions are registered with
 #  libblastrampoline before forwarding (libblastrampoline appends the suffix
 #  64_ itself); then BLAS.get_num_threads and BLAS.set_num_threads include
 #  ulmBLAS, and ulmBLAS takes the number of threads Julia gives BLAS.

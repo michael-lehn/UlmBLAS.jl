@@ -3,8 +3,9 @@
 #  initialization of the memory pools of ulmBLAS), then after
 #  UlmBLAS.forward() concurrent BLAS routines of ulmBLAS, routines that
 #  stay with OpenBLAS and UlmBLAS.mul!, each task with its own output.
-#  This tests that the routines can be called concurrently (ulmBLAS itself
-#  computes each call in one thread).
+#  This tests that the routines can be called concurrently (a call while
+#  another thread uses the thread pool of ulmBLAS runs on the calling
+#  thread).
 using LinearAlgebra, Test, Random
 using UlmBLAS
 

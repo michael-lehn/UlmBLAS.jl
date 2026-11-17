@@ -13,9 +13,10 @@
 #      Linux x86-64:  x86_64, haswell, skylakex, zen4
 #      Windows x86-64 (MSYS2 with MinGW-w64): as Linux
 #
-#  The flags of each variant select the micro kernels for S, D, C and
-#  ZGEMM (the fastest of the benchmark campaigns of ulmBLAS for this kind
-#  of CPU).  CXX and CC can be set as usual; J = number of parallel jobs;
+#  The flags of each variant select the default micro kernels for S, D, C
+#  and ZGEMM (as the recipe of ulmBLAS_jll and the backends of the
+#  dispatching library of ulmBLAS); on a CPU with a selection table
+#  ulmBLAS picks kernels by problem size.  CXX and CC can be set as usual; J = number of parallel jobs;
 #  the build logs go to LOGDIR (default OUT.logs, not into the artifact);
 #  on Linux and Windows the debug information is stripped;
 #  ULMBLAS_COMMIT names the commit of SRC if SRC is no git checkout;
@@ -36,16 +37,15 @@ flags() {
     sme)      echo "-mcpu=apple-m4";;
     x86_64)   echo "-msse3";;
     haswell)  echo "-mavx -mavx2 -mfma" \
-                   "-DULMBLAS_DGEMM_UKERNEL_openblas_haswell_4x8" \
                    "-DULMBLAS_SGEMM_UKERNEL_openblas_haswell_8x4" \
                    "-DULMBLAS_CGEMM_UKERNEL_openblas_haswell_8x2" \
                    "-DULMBLAS_ZGEMM_UKERNEL_openblas_haswell_4x2";;
-    skylakex) echo "-mavx -mavx2 -mfma -mavx512f -mavx512dq" \
+    skylakex) echo "-mavx -mavx2 -mfma -mavx512f -mavx512dq -mavx512vl" \
                    "-DULMBLAS_DGEMM_UKERNEL_openblas_skylakex_16x12" \
                    "-DULMBLAS_SGEMM_UKERNEL_openblas_skylakex_16x4" \
                    "-DULMBLAS_CGEMM_UKERNEL_openblas_skylakex_8x2" \
                    "-DULMBLAS_ZGEMM_UKERNEL_blis_zen4_12x4";;
-    zen4)     echo "-mavx -mavx2 -mfma -mavx512f -mavx512dq" \
+    zen4)     echo "-mavx -mavx2 -mfma -mavx512f -mavx512dq -mavx512vl" \
                    "-DULMBLAS_DGEMM_UKERNEL_blis_zen4_32x6" \
                    "-DULMBLAS_SGEMM_UKERNEL_openblas_skylakex_16x4" \
                    "-DULMBLAS_CGEMM_UKERNEL_openblas_skylakex_8x2" \

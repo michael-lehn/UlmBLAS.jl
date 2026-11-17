@@ -75,8 +75,15 @@ AppleAccelerate.jl).
 
 ## Threads
 
-ulmBLAS computes each call in the calling thread (it starts no threads of
-its own; `BLAS.set_num_threads` does not apply).  For calls of
+Since ulmBLAS 0.4.1 the level 3 routines (and GEMV, GER for large
+matrices) run on a thread pool of ulmBLAS (POSIX threads, Windows threads),
+the LAPACK functions on OpenMP tasks.  The number of threads is
+`BLAS.set_num_threads` (after `UlmBLAS.forward()`, which registers
+`ulmblas_set_num_threads` with libblastrampoline), otherwise
+`ULMBLAS_NUM_THREADS` or `OMP_NUM_THREADS`, otherwise the CPUs of the
+process (macOS: the performance cores).  The pool runs one parallel region
+at a time: a call while another thread uses the pool, or from inside a
+parallel region, runs on the calling thread.  For calls of
 `UlmBLAS.mul!` and, after `UlmBLAS.forward()`, of BLAS routines from
 several Julia threads at the same time:
 
@@ -98,10 +105,10 @@ Why (source references: ulmBLAS 6c554eec):
   its blocks when the thread ends.  The `static MemoryPool<T>` objects in
   the routines have no data members.
 - Everything else is local to a call: tiles of `C` on the stack, the
-  packed operands passed to the micro kernels.  The kernels are selected
-  when ulmBLAS is compiled (no detection at run time); the constant
-  tables of the vendored AVX-512 kernels are only read.  `xerbla` only
-  writes to `stderr`.
+  packed operands passed to the micro kernels.  The CPU is detected once
+  (a function-local static, initialized thread-safely), the selection
+  tables and the constant tables of the vendored AVX-512 kernels are only
+  read.  `xerbla` only writes to `stderr`.
 - Julia side: the library path and the addresses of
   `ulmblas_?gemm_strided` are set once in `__init__` (while Julia loads
   the package) and only read afterwards; `UlmBLAS.mul!` keeps its
@@ -169,8 +176,8 @@ for; `UlmBLAS.variant()` is the first:
   it.
 - x86-64: with AVX-512 F, DQ and VL `zen4` and `skylakex` (`zen4` first
   on AMD, recognized by the model name of the CPU); `haswell` with AVX2 and
-  FMA; `x86_64` with SSE3.  The AVX-512 libraries are compiled with F and
-  DQ; VL is used by the vendored assembly kernels.
+  FMA; `x86_64` with SSE3.  The AVX-512 libraries are compiled with F, DQ
+  and VL (the selection tables for Ice Lake and Zen 4 need all three).
 
 `build/build.sh` builds each variant with `make lbt ARCHFLAGS=...`:
 
@@ -179,12 +186,16 @@ for; `UlmBLAS.variant()` is the first:
 | `neon` | `-DULMBLAS_NO_SME` |
 | `sme` | `-mcpu=apple-m4` |
 | `x86_64` | `-msse3` |
-| `haswell` | `-mavx -mavx2 -mfma`, `ULMBLAS_{D,S,C,Z}GEMM_UKERNEL_openblas_haswell_{4x8,8x4,8x2,4x2}` |
-| `skylakex` | `-mavx -mavx2 -mfma -mavx512f -mavx512dq`, D `openblas_skylakex_16x12`, S `openblas_skylakex_16x4`, C `openblas_skylakex_8x2`, Z `blis_zen4_12x4` |
-| `zen4` | `-mavx -mavx2 -mfma -mavx512f -mavx512dq`, D `blis_zen4_32x6`, S `openblas_skylakex_16x4`, C `openblas_skylakex_8x2`, Z `blis_zen4_12x4` |
+| `haswell` | `-mavx -mavx2 -mfma`, `ULMBLAS_{S,C,Z}GEMM_UKERNEL_openblas_haswell_{8x4,8x2,4x2}` (D: the AVX kernel of ulmBLAS) |
+| `skylakex` | `-mavx -mavx2 -mfma -mavx512f -mavx512dq -mavx512vl`, D `openblas_skylakex_16x12`, S `openblas_skylakex_16x4`, C `openblas_skylakex_8x2`, Z `blis_zen4_12x4` |
+| `zen4` | `-mavx -mavx2 -mfma -mavx512f -mavx512dq -mavx512vl`, D `blis_zen4_32x6`, S `openblas_skylakex_16x4`, C `openblas_skylakex_8x2`, Z `blis_zen4_12x4` |
 
-(each kernel as `-DULMBLAS_?GEMM_UKERNEL_<name>`).  On macOS
-`MACOSX_DEPLOYMENT_TARGET` defaults to 12.0.
+(each kernel as `-DULMBLAS_?GEMM_UKERNEL_<name>`; the same as the
+backends `avx2` and `avx512` of the dispatching library of ulmBLAS).  The
+kernels are the defaults; on a CPU with a selection table
+(`ulmblas/level3/gemm/tables/`: Apple M5, Intel Ice Lake, Intel Alder
+Lake, AMD Zen 4) ulmBLAS picks kernel and block sizes from the table.  On
+macOS `MACOSX_DEPLOYMENT_TARGET` defaults to 12.0.
 
 `ULMBLAS_LIBRARY` (a library built with `make lbt`) overrides the choice;
 `ULMBLAS_VARIANT` selects another library of ulmBLAS_jll if it is in
@@ -201,6 +212,12 @@ used).  The tests run every build in `UlmBLAS.variants()`.
   `sme` on macOS (aarch64), `x86_64`, `haswell`, `skylakex` and `zen4` on
   Linux and Windows (x86-64).  ulmBLAS_jll does not load them
   (`dont_dlopen`); the package loads the one of `UlmBLAS.variant()`.
+- ulmBLAS_jll 0.4.1: ulmBLAS v0.4.1, the build of 0.3.0 (below) with
+  the flags above: selection tables per CPU, threads for level 3 and
+  level 2, GEMM for Int8, Float16 and BFloat16 (`ulmblas_i8i32gemm_strided`,
+  `ulmblas_shgemm_strided`, `ulmblas_sbgemm_strided`); new ILP64 names
+  `?gemmtr_64_`, `sbgemm_64_`, `shgemm_64_`, `xerbla_array_64_`,
+  `ulmblas_set_affinity_64_`, `ulmblas_get_affinity_64_`.
 - ulmBLAS_jll 0.3.0: ulmBLAS v0.3.0 (58e67dc8), with the LAPACK functions
   `?getrf`, `?potrf`, `?getrs`, `?potrs`, `?gesv`, `?posv`, `?getri` and
   `?potri` (OpenMP tasks).  macOS with the clang of BinaryBuilder

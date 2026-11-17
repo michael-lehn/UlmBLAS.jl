@@ -6,8 +6,9 @@ Julia.  The package does two things:
 - `UlmBLAS.mul!` computes `C = α A B + β C` for matrices with arbitrary
   strides, e.g. every second row of a matrix, without copies.
 - `UlmBLAS.forward()` makes ulmBLAS the BLAS of Julia: `A * B`,
-  `BLAS.gemm!`, triangular solves etc. then call ulmBLAS.  LAPACK and the
-  few BLAS routines ulmBLAS does not have stay with OpenBLAS.
+  `BLAS.gemm!`, triangular solves, `lu`, `cholesky` etc. then call
+  ulmBLAS.  The rest of LAPACK and the few BLAS routines ulmBLAS does not
+  have stay with OpenBLAS.
 
 `using UlmBLAS` alone does not change the BLAS of Julia.
 
@@ -82,9 +83,11 @@ println(C ≈ A' * B)                 # should print true
 - Routines ulmBLAS does not have (e.g. `BLAS.gemmt!`, `BLAS.axpby!`) and
   the dot products of `LinearAlgebra.BLAS` keep going to OpenBLAS; see
   [docs/details.md](docs/details.md#routines-that-ulmblas-does-not-provide).
-- BLAS is single-threaded.  The LAPACK functions take the number of
-  threads of `BLAS.set_num_threads` (`UlmBLAS.forward()` registers them
-  with libblastrampoline).
+- Threads: level 3 (and GEMV, GER for large matrices) run on threads of
+  ulmBLAS, the LAPACK functions on OpenMP tasks.  Both take the number of
+  `BLAS.set_num_threads` (`UlmBLAS.forward()` registers the thread
+  functions of ulmBLAS with libblastrampoline and keeps the number Julia
+  had before).
 - `UlmBLAS.forward()` can be called again (no effect).  Call it before
   starting concurrent BLAS work; see
   [docs/details.md](docs/details.md#threads) for concurrent calls.
@@ -98,17 +101,11 @@ in [docs/details.md](docs/details.md).
 
 ## TODO
 
-- LU and Cholesky (`lu`, `cholesky`) from ulmBLAS (`?getrf`, `?potrf`,
-  with OpenMP tasks): comes with the next version of the library.
-- Then: small matrices.  For n up to about 100 these are still slower
+- Small matrices.  For n up to about 100 these are still slower
   than OpenBLAS, and `lu` and `cholesky` are often called with small
   matrices.  For this ulmBLAS has to pick kernels and variants by problem
   size, so the cleanup of its configuration comes first.
-- Threads: take the number `BLAS.set_num_threads` gives us.
 - More LAPACK, PLASMA style (tasks), C++ templates like the rest:
-  - solve: `getrs`, `gesv`, `potrs`, `posv`, `trtrs`, `laswp`, so that
-    `A \ b` stays in ulmBLAS
-  - inverse: `trtri`, `lauum`, `potri`, `getri` (`inv`)
   - `geqrf` (`qr`).  OpenBLAS has its own versions only of the routines
     above (plus `laed3`); QR comes from Reference LAPACK.  Tile QR is where
     PLASMA gains most.
@@ -287,9 +284,13 @@ few weeks.
 
 ## CPU variants
 
-ulmBLAS selects its micro kernels at compile time.  The package contains
-one library per kind of CPU and loads the one for the CPU it runs on
-(`UlmBLAS.variant()`; `UlmBLAS.variants()` lists all the CPU can run):
+ulmBLAS selects its instruction set at compile time.  The package
+contains one library per kind of CPU and loads the one for the CPU it runs
+on (`UlmBLAS.variant()`; `UlmBLAS.variants()` lists all the CPU can run).
+Within a library, ulmBLAS picks micro kernel and block sizes by problem
+size from a selection table if there is one for the CPU (Apple M5, Intel
+Ice Lake, Intel Alder Lake, AMD Zen 4); otherwise it uses the default
+kernels of the variant:
 
 | Variant | CPU | Micro kernels (S, D, C, Z) |
 |---|---|---|
@@ -297,12 +298,12 @@ one library per kind of CPU and loads the one for the CPU it runs on
 | `neon` | Apple silicon (M1 and later) | ulmBLAS NEON |
 | `zen4` | AMD with AVX-512 (Zen 4, Zen 5) | OpenBLAS SKYLAKEX (S, C), AOCL zen4 (D, Z) |
 | `skylakex` | Intel with AVX-512 | OpenBLAS SKYLAKEX (S, D, C), AOCL zen4 (Z) |
-| `haswell` | AVX2 and FMA | OpenBLAS HASWELL |
+| `haswell` | AVX2 and FMA | OpenBLAS HASWELL (S, C, Z), ulmBLAS AVX (D) |
 | `x86_64` | other x86-64 | ulmBLAS SSE (D), reference kernels |
 
 The libraries come from
 [ulmBLAS_jll](https://github.com/JuliaBinaryWrappers/ulmBLAS_jll.jl)
-(ulmBLAS v0.3.0, built by
+(ulmBLAS v0.4.1, built by
 [Yggdrasil](https://github.com/JuliaPackaging/Yggdrasil/tree/master/U/ulmBLAS)).
 The choice of kernels follows the
 [benchmark campaigns](https://github.com/michael-lehn/ulmBLAS/tree/master/benchmark_results)
