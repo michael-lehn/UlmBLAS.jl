@@ -76,8 +76,10 @@ AppleAccelerate.jl).
 ## Threads
 
 Since ulmBLAS 0.4.1 the level 3 routines (and GEMV, GER for large
-matrices) run on a thread pool of ulmBLAS (POSIX threads, Windows threads),
-the LAPACK functions on OpenMP tasks.  The number of threads is
+matrices) run on a thread pool of ulmBLAS (POSIX threads, Windows threads).
+`?potrf` (larger matrices) and, from 9 threads on, `?getrf` run on OpenMP
+tasks; `?getrf` on fewer threads uses a lookahead on the thread pool.  The
+number of threads is
 `BLAS.set_num_threads` (after `UlmBLAS.forward()`, which registers
 `ulmblas_set_num_threads` with libblastrampoline), otherwise
 `ULMBLAS_NUM_THREADS` or `OMP_NUM_THREADS`, otherwise the CPUs of the

@@ -77,14 +77,16 @@ println(C ≈ A' * B)                 # should print true
 ```
 
 - LU and Cholesky (`lu`, `cholesky`, `inv`, `\`) come from ulmBLAS if the
-  library has them (`?getrf`, `?potrf`, solves and inverses, with OpenMP
-  tasks).  The rest of LAPACK (`qr`, `eigen`, ...) comes from OpenBLAS and
-  uses OpenBLAS's BLAS internally.
+  library has them (`?getrf`, `?potrf`, solves and inverses).  The rest of
+  LAPACK (`qr`, `eigen`, ...) comes from OpenBLAS and uses OpenBLAS's BLAS
+  internally.
 - Routines ulmBLAS does not have (e.g. `BLAS.gemmt!`, `BLAS.axpby!`) and
   the dot products of `LinearAlgebra.BLAS` keep going to OpenBLAS; see
   [docs/details.md](docs/details.md#routines-that-ulmblas-does-not-provide).
 - Threads: level 3 (and GEMV, GER for large matrices) run on threads of
-  ulmBLAS, the LAPACK functions on OpenMP tasks.  Both take the number of
+  ulmBLAS.  `potrf` (larger matrices) and, from 9 threads on, `getrf` run
+  on OpenMP tasks (as PLASMA); `getrf` on fewer threads uses a lookahead on
+  the threads of ulmBLAS.  All take the number of
   `BLAS.set_num_threads` (`UlmBLAS.forward()` registers the thread
   functions of ulmBLAS with libblastrampoline and keeps the number Julia
   had before).
@@ -103,21 +105,18 @@ in [docs/details.md](docs/details.md).
 
 - Small matrices.  For n up to about 100 these are still slower
   than OpenBLAS, and `lu` and `cholesky` are often called with small
-  matrices.  For this ulmBLAS has to pick kernels and variants by problem
-  size, so the cleanup of its configuration comes first.
-- More LAPACK, PLASMA style (tasks), C++ templates like the rest:
-  - `geqrf` (`qr`).  OpenBLAS has its own versions only of the routines
-    above (plus `laed3`); QR comes from Reference LAPACK.  Tile QR is where
-    PLASMA gains most.
-- Other element types: `Float16`, `BFloat16`, integers (with Julia's
-  wraparound), `Double64`, ...  For these Julia has no BLAS, only its
-  generic code.
-  - First instantiate the ulmBLAS templates with the generic kernels for
-    all of them (GEMM, then `lu`, `cholesky`).  Even without dedicated
-    kernels the blocking should beat a generic loop.
-  - Then dedicated kernels, step by step, with assembly or intrinsics
-    (e.g. FP16 on Apple M and Sapphire Rapids, BF16 on Zen 4, VNNI for
-    `Int8` on Ice Lake).
+  matrices.  ulmBLAS now picks kernels and block sizes by problem size
+  (selection tables); the fixed costs per call and the selection for
+  small problems remain.
+- A complete LAPACK, as OpenBLAS has: Reference LAPACK compiled against
+  ulmBLAS, with ulmBLAS's own `?getrf`, `?potrf`, ... instead of the
+  reference versions.  Then `UlmBLAS.forward()` can replace OpenBLAS
+  completely.  Later, own versions where they gain (e.g. tile QR, where
+  PLASMA gains most).
+- Other element types: `UlmBLAS.mul!` has integers, `Float16` and
+  `BFloat16` now.  Next: `lu` and `cholesky` for them, `Double64`, ...
+  (for these Julia has no BLAS, only its generic code), and dedicated
+  kernels step by step (e.g. FP16 on Sapphire Rapids, BF16 on Zen 4).
 
 ## GEMM with arbitrary strides: `UlmBLAS.mul!`
 
@@ -216,6 +215,10 @@ These need a library of ulmBLAS that has the functions
 error that says so.
 
 ## First Benchmarks
+
+Old: these benchmarks are from UlmBLAS.jl 0.1 (ulmBLAS 0.2.0,
+single-threaded, one fixed micro kernel per variant).  They do not show
+the current state.
 
 - [First Benchmark on my MacBook :-)](benchmark_result/benchmark_001.md)
 - [Second Benchmark on my MacBook :-(](benchmark_result/benchmark_002.md)
