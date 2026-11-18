@@ -40,9 +40,8 @@ jobs:
           version: '1.13'
       - name: recipe
         run: |
-          #  the recipe of ulmBLAS 0.4.1 (Yggdrasil PR); runs once the tag v0.4.1
-          #  exists and TODO-COMMIT is its commit (then update the checksum)
-          echo "5235b071beeaf2305b07fc0facccb00b821011f44ad033510a098fd2b1c51552  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
+          #  the recipe of ulmBLAS 0.4.1 (Yggdrasil PR)
+          echo "4ab33e482911069391040b2d24957b29406e3871ba5d2cbdda9dbb8b8415e8cb  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
           mkdir -p ygg/U/ulmBLAS
           cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
       - name: build

@@ -9,9 +9,8 @@ name = "ulmBLAS"
 version = v"0.4.1"
 
 sources = [
-    # TODO-COMMIT: the commit of the tag v0.4.1 (not created yet)
     GitSource("https://github.com/michael-lehn/ulmBLAS.git",
-              "TODO-COMMIT"; tag="v$(version)"),
+              "c30e37a6fefcd84a21db08a919d7b7f44e89a067"; tag="v$(version)"),
 ]
 
 # One library per instruction set, `libulmblas_VARIANT`, with the BLAS
