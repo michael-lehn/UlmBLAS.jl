@@ -119,16 +119,11 @@ jobs:
       matrix:
         #  macos-15, macos-latest: arm64 with Apple M1 (step "CPU")
         os: [macos-15, macos-latest, ubuntu-latest]
-        version: ['1.9', 'lts', '1']
-        exclude:
-          #  Julia 1.9 does not start on ubuntu-latest (executable stack)
-          - os: ubuntu-latest
-            version: '1.9'
+        #  the oldest supported version (long-term support), current release
+        version: ['1.10', '1']
         include:
-          - os: ubuntu-22.04
-            version: '1.9'
           - os: windows-latest
-            version: 'lts'
+            version: '1.10'
           - os: windows-latest
             version: '1'
     steps:

@@ -42,7 +42,7 @@ Pkg installs prebuilt libraries of ulmBLAS together with the package
   Ubuntu 20.04 and newer): `zen4`, `skylakex`, `haswell`, `x86_64`;
 - Windows on x86-64 (MinGW-w64 build): the same as on Linux.
 
-Julia 1.9 or later.  On other platforms the package prints a warning;
+Julia 1.10 or later.  On other platforms the package prints a warning;
 `UlmBLAS.mul!` and `UlmBLAS.forward()` then raise an error, and Julia
 keeps OpenBLAS.
 
