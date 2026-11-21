@@ -114,10 +114,10 @@ ulmBLAS is faster).  UlmBLAS.jl 0.2.0 (ulmBLAS 0.4.1), Julia 1.13 from
 (0.3.30), November 2026.  Script: [bench/potrf.jl](bench/potrf.jl), all
 results: [bench/results](bench/results) (`2026-11-21-*-potrf.*`).
 
-On all cores ulmBLAS is faster from n = 500 on, on all three machines
-(from n = 200 on on the two Intel machines).  On 1 thread it is faster on
-the M5 and on Ice Lake for the larger matrices, and slower on the
-i5-12500 (see below).
+On all cores ulmBLAS is faster from n = 500 on, on all four machines
+(from n = 200 on on the x86-64 machines).  On 1 thread it is faster on
+the M5 and on Ice Lake for the larger matrices, on par on Zen 4, and
+slower on the i5-12500 (see below).
 
 **Apple M5** (4 performance and 6 efficiency cores), variant `sme`:
 
@@ -142,6 +142,17 @@ i5-12500 (see below).
 | 2000 | 42.6 | 62.5 | 1.47 | 249.3 | 549.3 | 2.20 |
 | 4000 | 58.0 | 72.6 | 1.25 | 458.8 | 812.5 | 1.77 |
 
+**AMD EPYC 9454** (Zen 4, 2 × 48 cores), variant `zen4`:
+
+|    n | OpenBLAS, 1 thread | ulmBLAS, 1 thread |    × | OpenBLAS, 96 threads | ulmBLAS, 96 threads |    × |
+|-----:|-----:|-----:|-----:|------:|------:|-----:|
+|  100 | 15.6 | 15.4 | 0.99 |  15.6 |  15.4 | 0.99 |
+|  200 | 24.1 | 23.7 | 0.98 |  12.4 |  23.9 | 1.92 |
+|  500 | 35.1 | 36.7 | 1.04 |  37.3 |  73.5 | 1.97 |
+| 1000 | 41.4 | 44.5 | 1.07 |  74.6 | 204.0 | 2.74 |
+| 2000 | 46.3 | 47.8 | 1.03 | 198.2 | 502.5 | 2.54 |
+| 4000 | 51.8 | 50.7 | 0.98 | 388.4 | 697.2 | 1.80 |
+
 **Intel Core i5-12500** (6 cores), variant `haswell`:
 
 |    n | OpenBLAS, 1 thread | ulmBLAS, 1 thread |    × | OpenBLAS, 6 threads | ulmBLAS, 6 threads |    × |
@@ -163,7 +174,7 @@ i5-12500 (see below).
 - i5-12500 on 1 thread: `dtrsm` of the variant `haswell` (AVX2) is slower
   than that of OpenBLAS; this is open.
 - The M5 is a MacBook, measured with other programs open; the Ice Lake
-  nodes (bwUniCluster) and the i5-12500 were idle.
+  and Zen 4 nodes (bwUniCluster, whole node) and the i5-12500 were idle.
 - Julia from Homebrew uses Homebrew's OpenBLAS (0.3.34, OpenMP) instead;
   on the M5 that one is slower on several threads (e.g. 4.3 GFLOPS for n
   = 200 on 10 threads), so ulmBLAS is further ahead there

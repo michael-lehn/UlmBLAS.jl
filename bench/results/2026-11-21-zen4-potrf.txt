@@ -1,0 +1,49 @@
+CPU(s):                                  192
+Model name:                              AMD EPYC 9454 48-Core Processor
+Socket(s):                               2
+CPU(s) scaling MHz:                      100%
+CPU: AMD EPYC 9454 48-Core Processor, 192 hardware threads
+Julia 1.13.3, libopenblas64_.so, ulmBLAS: libulmblas_zen4.so
+
+OpenBLAS (dpotrf_ -> OpenBLAS)
+  threads  1  n   100       0.021 ms     15.6 GFLOPS  (residual 0.01)
+  threads  1  n   200       0.111 ms     24.1 GFLOPS  (residual 0.00)
+  threads  1  n   500       1.185 ms     35.1 GFLOPS  (residual 0.00)
+  threads  1  n  1000       8.046 ms     41.4 GFLOPS  (residual 0.00)
+  threads  1  n  2000      57.587 ms     46.3 GFLOPS  (residual 0.00)
+  threads  1  n  4000     411.495 ms     51.8 GFLOPS  (residual 0.00)
+  threads 96  n   100       0.021 ms     15.6 GFLOPS  (residual 0.01)
+  threads 96  n   200       0.215 ms     12.4 GFLOPS  (residual 0.00)
+  threads 96  n   500       1.118 ms     37.3 GFLOPS  (residual 0.00)
+  threads 96  n  1000       4.470 ms     74.6 GFLOPS  (residual 0.00)
+  threads 96  n  2000      13.453 ms    198.2 GFLOPS  (residual 0.00)
+  threads 96  n  4000      54.921 ms    388.4 GFLOPS  (residual 0.00)
+
+ulmBLAS (dpotrf_ -> ulmBLAS)
+  threads  1  n   100       0.022 ms     15.4 GFLOPS  (residual 0.01)
+  threads  1  n   200       0.113 ms     23.7 GFLOPS  (residual 0.00)
+  threads  1  n   500       1.135 ms     36.7 GFLOPS  (residual 0.00)
+  threads  1  n  1000       7.485 ms     44.5 GFLOPS  (residual 0.00)
+  threads  1  n  2000      55.821 ms     47.8 GFLOPS  (residual 0.00)
+  threads  1  n  4000     420.386 ms     50.7 GFLOPS  (residual 0.00)
+  threads 96  n   100       0.022 ms     15.4 GFLOPS  (residual 0.01)
+  threads 96  n   200       0.112 ms     23.9 GFLOPS  (residual 0.00)
+  threads 96  n   500       0.567 ms     73.5 GFLOPS  (residual 0.00)
+  threads 96  n  1000       1.634 ms    204.0 GFLOPS  (residual 0.00)
+  threads 96  n  2000       5.307 ms    502.5 GFLOPS  (residual 0.00)
+  threads 96  n  4000      30.596 ms    697.2 GFLOPS  (residual 0.00)
+
+ulmBLAS / OpenBLAS (time of OpenBLAS / time of ulmBLAS):
+  threads  1  n   100   0.99
+  threads  1  n   200   0.98
+  threads  1  n   500   1.04
+  threads  1  n  1000   1.07
+  threads  1  n  2000   1.03
+  threads  1  n  4000   0.98
+  threads 96  n   100   0.99
+  threads 96  n   200   1.92
+  threads 96  n   500   1.97
+  threads 96  n  1000   2.74
+  threads 96  n  2000   2.54
+  threads 96  n  4000   1.80
+
