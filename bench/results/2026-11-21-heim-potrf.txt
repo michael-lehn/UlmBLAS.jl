@@ -1,0 +1,44 @@
+CPU: 12th Gen Intel(R) Core(TM) i5-12500, 12 hardware threads
+Julia 1.13.4, libopenblas64_.so, ulmBLAS: libulmblas_haswell.so
+
+OpenBLAS (dpotrf_ -> OpenBLAS)
+  threads  1  n   100       0.015 ms     22.1 GFLOPS  (residual 0.01)
+  threads  1  n   200       0.084 ms     31.8 GFLOPS  (residual 0.00)
+  threads  1  n   500       1.012 ms     41.2 GFLOPS  (residual 0.00)
+  threads  1  n  1000       7.125 ms     46.8 GFLOPS  (residual 0.00)
+  threads  1  n  2000      49.952 ms     53.4 GFLOPS  (residual 0.00)
+  threads  1  n  4000     373.878 ms     57.1 GFLOPS  (residual 0.00)
+  threads  6  n   100       0.015 ms     22.0 GFLOPS  (residual 0.01)
+  threads  6  n   200       0.102 ms     26.3 GFLOPS  (residual 0.00)
+  threads  6  n   500       0.474 ms     87.9 GFLOPS  (residual 0.00)
+  threads  6  n  1000       2.283 ms    146.0 GFLOPS  (residual 0.00)
+  threads  6  n  2000      12.018 ms    221.9 GFLOPS  (residual 0.00)
+  threads  6  n  4000      89.272 ms    239.0 GFLOPS  (residual 0.00)
+
+ulmBLAS (dpotrf_ -> ulmBLAS)
+  threads  1  n   100       0.019 ms     17.5 GFLOPS  (residual 0.01)
+  threads  1  n   200       0.105 ms     25.4 GFLOPS  (residual 0.00)
+  threads  1  n   500       1.092 ms     38.1 GFLOPS  (residual 0.00)
+  threads  1  n  1000       8.287 ms     40.2 GFLOPS  (residual 0.00)
+  threads  1  n  2000      55.580 ms     48.0 GFLOPS  (residual 0.00)
+  threads  1  n  4000     445.794 ms     47.9 GFLOPS  (residual 0.00)
+  threads  6  n   100       0.019 ms     17.1 GFLOPS  (residual 0.01)
+  threads  6  n   200       0.071 ms     37.5 GFLOPS  (residual 0.00)
+  threads  6  n   500       0.336 ms    123.8 GFLOPS  (residual 0.00)
+  threads  6  n  1000       1.636 ms    203.8 GFLOPS  (residual 0.00)
+  threads  6  n  2000      10.937 ms    243.8 GFLOPS  (residual 0.00)
+  threads  6  n  4000      80.344 ms    265.5 GFLOPS  (residual 0.00)
+
+ulmBLAS / OpenBLAS (time of OpenBLAS / time of ulmBLAS):
+  threads  1  n   100   0.79
+  threads  1  n   200   0.80
+  threads  1  n   500   0.93
+  threads  1  n  1000   0.86
+  threads  1  n  2000   0.90
+  threads  1  n  4000   0.84
+  threads  6  n   100   0.78
+  threads  6  n   200   1.43
+  threads  6  n   500   1.41
+  threads  6  n  1000   1.40
+  threads  6  n  2000   1.10
+  threads  6  n  4000   1.11

@@ -1,0 +1,62 @@
+CPU: Apple M5, 10 hardware threads
+Julia 1.13.3, libopenblas64_p-r0.3.34.dylib, ulmBLAS: libulmblas_sme.dylib
+
+OpenBLAS (dpotrf_ -> OpenBLAS)
+  threads  1  n   100       0.015 ms     22.7 GFLOPS  (residual 0.01)
+  threads  1  n   200       0.073 ms     36.6 GFLOPS  (residual 0.00)
+  threads  1  n   500       0.885 ms     47.1 GFLOPS  (residual 0.00)
+  threads  1  n  1000       6.237 ms     53.4 GFLOPS  (residual 0.00)
+  threads  1  n  2000      46.977 ms     56.8 GFLOPS  (residual 0.00)
+  threads  1  n  4000     368.137 ms     57.9 GFLOPS  (residual 0.00)
+  threads  4  n   100       0.015 ms     22.7 GFLOPS  (residual 0.01)
+  threads  4  n   200       0.610 ms      4.4 GFLOPS  (residual 0.00)
+  threads  4  n   500       1.762 ms     23.7 GFLOPS  (residual 0.00)
+  threads  4  n  1000       6.922 ms     48.2 GFLOPS  (residual 0.00)
+  threads  4  n  2000      29.068 ms     91.7 GFLOPS  (residual 0.00)
+  threads  4  n  4000     158.615 ms    134.5 GFLOPS  (residual 0.00)
+  threads 10  n   100       0.016 ms     20.4 GFLOPS  (residual 0.01)
+  threads 10  n   200       0.622 ms      4.3 GFLOPS  (residual 0.00)
+  threads 10  n   500       1.632 ms     25.5 GFLOPS  (residual 0.00)
+  threads 10  n  1000       6.641 ms     50.2 GFLOPS  (residual 0.00)
+  threads 10  n  2000      22.026 ms    121.1 GFLOPS  (residual 0.00)
+  threads 10  n  4000     103.541 ms    206.0 GFLOPS  (residual 0.00)
+
+ulmBLAS (dpotrf_ -> ulmBLAS)
+  threads  1  n   100       0.016 ms     21.1 GFLOPS  (residual 0.01)
+  threads  1  n   200       0.080 ms     33.4 GFLOPS  (residual 0.00)
+  threads  1  n   500       0.506 ms     82.3 GFLOPS  (residual 0.00)
+  threads  1  n  1000       2.608 ms    127.8 GFLOPS  (residual 0.00)
+  threads  1  n  2000      15.208 ms    175.3 GFLOPS  (residual 0.00)
+  threads  1  n  4000     100.310 ms    212.7 GFLOPS  (residual 0.00)
+  threads  4  n   100       0.016 ms     20.6 GFLOPS  (residual 0.01)
+  threads  4  n   200       0.075 ms     35.4 GFLOPS  (residual 0.00)
+  threads  4  n   500       0.372 ms    112.1 GFLOPS  (residual 0.00)
+  threads  4  n  1000       1.292 ms    257.9 GFLOPS  (residual 0.00)
+  threads  4  n  2000       8.464 ms    315.0 GFLOPS  (residual 0.00)
+  threads  4  n  4000      60.005 ms    355.5 GFLOPS  (residual 0.00)
+  threads 10  n   100       0.016 ms     20.8 GFLOPS  (residual 0.01)
+  threads 10  n   200       0.081 ms     32.9 GFLOPS  (residual 0.00)
+  threads 10  n   500       0.339 ms    122.8 GFLOPS  (residual 0.00)
+  threads 10  n  1000       1.321 ms    252.4 GFLOPS  (residual 0.00)
+  threads 10  n  2000       7.620 ms    349.9 GFLOPS  (residual 0.00)
+  threads 10  n  4000      53.215 ms    400.9 GFLOPS  (residual 0.00)
+
+ulmBLAS / OpenBLAS (time of OpenBLAS / time of ulmBLAS):
+  threads  1  n   100   0.93
+  threads  1  n   200   0.91
+  threads  1  n   500   1.75
+  threads  1  n  1000   2.39
+  threads  1  n  2000   3.09
+  threads  1  n  4000   3.67
+  threads  4  n   100   0.91
+  threads  4  n   200   8.09
+  threads  4  n   500   4.74
+  threads  4  n  1000   5.36
+  threads  4  n  2000   3.43
+  threads  4  n  4000   2.64
+  threads 10  n   100   1.02
+  threads 10  n   200   7.68
+  threads 10  n   500   4.81
+  threads 10  n  1000   5.03
+  threads 10  n  2000   2.89
+  threads 10  n  4000   1.95

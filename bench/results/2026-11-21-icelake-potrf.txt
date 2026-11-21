@@ -1,0 +1,49 @@
+CPU(s):                                  128
+Model name:                              Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz
+Socket(s):                               2
+CPU(s) scaling MHz:                      34%
+CPU: Intel(R) Xeon(R) Platinum 8358 CPU @ 2.60GHz, 128 hardware threads
+Julia 1.13.3, libopenblas64_.so, ulmBLAS: libulmblas_skylakex.so
+
+OpenBLAS (dpotrf_ -> OpenBLAS)
+  threads  1  n   100       0.024 ms     13.7 GFLOPS  (residual 0.01)
+  threads  1  n   200       0.121 ms     22.1 GFLOPS  (residual 0.00)
+  threads  1  n   500       1.371 ms     30.4 GFLOPS  (residual 0.00)
+  threads  1  n  1000       9.631 ms     34.6 GFLOPS  (residual 0.00)
+  threads  1  n  2000      62.570 ms     42.6 GFLOPS  (residual 0.00)
+  threads  1  n  4000     367.694 ms     58.0 GFLOPS  (residual 0.00)
+  threads 64  n   100       0.024 ms     13.7 GFLOPS  (residual 0.01)
+  threads 64  n   200       0.170 ms     15.6 GFLOPS  (residual 0.00)
+  threads 64  n   500       1.079 ms     38.6 GFLOPS  (residual 0.00)
+  threads 64  n  1000       3.920 ms     85.0 GFLOPS  (residual 0.00)
+  threads 64  n  2000      10.696 ms    249.3 GFLOPS  (residual 0.00)
+  threads 64  n  4000      46.497 ms    458.8 GFLOPS  (residual 0.00)
+
+ulmBLAS (dpotrf_ -> ulmBLAS)
+  threads  1  n   100       0.027 ms     12.2 GFLOPS  (residual 0.01)
+  threads  1  n   200       0.138 ms     19.4 GFLOPS  (residual 0.00)
+  threads  1  n   500       1.396 ms     29.9 GFLOPS  (residual 0.00)
+  threads  1  n  1000       6.952 ms     48.0 GFLOPS  (residual 0.00)
+  threads  1  n  2000      42.639 ms     62.5 GFLOPS  (residual 0.00)
+  threads  1  n  4000     293.847 ms     72.6 GFLOPS  (residual 0.00)
+  threads 64  n   100       0.027 ms     12.1 GFLOPS  (residual 0.01)
+  threads 64  n   200       0.138 ms     19.4 GFLOPS  (residual 0.00)
+  threads 64  n   500       0.483 ms     86.3 GFLOPS  (residual 0.00)
+  threads 64  n  1000       1.439 ms    231.6 GFLOPS  (residual 0.00)
+  threads 64  n  2000       4.855 ms    549.3 GFLOPS  (residual 0.00)
+  threads 64  n  4000      26.255 ms    812.5 GFLOPS  (residual 0.00)
+
+ulmBLAS / OpenBLAS (time of OpenBLAS / time of ulmBLAS):
+  threads  1  n   100   0.89
+  threads  1  n   200   0.88
+  threads  1  n   500   0.98
+  threads  1  n  1000   1.39
+  threads  1  n  2000   1.47
+  threads  1  n  4000   1.25
+  threads 64  n   100   0.89
+  threads 64  n   200   1.24
+  threads 64  n   500   2.24
+  threads 64  n  1000   2.72
+  threads 64  n  2000   2.20
+  threads 64  n  4000   1.77
+

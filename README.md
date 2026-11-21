@@ -101,6 +101,74 @@ OpenBLAS.  To undo it, load OpenBLAS again:
 `BLAS.lbt_forward(OpenBLAS_jll.libopenblas_path; clear=true)`.  Details
 in [docs/details.md](docs/details.md).
 
+## Benchmarks: `cholesky`
+
+`cholesky!` (LAPACK `dpotrf`) of a random symmetric positive definite
+matrix in double precision, with Julia's default (OpenBLAS) and with
+ulmBLAS after `UlmBLAS.forward()`, on 1 thread and on all cores.  GFLOPS
+= n³/3 per second, median of
+[BenchmarkTools](https://github.com/JuliaCI/BenchmarkTools.jl) samples;
+"×" is the time of OpenBLAS divided by the time of ulmBLAS (above 1:
+ulmBLAS is faster).  UlmBLAS.jl 0.2.0 (ulmBLAS 0.4.1), Julia 1.13 from
+[juliaup](https://github.com/JuliaLang/juliaup) with its OpenBLAS
+(0.3.30), November 2026.  Script: [bench/potrf.jl](bench/potrf.jl), all
+results: [bench/results](bench/results) (`2026-11-21-*-potrf.*`).
+
+On all cores ulmBLAS is faster from n = 500 on, on all three machines
+(from n = 200 on on the two Intel machines).  On 1 thread it is faster on
+the M5 and on Ice Lake for the larger matrices, and slower on the
+i5-12500 (see below).
+
+**Apple M5** (4 performance and 6 efficiency cores), variant `sme`:
+
+|    n | OpenBLAS, 1 thread | ulmBLAS, 1 thread |    × | OpenBLAS, 10 threads | ulmBLAS, 10 threads |    × |
+|-----:|-----:|------:|-----:|------:|------:|-----:|
+|  100 | 20.9 |  18.0 | 0.86 |  18.1 |  19.4 | 1.07 |
+|  200 | 33.6 |  31.4 | 0.94 |  43.4 |  36.0 | 0.83 |
+|  500 | 45.9 |  82.0 | 1.79 |  93.1 | 109.1 | 1.17 |
+| 1000 | 51.8 | 134.2 | 2.59 | 161.3 | 219.1 | 1.36 |
+| 2000 | 52.9 | 171.8 | 3.25 | 200.2 | 336.0 | 1.68 |
+| 4000 | 52.8 | 203.5 | 3.85 | 223.4 | 376.3 | 1.68 |
+
+**Intel Xeon Platinum 8358** (Ice Lake, 2 × 32 cores), variant
+`skylakex`:
+
+|    n | OpenBLAS, 1 thread | ulmBLAS, 1 thread |    × | OpenBLAS, 64 threads | ulmBLAS, 64 threads |    × |
+|-----:|-----:|-----:|-----:|------:|------:|-----:|
+|  100 | 13.7 | 12.2 | 0.89 |  13.7 |  12.1 | 0.89 |
+|  200 | 22.1 | 19.4 | 0.88 |  15.6 |  19.4 | 1.24 |
+|  500 | 30.4 | 29.9 | 0.98 |  38.6 |  86.3 | 2.24 |
+| 1000 | 34.6 | 48.0 | 1.39 |  85.0 | 231.6 | 2.72 |
+| 2000 | 42.6 | 62.5 | 1.47 | 249.3 | 549.3 | 2.20 |
+| 4000 | 58.0 | 72.6 | 1.25 | 458.8 | 812.5 | 1.77 |
+
+**Intel Core i5-12500** (6 cores), variant `haswell`:
+
+|    n | OpenBLAS, 1 thread | ulmBLAS, 1 thread |    × | OpenBLAS, 6 threads | ulmBLAS, 6 threads |    × |
+|-----:|-----:|-----:|-----:|------:|------:|-----:|
+|  100 | 22.1 | 17.5 | 0.79 |  22.0 |  17.1 | 0.78 |
+|  200 | 31.8 | 25.4 | 0.80 |  26.3 |  37.5 | 1.43 |
+|  500 | 41.2 | 38.1 | 0.93 |  87.9 | 123.8 | 1.41 |
+| 1000 | 46.8 | 40.2 | 0.86 | 146.0 | 203.8 | 1.40 |
+| 2000 | 53.4 | 48.0 | 0.90 | 221.9 | 243.8 | 1.10 |
+| 4000 | 57.1 | 47.9 | 0.84 | 239.0 | 265.5 | 1.11 |
+
+- How: on 1 thread ulmBLAS factors recursively (`trsm` and `syrk` on
+  halves).  On several threads larger matrices are factored with tasks
+  on tiles, as in [PLASMA](https://github.com/icl-utk-edu/plasma), but in
+  place: no copy of the whole matrix.  The kernels are those of OpenBLAS
+  and BLIS (and own ones for SME), chosen by problem size.
+- n ≤ 200: ulmBLAS is mostly behind (see [TODO](#todo), small
+  matrices).
+- i5-12500 on 1 thread: `dtrsm` of the variant `haswell` (AVX2) is slower
+  than that of OpenBLAS; this is open.
+- The M5 is a MacBook, measured with other programs open; the Ice Lake
+  nodes (bwUniCluster) and the i5-12500 were idle.
+- Julia from Homebrew uses Homebrew's OpenBLAS (0.3.34, OpenMP) instead;
+  on the M5 that one is slower on several threads (e.g. 4.3 GFLOPS for n
+  = 200 on 10 threads), so ulmBLAS is further ahead there
+  (`2026-11-21-m5-homebrew-julia-potrf.*`).
+
 ## TODO
 
 - Small matrices.  For n up to about 100 these are still slower
@@ -108,6 +176,9 @@ in [docs/details.md](docs/details.md).
   matrices.  ulmBLAS now picks kernels and block sizes by problem size
   (selection tables); the fixed costs per call and the selection for
   small problems remain.
+- `dtrsm` on AVX2 CPUs without AVX-512 (variant `haswell`): slower than
+  OpenBLAS's, so `cholesky` on 1 thread is 0.8–0.93 of OpenBLAS there
+  (i5-12500, see [Benchmarks](#benchmarks-cholesky)).
 - A complete LAPACK, as OpenBLAS has: Reference LAPACK compiled against
   ulmBLAS, with ulmBLAS's own `?getrf`, `?potrf`, ... instead of the
   reference versions.  Then `UlmBLAS.forward()` can replace OpenBLAS
