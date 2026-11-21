@@ -25,81 +25,19 @@ C = rand(500, 300) * B;             # dgemm of ulmBLAS
 BLAS.get_config()                   # OpenBLAS and ulmBLAS
 ```
 
-## Installation
+## Contents
 
-```julia
-using Pkg
-Pkg.add("UlmBLAS")
-```
-
-Pkg installs prebuilt libraries of ulmBLAS together with the package
-(ulmBLAS_jll), and the package loads the one for the CPU (see
-[CPU variants](#cpu-variants)):
-
-- macOS on Apple silicon (macOS 11 or later): `neon` (all Apple silicon)
-  and `sme` (Apple M4 and later);
-- Linux on x86-64 (glibc 2.17 or later, as Julia; tested on RHEL 8,
-  Ubuntu 20.04 and newer): `zen4`, `skylakex`, `haswell`, `x86_64`;
-- Windows on x86-64 (MinGW-w64 build): the same as on Linux.
-
-Julia 1.10 or later.  On other platforms the package prints a warning;
-`UlmBLAS.mul!` and `UlmBLAS.forward()` then raise an error, and Julia
-keeps OpenBLAS.
-
-For development, a library built with ulmBLAS replaces the prebuilt ones:
-
-```sh
-git clone https://github.com/michael-lehn/ulmBLAS
-cd ulmBLAS
-make lbt                    # libulmblas_lbt.dylib (macOS) or .so (Linux)
-export ULMBLAS_LIBRARY=$PWD/libulmblas_lbt.dylib
-```
-
-`make lbt ARCHFLAGS=...` selects the micro kernels, e.g.
-`ARCHFLAGS=-mcpu=apple-m4` for SME2.  `ULMBLAS_VARIANT=haswell` (for
-example) selects another of the prebuilt libraries, if the CPU can run it
-(`UlmBLAS.variants()`).
-
-## ulmBLAS as the BLAS of Julia
-
-After `UlmBLAS.forward()` the BLAS calls of `LinearAlgebra` go to ulmBLAS:
-
-```julia
-using LinearAlgebra, UlmBLAS
-
-UlmBLAS.library_path()              # the library in use
-UlmBLAS.forward();
-A = rand(ComplexF32, 100, 100); B = rand(ComplexF32, 100, 100);
-C = similar(A);
-mul!(C, A, B);                      # cgemm of ulmBLAS
-BLAS.gemm!('C', 'N', one(ComplexF32), A, B, zero(ComplexF32), C);
-println(C ≈ A' * B)                 # should print true
-```
-
-- LU and Cholesky (`lu`, `cholesky`, `inv`, `\`) come from ulmBLAS if the
-  library has them (`?getrf`, `?potrf`, solves and inverses).  The rest of
-  LAPACK (`qr`, `eigen`, ...) comes from OpenBLAS and uses OpenBLAS's BLAS
-  internally.
-- Routines ulmBLAS does not have (e.g. `BLAS.gemmt!`, `BLAS.axpby!`) and
-  the dot products of `LinearAlgebra.BLAS` keep going to OpenBLAS; see
-  [docs/details.md](docs/details.md#routines-that-ulmblas-does-not-provide).
-- Threads: level 3 (and GEMV, GER for large matrices) run on threads of
-  ulmBLAS.  `potrf` (larger matrices) and, from 9 threads on, `getrf` run
-  on OpenMP tasks (as PLASMA); `getrf` on fewer threads uses a lookahead on
-  the threads of ulmBLAS.  All take the number of
-  `BLAS.set_num_threads` (`UlmBLAS.forward()` registers the thread
-  functions of ulmBLAS with libblastrampoline and keeps the number Julia
-  had before).
-- `UlmBLAS.forward()` can be called again (no effect).  Call it before
-  starting concurrent BLAS work; see
-  [docs/details.md](docs/details.md#threads) for concurrent calls.
-
-Julia calls BLAS through
-[libblastrampoline](https://github.com/JuliaLinearAlgebra/libblastrampoline);
-`UlmBLAS.forward()` loads the library of ulmBLAS into it, on top of
-OpenBLAS.  To undo it, load OpenBLAS again:
-`BLAS.lbt_forward(OpenBLAS_jll.libopenblas_path; clear=true)`.  Details
-in [docs/details.md](docs/details.md).
+- [Benchmarks: `cholesky`](#benchmarks-cholesky)
+- [Installation](#installation)
+- [ulmBLAS as the BLAS of Julia](#ulmblas-as-the-blas-of-julia)
+- [TODO](#todo)
+- [GEMM with arbitrary strides: `UlmBLAS.mul!`](#gemm-with-arbitrary-strides-ulmblasmul)
+  - [8-bit integers, Float16 and BFloat16](#8-bit-integers-float16-and-bfloat16)
+- [First Benchmarks (old)](#first-benchmarks)
+- [Further Ideas](#further-ideas)
+- [CPU variants](#cpu-variants)
+- [Tests](#tests)
+- [License](#license)
 
 ## Benchmarks: `cholesky`
 
@@ -179,6 +117,82 @@ slower on the i5-12500 (see below).
   on the M5 that one is slower on several threads (e.g. 4.3 GFLOPS for n
   = 200 on 10 threads), so ulmBLAS is further ahead there
   (`2026-11-21-m5-homebrew-julia-potrf.*`).
+
+## Installation
+
+```julia
+using Pkg
+Pkg.add("UlmBLAS")
+```
+
+Pkg installs prebuilt libraries of ulmBLAS together with the package
+(ulmBLAS_jll), and the package loads the one for the CPU (see
+[CPU variants](#cpu-variants)):
+
+- macOS on Apple silicon (macOS 11 or later): `neon` (all Apple silicon)
+  and `sme` (Apple M4 and later);
+- Linux on x86-64 (glibc 2.17 or later, as Julia; tested on RHEL 8,
+  Ubuntu 20.04 and newer): `zen4`, `skylakex`, `haswell`, `x86_64`;
+- Windows on x86-64 (MinGW-w64 build): the same as on Linux.
+
+Julia 1.10 or later.  On other platforms the package prints a warning;
+`UlmBLAS.mul!` and `UlmBLAS.forward()` then raise an error, and Julia
+keeps OpenBLAS.
+
+For development, a library built with ulmBLAS replaces the prebuilt ones:
+
+```sh
+git clone https://github.com/michael-lehn/ulmBLAS
+cd ulmBLAS
+make lbt                    # libulmblas_lbt.dylib (macOS) or .so (Linux)
+export ULMBLAS_LIBRARY=$PWD/libulmblas_lbt.dylib
+```
+
+`make lbt ARCHFLAGS=...` selects the micro kernels, e.g.
+`ARCHFLAGS=-mcpu=apple-m4` for SME2.  `ULMBLAS_VARIANT=haswell` (for
+example) selects another of the prebuilt libraries, if the CPU can run it
+(`UlmBLAS.variants()`).
+
+## ulmBLAS as the BLAS of Julia
+
+After `UlmBLAS.forward()` the BLAS calls of `LinearAlgebra` go to ulmBLAS:
+
+```julia
+using LinearAlgebra, UlmBLAS
+
+UlmBLAS.library_path()              # the library in use
+UlmBLAS.forward();
+A = rand(ComplexF32, 100, 100); B = rand(ComplexF32, 100, 100);
+C = similar(A);
+mul!(C, A, B);                      # cgemm of ulmBLAS
+BLAS.gemm!('C', 'N', one(ComplexF32), A, B, zero(ComplexF32), C);
+println(C ≈ A' * B)                 # should print true
+```
+
+- LU and Cholesky (`lu`, `cholesky`, `inv`, `\`) come from ulmBLAS if the
+  library has them (`?getrf`, `?potrf`, solves and inverses).  The rest of
+  LAPACK (`qr`, `eigen`, ...) comes from OpenBLAS and uses OpenBLAS's BLAS
+  internally.
+- Routines ulmBLAS does not have (e.g. `BLAS.gemmt!`, `BLAS.axpby!`) and
+  the dot products of `LinearAlgebra.BLAS` keep going to OpenBLAS; see
+  [docs/details.md](docs/details.md#routines-that-ulmblas-does-not-provide).
+- Threads: level 3 (and GEMV, GER for large matrices) run on threads of
+  ulmBLAS.  `potrf` (larger matrices) and, from 9 threads on, `getrf` run
+  on OpenMP tasks (as PLASMA); `getrf` on fewer threads uses a lookahead on
+  the threads of ulmBLAS.  All take the number of
+  `BLAS.set_num_threads` (`UlmBLAS.forward()` registers the thread
+  functions of ulmBLAS with libblastrampoline and keeps the number Julia
+  had before).
+- `UlmBLAS.forward()` can be called again (no effect).  Call it before
+  starting concurrent BLAS work; see
+  [docs/details.md](docs/details.md#threads) for concurrent calls.
+
+Julia calls BLAS through
+[libblastrampoline](https://github.com/JuliaLinearAlgebra/libblastrampoline);
+`UlmBLAS.forward()` loads the library of ulmBLAS into it, on top of
+OpenBLAS.  To undo it, load OpenBLAS again:
+`BLAS.lbt_forward(OpenBLAS_jll.libopenblas_path; clear=true)`.  Details
+in [docs/details.md](docs/details.md).
 
 ## TODO
 
