@@ -6,11 +6,11 @@ const YGGDRASIL_DIR = "../.."
 include(joinpath(YGGDRASIL_DIR, "fancy_toys.jl"))
 
 name = "ulmBLAS"
-version = v"0.4.1"
+version = v"0.4.2"
 
 sources = [
     GitSource("https://github.com/michael-lehn/ulmBLAS.git",
-              "c30e37a6fefcd84a21db08a919d7b7f44e89a067"; tag="v$(version)"),
+              "0d1ba02c674998ddd5d711e9781e5207f3c8bde3"; tag="v$(version)"),
 ]
 
 # One library per instruction set, `libulmblas_VARIANT`, with the BLAS
@@ -22,10 +22,10 @@ sources = [
 script = raw"""
 cd ${WORKSPACE}/srcdir/ulmBLAS
 
-# The flags of the backends of the dispatching library
-# (interfaces/blas/dispatch/Makefile; zen4: avx512 with the DGEMM kernel of
-# BLIS for Zen 4).  The macros choose the default micro kernels; on CPUs
-# with a selection table (ulmblas/level3/gemm/tables/) the table chooses.
+# The flags of the backends of the dispatching library (mk/dispatch.mk;
+# zen4: avx512 with the DGEMM kernel of BLIS for Zen 4).  The macros choose
+# the default micro kernels; on CPUs with a selection table
+# (ulmblas/level3/gemm/tables/) the table chooses.
 flags() {
     case $1 in
     neon)     echo "-DULMBLAS_NO_SME";;
@@ -71,9 +71,11 @@ for v in ${variants}; do
         omp="OMPFLAGS=-fopenmp"
         omplibs="OMPLIBS=-fopenmp"
     fi
+    # the objects and archives of the variant in lbt.dir, the library
+    # lbt.lib linked with lbt.link (mk/lbt.mk)
     make -j${nproc} lbt CXX="${CXX}" CC="${CC}" ARCHFLAGS="$(flags ${v})" \
          OPENMP=1 LAPACK=1 "${omp}" "${omplibs}" \
-         BUILD_DIR=${build} LBT_LIB=${build}/libulmblas_${v}.${dlext} LBT_LINK="${link}"
+         lbt.dir=${build} lbt.lib=${build}/libulmblas_${v}.${dlext} lbt.link="${link}"
     install -Dvm 755 ${build}/libulmblas_${v}.${dlext} ${libdir}/libulmblas_${v}.${dlext}
 done
 
