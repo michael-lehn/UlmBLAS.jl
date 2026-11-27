@@ -11,6 +11,7 @@ version = v"0.4.2"
 sources = [
     GitSource("https://github.com/michael-lehn/ulmBLAS.git",
               "0d1ba02c674998ddd5d711e9781e5207f3c8bde3"; tag="v$(version)"),
+    DirectorySource("./bundled"),
 ]
 
 # One library per instruction set, `libulmblas_VARIANT`, with the BLAS
@@ -21,6 +22,8 @@ sources = [
 # variant for the CPU at run time.
 script = raw"""
 cd ${WORKSPACE}/srcdir/ulmBLAS
+# in ulmBLAS after v0.4.2: remove with the next version
+atomic_patch -p1 ${WORKSPACE}/srcdir/patches/xerbla-macos.patch
 
 # The flags of the backends of the dispatching library (mk/dispatch.mk;
 # zen4: avx512 with the DGEMM kernel of BLIS for Zen 4).  The macros choose

@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: JuliaPackaging/Yggdrasil
-          ref: eb233cb0e2940b6b172b61a703ecbac3402f926e
+          ref: 084b9590e81958b42f1e14865e26092754505f26
           path: ygg
           sparse-checkout: .ci/bb1_project
       - uses: julia-actions/setup-julia@v3
@@ -40,10 +40,14 @@ jobs:
           version: '1.13'
       - name: recipe
         run: |
-          #  the recipe of ulmBLAS 0.4.2 (Yggdrasil PR)
-          echo "b4742e40b1135b938ce2622a287a519bc0ef99ba26424b0bd8f1bad86fbfa9a3  pkg/.github/jll-test/ulmBLAS/build_tarballs.jl" | sha256sum -c
-          mkdir -p ygg/U/ulmBLAS
-          cp pkg/.github/jll-test/ulmBLAS/build_tarballs.jl ygg/U/ulmBLAS/
+          #  the recipe of ulmBLAS 0.4.2 and its patch (Yggdrasil PR)
+          cd pkg/.github/jll-test
+          printf '%s  %s\n' \
+              b473e257d63dca5b47ec46fa19423bad0b6ae063605c1156a74c5daaccaaf186 ulmBLAS/build_tarballs.jl \
+              ed4588ecf2bd2622055fa568bdc30cd33597f0261ebb935c1bb4416da7f2e211 ulmBLAS/bundled/patches/xerbla-macos.patch \
+              | sha256sum -c
+          mkdir -p $GITHUB_WORKSPACE/ygg/U
+          cp -R ulmBLAS $GITHUB_WORKSPACE/ygg/U/
       - name: build
         env:
           BINARYBUILDER_AUTOMATIC_APPLE: 'true'
@@ -79,7 +83,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: JuliaPackaging/Yggdrasil
-          ref: eb233cb0e2940b6b172b61a703ecbac3402f926e
+          ref: 084b9590e81958b42f1e14865e26092754505f26
           path: ygg
           sparse-checkout: .ci/bb1_project
       - uses: julia-actions/setup-julia@v3
